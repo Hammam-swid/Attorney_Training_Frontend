@@ -2,12 +2,15 @@ import { createRoutesFromElements, Route, RouterProvider } from "react-router";
 import MainLayout from "./pages/MainLayout";
 import { createBrowserRouter } from "react-router-dom";
 import DashboardPage from "./pages/DashboardPage";
+import ActivitiesPage from "./pages/ActivitiesPage";
 
 const routes = createRoutesFromElements(
   <>
     <Route path="/" element={<MainLayout />}>
       <Route index element={<DashboardPage />} />
-      <Route path="activities" element={<div>Activities</div>} />
+      <Route path="activities" element={<ActivitiesPage />} />
+
+      <Route path="*" element={<h1>هذه الصفحة غير موجودة</h1>} />
     </Route>
   </>
 );
