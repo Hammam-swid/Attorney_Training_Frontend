@@ -42,7 +42,7 @@ export default function AppSidebar() {
           setActLinks(
             res?.data.data.types.map((type) => ({
               label: type.name,
-              to: `/activities?type=${type.id}`,
+              to: `/activities?type=${type.id}&name=${type.name}`,
             }))
           );
         }
@@ -112,7 +112,7 @@ export default function AppSidebar() {
           <SidebarGroupLabel>الأنشطة التدريبية</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {actLinks.map((link) => (
+              {actLinks.map((link, index) => (
                 <SidebarMenuItem key={link.label}>
                   <SidebarMenuButton
                     asChild
@@ -122,7 +122,11 @@ export default function AppSidebar() {
                     <Link to={link.to}>
                       {link.icon && <link.icon />}
                       {/* {link.iconName && <i date-lucide={link.iconName}></i>} */}
-                      <Icon name="notepad-text" />
+                      <Icon
+                        name={
+                          index === 0 ? "notepad-text" : "briefcase-business"
+                        }
+                      />
                       <span>{link.label}</span>
                     </Link>
                   </SidebarMenuButton>
