@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "react-scripts start"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.2",
@@ -25,6 +26,8 @@
     "react-dom": "^18.3.1",
     "react-router": "^6.28.0",
     "react-router-dom": "^6.28.0",
+    "react-scripts": "^5.0.1",
+    "react-toastify": "^11.0.2",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7"
   },
