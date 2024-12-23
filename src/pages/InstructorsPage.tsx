@@ -50,8 +50,13 @@ export default function TrainersPage() {
       try {
         setLoading(true);
 
+        // بناء رابط الاستعلام
+        const searchParam = searchQuery
+          ? `?search=${encodeURIComponent(searchQuery)}`
+          : "";
+
         const [trainersRes, orgsRes] = await Promise.all([
-          axios.get("/api/v1/instructors"),
+          axios.get(`/api/v1/instructors${searchParam}`),
           axios.get("/api/v1/organizations"),
         ]);
 
@@ -65,7 +70,7 @@ export default function TrainersPage() {
     };
 
     fetchData();
-  }, []);
+  }, [searchQuery]);
 
   const handleDeleteConfirm = async () => {
     if (!trainerToDelete) return;
@@ -158,7 +163,7 @@ export default function TrainersPage() {
             type="text"
             placeholder="ابحث عن مدرب..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)} // التحديث التلقائي
             className="max-w-sm"
           />
         </div>
