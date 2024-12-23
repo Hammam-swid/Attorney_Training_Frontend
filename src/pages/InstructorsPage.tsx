@@ -41,6 +41,8 @@ export default function TrainersPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [currentTrainer, setCurrentTrainer] = useState<Trainer | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
+  const [trainerToDelete, setTrainerToDelete] = useState<Trainer | null>(null);
 
   // Fetch trainers and organizations from API
   useEffect(() => {
@@ -65,15 +67,21 @@ export default function TrainersPage() {
     fetchData();
   }, []);
 
-  const handleDelete = async (id: number) => {
+  const handleDeleteConfirm = async () => {
+    if (!trainerToDelete) return;
     try {
-      await axios.delete(`/api/v1/instructors/${id}`);
-      setTrainers(trainers.filter((trainer) => trainer.id !== id));
+      await axios.delete(`/api/v1/instructors/${trainerToDelete.id}`);
+      setTrainers(
+        trainers.filter((trainer) => trainer.id !== trainerToDelete.id)
+      );
+      toast.success("تم حذف المدرب بنجاح");
     } catch (error) {
       console.error("Error deleting trainer:", error);
+    } finally {
+      setShowDeleteConfirm(false);
+      setTrainerToDelete(null);
     }
   };
-
   const handleAddTrainer = async (newTrainer: Trainer) => {
     try {
       const res = await axios.post("/api/v1/instructors", {
@@ -173,15 +181,16 @@ export default function TrainersPage() {
               <TableCell>{trainer.phone}</TableCell>
               <TableCell>
                 {organizations.find((org) => org.id === trainer.organization)
-                  ? organizations.find((org) => org.id === trainer.organization)
-                      ?.name
-                  : "الجهة غير موجودة"}
+                  ?.name || "الجهة غير موجودة"}
               </TableCell>
               <TableCell>
                 <Button
-                  variant="destructive"
                   size="sm"
-                  onClick={() => handleDelete(trainer.id)}
+                  onClick={() => {
+                    setTrainerToDelete(trainer);
+                    setShowDeleteConfirm(true);
+                  }}
+                  variant="destructive"
                   className="ml-2"
                 >
                   حذف
@@ -242,6 +251,17 @@ export default function TrainersPage() {
         pauseOnHover
         draggable
       />
+      {/* نموذج تأكيد الحذف */}
+      {showDeleteConfirm && trainerToDelete && (
+        <DeleteConfirmModal
+          trainer={trainerToDelete}
+          onConfirm={handleDeleteConfirm}
+          onClose={() => {
+            setShowDeleteConfirm(false);
+            setTrainerToDelete(null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -404,6 +424,44 @@ function EditTrainerForm({
             <Button type="submit">تحديث</Button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+// مكون نموذج تأكيد الحذف
+interface DeleteConfirmModalProps {
+  trainer: Trainer;
+  onConfirm: () => void;
+  onClose: () => void;
+}
+
+function DeleteConfirmModal({
+  trainer,
+  onConfirm,
+  onClose,
+}: DeleteConfirmModalProps) {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center rtl">
+      <div className="bg-white p-6 rounded-lg w-96">
+        <h2 className="text-2xl font-bold mb-4">تأكيد الحذف</h2>
+        <p className="mb-6">
+          هل أنت متأكد أنك تريد حذف المدرب{" "}
+          <span className="font-bold">{trainer.name}</span>؟
+        </p>
+        <div className="flex justify-start">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="ml-2"
+          >
+            إلغاء
+          </Button>
+          <Button type="button" variant="destructive" onClick={onConfirm}>
+            حذف
+          </Button>
+        </div>
       </div>
     </div>
   );
