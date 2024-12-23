@@ -39,7 +39,7 @@ interface Activity {
   location: string;
   instructors: Instructor[];
   hours: number;
-  studentsCount: number;
+  traineesCount: number;
   host: string;
   executor: string;
 }
@@ -47,15 +47,16 @@ interface Activity {
 export default function ActivitiesPage() {
   const [searchParams] = useSearchParams();
   const type = searchParams.get("type");
-  const name = searchParams.get("name");
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [page, setPage] = useState<number>(1);
+  const [search, setSearch] = useState<string>("");
 
-  console.log(activities);
+  // console.log(activities);
   useEffect(() => {
     const getActivities = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:3000/api/v1/training-activities/type/${type}`
+          `/api/v1/training-activities/type/${type}?page=${page}&search=${search}`
         );
         // console.log(res.data.data.activities);
         if (res.status === 200)
@@ -69,7 +70,7 @@ export default function ActivitiesPage() {
               location: activity.location,
               instructors: activity.instructors,
               hours: activity.hours,
-              studentsCount: activity.studentsCount,
+              traineesCount: activity.traineesCount,
               host: activity.host,
               executor: activity.executor,
             }))
@@ -79,21 +80,26 @@ export default function ActivitiesPage() {
       }
     };
     getActivities();
-  }, [type]);
+  }, [type, search, page]);
 
   const [status, setStatus] = useState("الكل");
-  console.log(type);
+  // console.log(type);
   return (
     <div className="container mx-auto py-10">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-3xl font-bold">{name}</h1>
+        <h1 className="text-3xl font-bold">{"الأنشطة التدريبية"}</h1>
         <Button className="text-lg">
           <span>إضافة جديد</span>
           <PlusCircle />
         </Button>
       </div>
       <div className="flex items-center justify-between mb-4 mt-4">
-        <Input className="w-96" placeholder="بحث" />
+        <Input
+          className="w-96"
+          placeholder="بحث"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
         <Select value={status} onValueChange={setStatus}>
           <SelectTrigger className="w-64">
             <SelectValue placeholder="الحالة" />
@@ -110,7 +116,7 @@ export default function ActivitiesPage() {
         </Select>
       </div>
       <div>
-        <Table>
+        <Table dir="rtl">
           <TableHeader>
             <TableRow className="*:text-right">
               <TableHead>معرف النشاط</TableHead>
@@ -121,18 +127,19 @@ export default function ActivitiesPage() {
               <TableHead>تاريخ النهاية</TableHead>
               <TableHead>مكان الإقامة</TableHead>
               <TableHead>المدرب/المدربون</TableHead>
-              <TableHead>عدد الطلاب</TableHead>
+              <TableHead>عدد المتدربين</TableHead>
               <TableHead>الجهة المنظمة</TableHead>
               <TableHead>الجهة المنفذة</TableHead>
+              <TableHead>الإجراءات</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
+          <TableBody dir="rtl">
             {activities
               .filter(
                 (activity) => status === "الكل" || status === activity.status
               )
               .map((activity) => (
-                <TableRow key={activity.id}>
+                <TableRow dir="rtl" key={activity.id}>
                   <TableCell>{activity.id}</TableCell>
                   <TableCell dir="rtl">{activity.name}</TableCell>
                   <TableCell>{activity.status}</TableCell>
@@ -157,9 +164,19 @@ export default function ActivitiesPage() {
                       ?.map((instructor) => instructor.name)
                       .join("/")}
                   </TableCell>
-                  <TableCell>{activity.studentsCount}</TableCell>
+                  <TableCell>
+                    {!activity.traineesCount ? (
+                      <span className="text-gray-400">لا يوجد متدربين</span>
+                    ) : (
+                      activity.traineesCount
+                    )}
+                  </TableCell>
                   <TableCell>{activity.host}</TableCell>
                   <TableCell>{activity.executor}</TableCell>
+                  <TableCell className="flex gap-2">
+                    <Button variant={"secondary"}>تعديل</Button>
+                    <Button variant={"destructive"}>حذف</Button>
+                  </TableCell>
                 </TableRow>
               ))}
           </TableBody>

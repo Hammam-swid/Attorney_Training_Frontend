@@ -11,38 +11,38 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import {
-  BriefcaseBusiness,
-  Home,
-  LogOut,
-  NotepadText,
-  Users,
-  Users2,
-} from "lucide-react";
+import { Building, Home, LogOut, Users, Users2 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
 // import { createLucideIcon } from "lucide-react";
 import axios from "axios";
 import Icon from "./ui/Icon";
+import { ActivityType } from "@/types";
+
+interface NavLink {
+  label: string;
+  to: string;
+  iconName?: string;
+}
 
 export default function AppSidebar() {
   const { pathname, search } = useLocation();
   console.log(search);
   const { open } = useSidebar();
-  const [actLinks, setActLinks] = useState([]);
+  const [actLinks, setActLinks] = useState<NavLink[]>([]);
   useEffect(() => {
     const getActionLinks = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:3000/api/v1/activity-types"
+        const res = await axios.get<{ data: { types: ActivityType[] } }>(
+          "/api/v1/activity-types"
         );
-        console.log(res?.data.data.types);
+        // console.log(res?.data.data.types);
         if (res.status === 200) {
           setActLinks(
             res?.data.data.types.map((type) => ({
               label: type.name,
-              to: `/activities?type=${type.id}&name=${type.name}`,
+              to: `/activities?type=${type.id}`,
             }))
           );
         }
@@ -60,25 +60,14 @@ export default function AppSidebar() {
     },
   ];
 
-  // const actLinks = [
-  //   {
-  //     label: "الدورات التدريبية",
-  //     to: "/activities?type=1",
-  //     icon: NotepadText,
-  //     iconName: "notepad-text",
-  //   },
-  //   {
-  //     label: "ورش العمل",
-  //     to: "/activities?type=2",
-  //     icon: BriefcaseBusiness,
-  //   },
-  // ];
-
   const peopleLinks = [
     { label: "المدربون", to: "/instructors", icon: Users2 },
     { label: "المتدربين", to: "/trainees", icon: Users },
   ];
 
+  const organizationLinks = [
+    { label: "الجهات المختصة", to: "/organizations", icon: Building },
+  ];
   // createLucideIcon("notepad-text");
 
   return (
@@ -120,7 +109,6 @@ export default function AppSidebar() {
                     className="transition-colors"
                   >
                     <Link to={link.to}>
-                      {link.icon && <link.icon />}
                       {/* {link.iconName && <i date-lucide={link.iconName}></i>} */}
                       <Icon
                         name={
@@ -141,6 +129,29 @@ export default function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {peopleLinks.map((link) => (
+                <SidebarMenuItem key={link.label}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname + search === link.to}
+                    className="transition-colors"
+                  >
+                    <Link to={link.to}>
+                      {link.icon && <link.icon />}
+                      {/* {link.iconName && <i date-lucide={link.iconName}></i>} */}
+                      <span>{link.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        {/* مجموعة الجهات المختصة */}
+        <SidebarGroup>
+          <SidebarGroupLabel>الجهات المختصة</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {organizationLinks.map((link) => (
                 <SidebarMenuItem key={link.label}>
                   <SidebarMenuButton
                     asChild

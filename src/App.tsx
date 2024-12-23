@@ -6,6 +6,7 @@ import ActivitiesPage from "./pages/ActivitiesPage";
 import LoginPage from "./pages/LoginPage";
 import InstructorsPage from "./pages/InstructorsPage";
 import TraineesPage from "./pages/TraineesPage";
+import OrganizationPage from "./pages/OrganizationPage";
 
 const routes = createRoutesFromElements(
   <>
@@ -15,6 +16,7 @@ const routes = createRoutesFromElements(
       <Route path="activities" element={<ActivitiesPage />} />
       <Route path="instructors" element={<InstructorsPage />} />
       <Route path="trainees" element={<TraineesPage />} />
+      <Route path="organizations" element={<OrganizationPage />} />
 
       <Route path="*" element={<h1>هذه الصفحة غير موجودة</h1>} />
     </Route>

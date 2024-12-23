@@ -8,17 +8,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Organization } from "@/types";
 import axios from "axios";
 import { PlusCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function OrganizationPage() {
-  const [organizations, setOrganizations] = useState([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [page, setPage] = useState<number>(1);
+  const [search, setSearch] = useState<string>("");
   useEffect(() => {
     const getOrganizations = async () => {
       try {
-        const res = await axios.get(`/api/v1/organizations?page=${page}`);
+        const res = await axios.get(
+          `/api/v1/organizations?page=${page}&search=${search}`
+        );
         if (res.status === 200) setOrganizations(res.data.data.organizations);
         console.log(res.data.data);
       } catch (error) {
@@ -27,7 +31,16 @@ export default function OrganizationPage() {
       // console.log(organizations);
     };
     getOrganizations();
-  }, [page]);
+  }, [page, search]);
+
+  const handlePage = (type: string) => {
+    if (type === "prev") {
+      setPage((prev) => prev - 1);
+    } else if (type === "next") {
+      setPage((prev) => prev + 1);
+    }
+  };
+
   return (
     <div className="container mx-auto py-10">
       <div className="flex items-center justify-between mb-4">
@@ -38,21 +51,12 @@ export default function OrganizationPage() {
         </Button>
       </div>
       <div className="flex items-center justify-between mb-4 mt-4">
-        <Input className="w-96" placeholder="بحث" />
-        {/* <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="w-64">
-            <SelectValue placeholder="الحالة" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>الحالة</SelectLabel>
-              <SelectItem value="الكل">الكل</SelectItem>
-              <SelectItem value="نشطة">نشطة</SelectItem>
-              <SelectItem value="مكتملة">مكتملة</SelectItem>
-              <SelectItem value="قيد التجهيز">قيد التجهيز</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select> */}
+        <Input
+          className="w-96"
+          placeholder="بحث"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
       <div>
         <Table className="flex-1">
@@ -84,8 +88,16 @@ export default function OrganizationPage() {
         </Table>
 
         <div className="flex items-center justify-center mt-4 gap-2">
-          <Button variant={"ghost"}>السابق</Button>
-          <Button variant={"ghost"}>التالي</Button>
+          <Button
+            onClick={() => handlePage("prev")}
+            disabled={page <= 1}
+            variant={"ghost"}
+          >
+            السابق
+          </Button>
+          <Button onClick={() => handlePage("next")} variant={"ghost"}>
+            التالي
+          </Button>
         </div>
       </div>
     </div>
