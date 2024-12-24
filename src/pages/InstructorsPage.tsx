@@ -10,15 +10,10 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
+import FormDialog from "../components/FormDialog";
+
 interface Trainer {
   id: number;
   name: string;
@@ -61,7 +56,9 @@ export default function TrainersPage() {
         ]);
 
         setTrainers(trainersRes.data.data.instructors);
+        console.log(trainersRes.data.data.instructors);
         setOrganizations(orgsRes.data.data.organizations);
+        console.log(orgsRes.data.data.organizations);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -233,18 +230,21 @@ export default function TrainersPage() {
         </Button>
       </div>
       {showAddForm && (
-        <AddTrainerForm
-          onAddTrainer={handleAddTrainer}
-          onClose={() => setShowAddForm(false)}
+        <FormDialog
+          title="إضافة مدرب جديد"
+          initialData={{}}
           organizations={organizations}
+          onSubmit={handleAddTrainer}
+          onClose={() => setShowAddForm(false)}
         />
       )}
       {showEditForm && currentTrainer && (
-        <EditTrainerForm
-          trainer={currentTrainer}
-          onEditTrainer={handleEditTrainer}
-          onClose={() => setShowEditForm(false)}
+        <FormDialog
+          title="تعديل بيانات المدرب"
+          initialData={currentTrainer}
           organizations={organizations}
+          onSubmit={handleEditTrainer}
+          onClose={() => setShowEditForm(false)}
         />
       )}
       <ToastContainer
@@ -267,169 +267,6 @@ export default function TrainersPage() {
           }}
         />
       )}
-    </div>
-  );
-}
-
-interface AddTrainerFormProps {
-  onClose: () => void;
-  onAddTrainer: (newTrainer: Trainer) => void;
-  organizations: Organization[];
-}
-
-function AddTrainerForm({
-  onClose,
-  onAddTrainer,
-  organizations,
-}: AddTrainerFormProps) {
-  const [name, setName] = useState<string>("");
-  const [phone, setPhone] = useState<string>("");
-  const [organization, setOrganization] = useState<number | null>(null);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (organization !== null) {
-      onAddTrainer({ id: 0, name, phone, organization });
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center rtl">
-      <div className="bg-white p-6 rounded-lg w-96">
-        <h2 className="text-2xl font-bold mb-4">إضافة مدرب جديد</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <Label htmlFor="name">الاسم</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <Label htmlFor="phone">رقم الهاتف</Label>
-            <Input
-              id="phone"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <Label htmlFor="organization">الجهة المنضمة</Label>
-            <Select
-              onValueChange={(value) => setOrganization(Number(value))}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="اختر الجهة" />
-              </SelectTrigger>
-              <SelectContent>
-                {organizations.map((org) => (
-                  <SelectItem key={org.id} value={String(org.id)}>
-                    {org.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex justify-start">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="ml-2"
-            >
-              إلغاء
-            </Button>
-            <Button type="submit">إضافة</Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-interface EditTrainerFormProps {
-  trainer: Trainer;
-  onEditTrainer: (updatedTrainer: Trainer) => void;
-  onClose: () => void;
-  organizations: Organization[];
-}
-
-function EditTrainerForm({
-  trainer,
-  onEditTrainer,
-  onClose,
-  organizations,
-}: EditTrainerFormProps) {
-  const [name, setName] = useState<string>(trainer.name);
-  const [phone, setPhone] = useState<string>(trainer.phone);
-  const [organization, setOrganization] = useState<number>(
-    trainer.organization
-  );
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onEditTrainer({ ...trainer, name, phone, organization });
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center rtl">
-      <div className="bg-white p-6 rounded-lg w-96">
-        <h2 className="text-2xl font-bold mb-4">تعديل بيانات المدرب</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <Label htmlFor="name">الاسم</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <Label htmlFor="phone">رقم الهاتف</Label>
-            <Input
-              id="phone"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <Label htmlFor="organization">الجهة المنضمة</Label>
-            <Select
-              value={String(organization)}
-              onValueChange={(value) => setOrganization(Number(value))}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="اختر الجهة" />
-              </SelectTrigger>
-              <SelectContent>
-                {organizations.map((org) => (
-                  <SelectItem key={org.id} value={String(org.id)}>
-                    {org.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex justify-start">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="ml-2"
-            >
-              إلغاء
-            </Button>
-            <Button type="submit">تحديث</Button>
-          </div>
-        </form>
-      </div>
     </div>
   );
 }
