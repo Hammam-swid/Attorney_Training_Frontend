@@ -1,3 +1,5 @@
+import AddOrganizationForm from "@/components/AddOrganizationForm";
+import SureModal from "@/components/SureModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,13 +12,30 @@ import {
 } from "@/components/ui/table";
 import { Organization } from "@/types";
 import axios from "axios";
-import { PlusCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Pencil, PlusCircle, Trash } from "lucide-react";
+import { ReactElement, useEffect, useState } from "react";
+
+interface SureModalType {
+  title: string;
+  description: ReactElement;
+  show: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
 
 export default function OrganizationPage() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [page, setPage] = useState<number>(1);
   const [search, setSearch] = useState<string>("");
+  const [sureModal, setSureModal] = useState<SureModalType>({
+    title: "",
+    description: <></>,
+    show: false,
+    onConfirm: () => {},
+    onCancel: () => {},
+  });
+
+  const [showAddForm, setShowAddForm] = useState<boolean>(false);
   useEffect(() => {
     const getOrganizations = async () => {
       try {
@@ -45,10 +64,14 @@ export default function OrganizationPage() {
     <div className="container mx-auto py-10">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-3xl font-bold">الجهات المختصة</h1>
-        <Button className="text-lg">
+        <Button onClick={() => setShowAddForm(true)} className="text-lg">
           <span>إضافة جديد</span>
           <PlusCircle />
         </Button>
+        <AddOrganizationForm
+          show={showAddForm}
+          hideForm={() => setShowAddForm(false)}
+        />
       </div>
       <div className="flex items-center justify-between mb-4 mt-4">
         <Input
@@ -75,17 +98,89 @@ export default function OrganizationPage() {
               <TableRow key={organization.id}>
                 <TableCell>{organization.id}</TableCell>
                 <TableCell dir="rtl">{organization.name}</TableCell>
-                <TableCell>{organization.hostedCount}</TableCell>
-                <TableCell>{organization.executedCount}</TableCell>
-                <TableCell>{organization.instructorsCount}</TableCell>
+                <TableCell>
+                  {organization.hostedCount ? (
+                    organization.hostedCount
+                  ) : (
+                    <span className="text-gray-400 dark:text-gray-600">
+                      لا يوجد أنشطة
+                    </span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {organization.executedCount ? (
+                    organization.executedCount
+                  ) : (
+                    <span className="text-gray-400 dark:text-gray-600">
+                      لا يوجد أنشطة
+                    </span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {organization.instructorsCount ? (
+                    organization.instructorsCount
+                  ) : (
+                    <span className="text-gray-400 dark:text-gray-600">
+                      لا يوجد مدربين
+                    </span>
+                  )}
+                </TableCell>
                 <TableCell className="flex gap-2">
-                  <Button variant={"destructive"}>حذف</Button>
-                  <Button variant={"secondary"}>تعديل</Button>
+                  <Button
+                    onClick={() => {
+                      setSureModal({
+                        title: "حذف الجهة",
+                        description: (
+                          <p>
+                            هل أنت متأكد من حذف{" "}
+                            <span className="font-bold">
+                              {organization.name}
+                            </span>
+                            ؟
+                          </p>
+                        ),
+                        show: true,
+                        onConfirm: () => {
+                          setSureModal({
+                            title: "",
+                            description: <></>,
+                            show: false,
+                            onConfirm: () => {},
+                            onCancel: () => {},
+                          });
+                        },
+                        onCancel: () => {
+                          setSureModal({
+                            title: "",
+                            description: <></>,
+                            show: false,
+                            onConfirm: () => {},
+                            onCancel: () => {},
+                          });
+                        },
+                      });
+                    }}
+                    variant={"destructive"}
+                  >
+                    <span>حذف</span>
+                    <Trash />
+                  </Button>
+                  <Button variant={"secondary"}>
+                    <span>تعديل</span>
+                    <Pencil />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        <SureModal
+          title={sureModal.title}
+          description={sureModal.description}
+          show={sureModal.show}
+          onConfirm={sureModal.onConfirm}
+          onCancel={sureModal.onCancel}
+        />
 
         <div className="flex items-center justify-center mt-4 gap-2">
           <Button

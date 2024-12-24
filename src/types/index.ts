@@ -35,3 +35,14 @@ export interface Organization {
   executedCount?: number;
   instructorsCount?: number;
 }
+
+export interface Trainee {
+  id: number;
+  name: string;
+  phone: string;
+  address: string;
+  employer: string;
+  type: string;
+
+  activityCount: number;
+}

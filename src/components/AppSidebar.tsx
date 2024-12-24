@@ -11,7 +11,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Building, Home, LogOut, Users, Users2 } from "lucide-react";
+import { Building, Home, LogOut, Settings, Users, Users2 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
@@ -169,9 +169,28 @@ export default function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {/* مجموعة الإعدادات */}
+        <SidebarGroup>
+          <SidebarGroupLabel>الإعدادات</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname + search === "/settings"}
+                >
+                  <Link to="/settings">
+                    <Settings />
+                    <span>الإعدادات</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <Button className="hover:bg-red-500">
+        <Button className="hover:bg-red-500 wf">
           {open && <span>تسجيل الخروج</span>}
           <LogOut />
         </Button>
