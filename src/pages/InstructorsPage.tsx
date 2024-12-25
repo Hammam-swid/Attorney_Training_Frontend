@@ -40,13 +40,11 @@ export default function TrainersPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
   const [trainerToDelete, setTrainerToDelete] = useState<Trainer | null>(null);
 
-  // Fetch trainers and organizations from API
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
 
-        // بناء رابط الاستعلام
         const searchParam = searchQuery
           ? `?search=${encodeURIComponent(searchQuery)}`
           : "";
@@ -257,7 +255,6 @@ export default function TrainersPage() {
         pauseOnHover
         draggable
       />
-      {/* نموذج تأكيد الحذف */}
       {showDeleteConfirm && trainerToDelete && (
         <DeleteConfirmModal
           item={trainerToDelete}

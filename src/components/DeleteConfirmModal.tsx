@@ -1,7 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 
-// تعريف أنواع الـ Props للمكون DeleteConfirmModal
 interface DeleteConfirmModalProps<T> {
   item: T;
   itemName: string;
@@ -9,7 +8,6 @@ interface DeleteConfirmModalProps<T> {
   onClose: () => void;
 }
 
-// مكون DeleteConfirmModal العام
 function DeleteConfirmModal<T>({
   item,
   itemName,
