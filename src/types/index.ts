@@ -43,6 +43,5 @@ export interface Trainee {
   address: string;
   employer: string;
   type: string;
-
   activityCount: number;
 }

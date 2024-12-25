@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
-import FormDialog from "../components/FormDialog";
+import FormDialog from "../components/InstructorsFormDialog";
+import DeleteConfirmModal from "../components/DeleteConfirmModal";
 
 interface Trainer {
   id: number;
@@ -259,7 +260,8 @@ export default function TrainersPage() {
       {/* نموذج تأكيد الحذف */}
       {showDeleteConfirm && trainerToDelete && (
         <DeleteConfirmModal
-          trainer={trainerToDelete}
+          item={trainerToDelete}
+          itemName="المدرب"
           onConfirm={handleDeleteConfirm}
           onClose={() => {
             setShowDeleteConfirm(false);
@@ -267,44 +269,6 @@ export default function TrainersPage() {
           }}
         />
       )}
-    </div>
-  );
-}
-
-// مكون نموذج تأكيد الحذف
-interface DeleteConfirmModalProps {
-  trainer: Trainer;
-  onConfirm: () => void;
-  onClose: () => void;
-}
-
-function DeleteConfirmModal({
-  trainer,
-  onConfirm,
-  onClose,
-}: DeleteConfirmModalProps) {
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center rtl">
-      <div className="bg-white p-6 rounded-lg w-96">
-        <h2 className="text-2xl font-bold mb-4">تأكيد الحذف</h2>
-        <p className="mb-6">
-          هل أنت متأكد أنك تريد حذف المدرب{" "}
-          <span className="font-bold">{trainer.name}</span>؟
-        </p>
-        <div className="flex justify-start">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            className="ml-2"
-          >
-            إلغاء
-          </Button>
-          <Button type="button" variant="destructive" onClick={onConfirm}>
-            حذف
-          </Button>
-        </div>
-      </div>
     </div>
   );
 }
