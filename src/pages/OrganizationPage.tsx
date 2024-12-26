@@ -12,8 +12,10 @@ import {
 } from "@/components/ui/table";
 import { Organization } from "@/types";
 import axios from "axios";
+import { FormikHelpers } from "formik";
 import { Pencil, PlusCircle, Trash } from "lucide-react";
 import { ReactElement, useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 interface SureModalType {
   title: string;
@@ -21,6 +23,17 @@ interface SureModalType {
   show: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+}
+
+interface OrganizationFormArgs {
+  title: string;
+  show: boolean;
+  orgName?: string;
+  hideForm: () => void;
+  onSubmit: (
+    values: { name: string },
+    helpers: FormikHelpers<{ name: string }>
+  ) => void;
 }
 
 export default function OrganizationPage() {
@@ -35,7 +48,95 @@ export default function OrganizationPage() {
     onCancel: () => {},
   });
 
-  const [showAddForm, setShowAddForm] = useState<boolean>(false);
+  const [organizationForm, setOrganizationForm] =
+    useState<OrganizationFormArgs>({
+      title: "",
+      show: false,
+      hideForm: () => {},
+      onSubmit: () => {},
+    });
+  const handleForm = (type: string, org?: Organization) => {
+    if (type === "add") {
+      setOrganizationForm({
+        title: "إضافة جهة",
+        show: true,
+        hideForm: () => {
+          setOrganizationForm({
+            title: "",
+            show: false,
+            hideForm: () => {},
+            onSubmit: () => {},
+          });
+        },
+        onSubmit: async (values, helpers) => {
+          try {
+            const res = await axios.post("/api/v1/organizations", values);
+            if (res.status === 201) {
+              setOrganizations([...organizations, res.data.data.organization]);
+              setOrganizationForm({
+                title: "",
+                show: false,
+                hideForm: () => {},
+                onSubmit: () => {},
+              });
+              helpers.resetForm();
+              toast.success("تمت الإضافة بنجاح");
+            }
+          } catch (error) {
+            console.log(error);
+          }
+          console.log(values);
+        },
+      });
+    } else if (type === "edit") {
+      console.log("the org: ", org);
+      setOrganizationForm({
+        title: "تعديل جهة",
+        orgName: org?.name || "",
+        show: true,
+        hideForm: () => {
+          setOrganizationForm({
+            title: "",
+            orgName: "",
+            show: false,
+            hideForm: () => {},
+            onSubmit: () => {},
+          });
+        },
+        onSubmit: async (values, helpers) => {
+          try {
+            const res = await axios.patch(
+              `/api/v1/organizations/${org?.id}`,
+              values
+            );
+            console.log(res);
+            if (res.status === 200) {
+              setOrganizations((prev) =>
+                prev.map((org) =>
+                  org.id === res.data.data.organization.id
+                    ? res.data.data.organization
+                    : org
+                )
+              );
+              setOrganizationForm({
+                title: "",
+                orgName: "",
+                show: false,
+                hideForm: () => {},
+                onSubmit: () => {},
+              });
+              helpers.resetForm();
+              toast.success("تم التعديل بنجاح");
+            }
+          } catch (error) {
+            console.log(error);
+          }
+          console.log(values);
+        },
+      });
+    }
+  };
+
   useEffect(() => {
     const getOrganizations = async () => {
       try {
@@ -64,13 +165,21 @@ export default function OrganizationPage() {
     <div className="container mx-auto py-10">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-3xl font-bold">الجهات المختصة</h1>
-        <Button onClick={() => setShowAddForm(true)} className="text-lg">
+        <Button
+          onClick={() => {
+            handleForm("add");
+          }}
+          className="text-lg"
+        >
           <span>إضافة جديد</span>
           <PlusCircle />
         </Button>
         <AddOrganizationForm
-          show={showAddForm}
-          hideForm={() => setShowAddForm(false)}
+          title={organizationForm.title}
+          show={organizationForm.show}
+          hideForm={organizationForm.hideForm}
+          onSubmit={organizationForm.onSubmit}
+          orgName={organizationForm.orgName}
         />
       </div>
       <div className="flex items-center justify-between mb-4 mt-4">
@@ -140,14 +249,21 @@ export default function OrganizationPage() {
                           </p>
                         ),
                         show: true,
-                        onConfirm: () => {
-                          setSureModal({
-                            title: "",
-                            description: <></>,
-                            show: false,
-                            onConfirm: () => {},
-                            onCancel: () => {},
-                          });
+                        onConfirm: async () => {
+                          try {
+                            const res = await axios.delete(
+                              `/api/v1/organizations/${organization.id}`
+                            );
+                            toast.success("تم حذف الجهة بنجاح");
+                            if (res.status === 204) {
+                              setOrganizations((prev) =>
+                                prev.filter((org) => org.id !== organization.id)
+                              );
+                            }
+                          } catch (error) {
+                            console.log(error);
+                            toast.error("حدث خطأ أثناء حذف الجهة");
+                          }
                         },
                         onCancel: () => {
                           setSureModal({
@@ -165,7 +281,10 @@ export default function OrganizationPage() {
                     <span>حذف</span>
                     <Trash />
                   </Button>
-                  <Button variant={"secondary"}>
+                  <Button
+                    onClick={() => handleForm("edit", organization)}
+                    variant={"secondary"}
+                  >
                     <span>تعديل</span>
                     <Pencil />
                   </Button>

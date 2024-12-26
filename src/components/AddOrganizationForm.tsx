@@ -2,38 +2,37 @@ import { Save, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { useFormik } from "formik";
+import { FormikHelpers, useFormik } from "formik";
 import * as Yup from "yup";
-import axios from "axios";
-import { toast } from "react-toastify";
 
 interface props {
+  title: string;
   show: boolean;
   hideForm: () => void;
+  onSubmit: (
+    values: { name: string },
+    helpers: FormikHelpers<{ name: string }>
+  ) => void;
+  orgName?: string;
 }
 
-export default function AddOrganizationForm({ show, hideForm }: props) {
+export default function AddOrganizationForm({
+  title,
+  show,
+  hideForm,
+  onSubmit,
+  orgName,
+}: props) {
   const formik = useFormik({
     initialValues: {
-      name: "",
+      name: orgName || "",
     },
     validationSchema: Yup.object({
       name: Yup.string().required("يرجى إدخال اسم الجهة"),
     }),
-    onSubmit: async (values, helpers) => {
-      try {
-        const res = await axios.post("/api/v1/organizations", values);
-        if (res.status === 201) {
-          hideForm();
-          helpers.resetForm();
-          toast.success("تمت الإضافة بنجاح");
-        }
-      } catch (error) {
-        console.log(error);
-      }
-      console.log(values);
-    },
+    onSubmit: onSubmit,
   });
+
   return (
     show && (
       <div
@@ -50,7 +49,7 @@ export default function AddOrganizationForm({ show, hideForm }: props) {
         className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center rtl z-50"
       >
         <div className="bg-background p-6 rounded-md w-96 shadow-lg">
-          <h3 className="font-bold text-center text-lg">إضافة منظمة جديدة</h3>
+          <h3 className="font-bold text-center text-lg">{title}</h3>
           <form
             className="flex flex-col gap-2 mt-6"
             onSubmit={formik.handleSubmit}

@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react";
 import { Button } from "./ui/button";
-import { Trash, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 
 interface props {
   title: string;
@@ -32,9 +32,14 @@ export default function SureModal({
           <h3 className="font-bold text-lg text-center mb-2">{title}</h3>
           {description}
           <div className="flex flex-row-reverse gap-2 mt-6">
-            <Button onClick={onConfirm}>
+            <Button
+              onClick={() => {
+                onConfirm();
+                onCancel();
+              }}
+            >
               <span>نعم</span>
-              <Trash />
+              <Check />
             </Button>
             <Button
               className="hover:text-red-500"

@@ -8,9 +8,16 @@ export interface Activity {
   instructors: Instructor[];
   hours: number;
   studentsCount: number;
-  host: string;
-  executor: string;
+
+  host: Organization;
+  executor: Organization;
+
+  hostName: string;
+  executorName: string;
   type: ActivityType;
+
+  traineesCount: number;
+  instructorRating: number;
 }
 
 export interface Instructor {

@@ -19,12 +19,15 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Icon from "./ui/Icon";
 import { ActivityType } from "@/types";
+import dynamicIconImports from "lucide-react/dynamicIconImports";
 
 interface NavLink {
   label: string;
   to: string;
   iconName?: string;
 }
+
+type IconName = keyof typeof dynamicIconImports;
 
 export default function AppSidebar() {
   const { pathname, search } = useLocation();
@@ -43,6 +46,7 @@ export default function AppSidebar() {
             res?.data.data.types.map((type) => ({
               label: type.name,
               to: `/activities?type=${type.id}`,
+              iconName: type.iconName,
             }))
           );
         }
@@ -62,7 +66,7 @@ export default function AppSidebar() {
 
   const peopleLinks = [
     { label: "المدربون", to: "/instructors", icon: Users2 },
-    { label: "المتدربين", to: "/trainees", icon: Users },
+    { label: "المتدربون", to: "/trainees", icon: Users },
   ];
 
   const organizationLinks = [
@@ -101,7 +105,7 @@ export default function AppSidebar() {
           <SidebarGroupLabel>الأنشطة التدريبية</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {actLinks.map((link, index) => (
+              {actLinks.map((link) => (
                 <SidebarMenuItem key={link.label}>
                   <SidebarMenuButton
                     asChild
@@ -110,11 +114,7 @@ export default function AppSidebar() {
                   >
                     <Link to={link.to}>
                       {/* {link.iconName && <i date-lucide={link.iconName}></i>} */}
-                      <Icon
-                        name={
-                          index === 0 ? "notepad-text" : "briefcase-business"
-                        }
-                      />
+                      <Icon name={(link.iconName as IconName) || "notepad-text"} />
                       <span>{link.label}</span>
                     </Link>
                   </SidebarMenuButton>
