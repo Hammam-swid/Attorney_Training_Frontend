@@ -158,9 +158,15 @@ export default function ActivityForm({
             </SelectContent>
           </Select>
           <div className="flex flex-row-reverse gap-2">
-            <Button type="submit">
-              <span>حفظ</span>
-              <Save />
+            <Button disabled={formik.isSubmitting} type="submit">
+              {!formik.isSubmitting ? (
+                <>
+                  <span>حفظ</span>
+                  <Save />
+                </>
+              ) : (
+                <></>
+              )}
             </Button>
             <Button
               className="hover:text-red-500"

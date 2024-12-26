@@ -179,7 +179,19 @@ export default function ActivitiesPage() {
           onSubmit: () => {},
           hideForm: () => {},
         }),
-      onSubmit: () => {},
+      onSubmit: async (values, helpers) => {
+        console.log(values);
+        try {
+          const res = await axios.post("/api/v1/training-activities", values);
+          if (res.status === 201) {
+            toast.success("تمت إضافة نشاط تدريبي بنجاح");
+            helpers.resetForm();
+          }
+        } catch (error) {
+          console.log(error);
+          toast.error("حدث خطأ أثناء عملية الإضافة");
+        }
+      },
     });
   };
   return (

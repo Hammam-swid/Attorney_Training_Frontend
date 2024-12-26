@@ -169,9 +169,9 @@ export default function OrganizationPage() {
           onClick={() => {
             handleForm("add");
           }}
-          className="text-lg"
+          className=""
         >
-          <span>إضافة جديد</span>
+          <span>إضافة جهة جديدة</span>
           <PlusCircle />
         </Button>
         <AddOrganizationForm
