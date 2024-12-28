@@ -13,8 +13,6 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { User, Mail, Lock, Phone, Sun, Moon } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-
 const Settings: React.FC = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [userData, setUserData] = useState({
