@@ -52,7 +52,7 @@ const FormDialog: React.FC<FormDialogProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center rtl">
-      <div className="bg-white p-6 rounded-lg w-96">
+      <div className="bg-background p-6 rounded-lg w-96">
         <h2 className="text-2xl font-bold mb-4">{title}</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
