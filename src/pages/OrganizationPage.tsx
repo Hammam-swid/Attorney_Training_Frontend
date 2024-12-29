@@ -15,7 +15,7 @@ import axios from "axios";
 import { FormikHelpers } from "formik";
 import { Pencil, PlusCircle, Trash } from "lucide-react";
 import { ReactElement, useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 
 interface SureModalType {
   title: string;
@@ -40,6 +40,7 @@ export default function OrganizationPage() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [page, setPage] = useState<number>(1);
   const [search, setSearch] = useState<string>("");
+  const [organizationsCount, setOrganizationsCount] = useState<number>(0);
   const [sureModal, setSureModal] = useState<SureModalType>({
     title: "",
     description: <></>,
@@ -47,7 +48,6 @@ export default function OrganizationPage() {
     onConfirm: () => {},
     onCancel: () => {},
   });
-
   const [organizationForm, setOrganizationForm] =
     useState<OrganizationFormArgs>({
       title: "",
@@ -143,8 +143,11 @@ export default function OrganizationPage() {
         const res = await axios.get(
           `/api/v1/organizations?page=${page}&search=${search}`
         );
-        if (res.status === 200) setOrganizations(res.data.data.organizations);
-        console.log(res.data.data);
+        if (res.status === 200) {
+          setOrganizations(res.data.data.organizations);
+          const count = res?.data?.data?.count;
+          if (count !== organizationsCount) setOrganizationsCount(count);
+        }
       } catch (error) {
         console.log(error);
       }
@@ -191,6 +194,9 @@ export default function OrganizationPage() {
         />
       </div>
       <div>
+        <p className="font-bold text-end">
+          {organizations.length + (page - 1) * 10} \ {organizationsCount}
+        </p>
         <Table className="flex-1">
           <TableHeader>
             <TableRow className="*:text-right">
@@ -309,7 +315,13 @@ export default function OrganizationPage() {
           >
             السابق
           </Button>
-          <Button onClick={() => handlePage("next")} variant={"ghost"}>
+          <Button
+            disabled={
+              organizations.length + (page - 1) * 10 >= organizationsCount
+            }
+            onClick={() => handlePage("next")}
+            variant={"ghost"}
+          >
             التالي
           </Button>
         </div>

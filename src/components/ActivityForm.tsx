@@ -12,7 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Button } from "./ui/button";
-import { PlusCircle, Save, X } from "lucide-react";
+import { LoaderCircle, PlusCircle, Save, X } from "lucide-react";
 
 interface FormValues {
   title: string;
@@ -165,7 +165,7 @@ export default function ActivityForm({
                   <Save />
                 </>
               ) : (
-                <></>
+                <LoaderCircle className="animate-spin" />
               )}
             </Button>
             <Button

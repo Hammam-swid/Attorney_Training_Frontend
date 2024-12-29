@@ -17,14 +17,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil, PlusCircle, Trash } from "lucide-react";
+import {
+  Pencil,
+  PlusCircle,
+  Trash,
+  UserPlus2,
+  UsersIcon,
+} from "lucide-react";
 import { ReactElement, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 // import jsLingua from "jslingua";
 import axios from "axios";
 import { Activity, ActivityType } from "@/types";
 import SureModal from "@/components/SureModal";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import ActivityForm from "@/components/ActivityForm";
 import { FormikHelpers } from "formik";
 
@@ -54,6 +60,7 @@ export default function ActivitiesPage() {
   const [page, setPage] = useState<number>(1);
   const [search, setSearch] = useState<string>("");
   const [activityType, setActivityType] = useState<ActivityType | null>(null);
+  const [activityCount, setActivityCount] = useState<number>(0);
 
   const [sureModal, setSureModal] = useState<SureModalType>({
     title: "",
@@ -101,7 +108,7 @@ export default function ActivitiesPage() {
           `/api/v1/training-activities/type/${typeId}?page=${page}&search=${search}`
         );
         // console.log(res.data.data.activities);
-        if (res.status === 200)
+        if (res.status === 200) {
           setActivities(
             res?.data.data.activities.map((activity: Activity) => ({
               id: activity.id,
@@ -117,11 +124,15 @@ export default function ActivitiesPage() {
               executor: activity.executor,
             }))
           );
+          const count = res?.data?.data?.count;
+          if (count !== activityCount) setActivityCount(count);
+        }
       } catch (error) {
         console.log(error);
       }
     };
     getActivities();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [typeId, search, page]);
 
   const [status, setStatus] = useState("الكل");
@@ -137,12 +148,20 @@ export default function ActivitiesPage() {
   const deleteActivity = async (id: number) => {
     try {
       const res = await axios.delete(`/api/v1/training-activities/${id}`);
-      if (res.status === 200) {
+      if (res.status === 204) {
         setActivities((prev) => prev.filter((activity) => activity.id !== id));
         toast.success("تم حذف النشاط بنجاح");
+        setSureModal({
+          description: <>تم حذف النشاط بنجاح</>,
+          show: false,
+          title: "",
+          onCancel: () => {},
+          onConfirm: () => {},
+        });
       }
     } catch (error) {
       console.log(error);
+      toast.error("حدث خطأ أثناء حذف النشاط");
     }
   };
   const handleEdit = (activity: Activity) => {
@@ -160,7 +179,30 @@ export default function ActivitiesPage() {
           onSubmit: () => {},
           hideForm: () => {},
         }),
-      onSubmit: () => {},
+      onSubmit: async (values, helpers) => {
+        console.log(values);
+        try {
+          const res = await axios.patch(
+            `/api/v1/training-activities/${activity.id}`,
+            values
+          );
+          if (res.status === 200) {
+            toast.success("تم تعديل النشاط بنجاح");
+            helpers.resetForm();
+            setActivityForm({
+              ...activityForm,
+              show: false,
+              title: "",
+              activity: undefined,
+              onSubmit: () => {},
+              hideForm: () => {},
+            });
+          }
+        } catch (error) {
+          console.log(error);
+          toast.error("حدث خطأ أثناء تعديل النشاط");
+        }
+      },
     });
   };
 
@@ -228,6 +270,9 @@ export default function ActivitiesPage() {
         </Select>
       </div>
       <div>
+        <p className="text-end font-bold">
+          {activities.length + (page - 1) * 10} \ {activityCount}
+        </p>
         <Table dir="rtl">
           <TableHeader>
             <TableRow className="*:text-right">
@@ -295,13 +340,33 @@ export default function ActivitiesPage() {
                   <TableCell>{activity.executor.name}</TableCell>
                   <TableCell className="flex gap-2">
                     <Button
+                      variant={"secondary"}
+                      size={"icon"}
+                      className="hover:bg-primary hover:text-primary-foreground"
+                      title="إضافة مدرب"
+                    >
+                      <UserPlus2 />
+                    </Button>
+                    <Button
+                      variant={"secondary"}
+                      size={"icon"}
+                      className="hover:bg-primary hover:text-primary-foreground"
+                      title="إضافة متدرب"
+                    >
+                      <UsersIcon />
+                    </Button>
+                    <Button
+                      size={"icon"}
                       onClick={() => handleEdit(activity)}
                       variant={"secondary"}
+                      className="hover:bg-primary hover:text-primary-foreground"
+                      title="تعديل"
                     >
-                      <span>تعديل</span>
                       <Pencil />
                     </Button>
                     <Button
+                      title="حذف"
+                      size={"icon"}
                       onClick={() =>
                         setSureModal({
                           description: (
@@ -326,7 +391,6 @@ export default function ActivitiesPage() {
                       }
                       variant={"destructive"}
                     >
-                      <span>حذف</span>
                       <Trash />
                     </Button>
                   </TableCell>
@@ -361,7 +425,11 @@ export default function ActivitiesPage() {
           >
             السابق
           </Button>
-          <Button onClick={() => handlePage("next")} variant={"ghost"}>
+          <Button
+            disabled={activities.length + (page - 1) * 10 >= activityCount}
+            onClick={() => handlePage("next")}
+            variant={"ghost"}
+          >
             التالي
           </Button>
         </div>

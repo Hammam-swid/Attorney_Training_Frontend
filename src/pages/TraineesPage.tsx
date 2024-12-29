@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import axios from "axios";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-hot-toast";
 import FormDialog from "../components/TraineeFormDialog";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
 interface Trainee {
@@ -225,7 +225,7 @@ export default function TraineesPage() {
           onClose={() => setShowEditForm(false)}
         />
       )}
-      <ToastContainer
+      {/* <ToastContainer
         position="top-right"
         rtl={true}
         autoClose={5000}
@@ -233,7 +233,7 @@ export default function TraineesPage() {
         closeOnClick
         pauseOnHover
         draggable
-      />
+      /> */}
       {showDeleteConfirm && traineeToDelete && (
         <DeleteConfirmModal
           item={traineeToDelete}
