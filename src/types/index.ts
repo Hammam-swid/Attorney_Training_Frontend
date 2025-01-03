@@ -26,6 +26,7 @@ export interface Instructor {
   email: string;
   phone: string;
 
+  rating: number;
   avgRating: number;
 }
 export interface ActivityType {

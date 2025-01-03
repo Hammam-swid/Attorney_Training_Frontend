@@ -12,7 +12,12 @@ import {
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Button } from "./ui/button";
-import { LoaderCircle, PlusCircle, Save, X } from "lucide-react";
+import { CalendarIcon, LoaderCircle, PlusCircle, Save, X } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { Calendar } from "./ui/calendar";
+import AddOrganizationForm from "./AddOrganizationForm";
 
 interface FormValues {
   title: string;
@@ -32,6 +37,17 @@ interface props {
   onSubmit: (values: FormValues, helpers: FormikHelpers<FormValues>) => void;
   activity?: Activity;
   activityTypeId: number;
+}
+
+interface OrganizationFormArgs {
+  title: string;
+  show: boolean;
+  orgName?: string;
+  hideForm: () => void;
+  onSubmit: (
+    values: { name: string },
+    helpers: FormikHelpers<{ name: string }>
+  ) => void;
 }
 
 export default function ActivityForm({
@@ -55,6 +71,14 @@ export default function ActivityForm({
     };
     getOrganizations();
   }, []);
+
+  const [organizationForm, setOrganizationForm] =
+    useState<OrganizationFormArgs>({
+      title: "إضافة منظمة",
+      show: false,
+      hideForm: () => {},
+      onSubmit: () => {},
+    });
   const formik = useFormik({
     initialValues: {
       title: activity?.name || "",
@@ -105,11 +129,69 @@ export default function ActivityForm({
             value={formik.values.location}
             onChange={formik.handleChange}
           />
+          {/* تاريخ البدء */}
           <Label htmlFor="startDate">تاريخ البدء</Label>
-          <Input type="date" id="startDate" name="startDate" />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                id="startDate"
+                variant={"outline"}
+                className={cn(
+                  "justify-start text-start",
+                  !formik.values.startDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {formik.values.startDate ? (
+                  format(formik.values.startDate, "dd/MM/yyyy")
+                ) : (
+                  <span>اختر تاريخ البداية</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={formik.values.startDate}
+                onSelect={(date) => {
+                  formik.setFieldValue("startDate", date);
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
 
+          {/* تاريخ الانتهاء */}
           <Label htmlFor="endDate">تاريخ الانتهاء</Label>
-          <Input type="date" id="endDate" name="endDate" />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                id="endDate"
+                variant={"outline"}
+                className={cn(
+                  "justify-start text-start",
+                  !formik.values.endDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {formik.values.endDate ? (
+                  format(formik.values.endDate, "dd/MM/yyyy")
+                ) : (
+                  <span>اختر تاريخ الانتهاء</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={formik.values.endDate}
+                onSelect={(date) => {
+                  formik.setFieldValue("endDate", date);
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
 
           <Label htmlFor="hostId">الجهة المنظمة</Label>
           <div className="flex gap-2">
@@ -131,10 +213,33 @@ export default function ActivityForm({
                 ))}
               </SelectContent>
             </Select>
-            <Button type="button">
+            <Button
+              onClick={() =>
+                setOrganizationForm({
+                  title: "إضافة جهة جديدة",
+                  show: true,
+                  onSubmit: (values, helpers) => {},
+                  hideForm: () => {
+                    setOrganizationForm({
+                      title: "إضافة جهة جديدة",
+                      show: false,
+                      onSubmit: () => {},
+                      hideForm: () => {},
+                    });
+                  },
+                })
+              }
+              type="button"
+            >
               <span>إضافة</span>
               <PlusCircle />
             </Button>
+            <AddOrganizationForm
+              hideForm={organizationForm.hideForm}
+              show={organizationForm.show}
+              title="إضافة جهة جديدة"
+              onSubmit={organizationForm.onSubmit}
+            />
           </div>
           <Label htmlFor="executorId">الجهة المنفذة</Label>
           <Select

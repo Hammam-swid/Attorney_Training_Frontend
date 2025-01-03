@@ -83,3 +83,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+.multi-select * {
+  @apply bg-background;
+  direction: rtl;
+}

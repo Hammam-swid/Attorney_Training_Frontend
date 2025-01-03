@@ -1,4 +1,11 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   BookOpen,
@@ -9,6 +16,8 @@ import {
   PlusCircle,
   Trash,
   Pencil,
+  User2,
+  Building,
 } from "lucide-react";
 import {
   ChartContainer,
@@ -30,6 +39,9 @@ import axios from "axios";
 import { ActivityType, Instructor } from "@/types";
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/Icon";
+import dynamicIconImports from "lucide-react/dynamicIconImports";
+
+type IconName = keyof typeof dynamicIconImports;
 
 // Mock data
 const courseData = [
@@ -58,6 +70,7 @@ export default function DashboardPage() {
   const [top5Instructors, setTop5Instructors] = useState<Instructor[]>([]);
 
   const [Types, setTypes] = useState<ActivityType[]>([]);
+  const [activitiesPerMonth, setActivitiesPerMonth] = useState([]);
   useEffect(() => {
     const fetchStatistics = async () => {
       try {
@@ -98,9 +111,10 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchActivityPerType = async () => {
       try {
-        const response = await axios.get(
-          "/api/v1/statistics/activity-per-type"
-        );
+        const response = await axios.get<
+          undefined,
+          { data: { data: { types: ActivityType[] } }; status: number }
+        >("/api/v1/statistics/activity-per-type");
         if (response.status === 200) {
           setTypes(
             response.data.data.types.map((type, index) => ({
@@ -114,6 +128,23 @@ export default function DashboardPage() {
       }
     };
     fetchActivityPerType();
+  }, []);
+
+  useEffect(() => {
+    const fetchActivitiesPerMonth = async () => {
+      try {
+        const response = await axios.get(
+          "/api/v1/statistics/activity-per-month"
+        );
+        console.log("data from activity per month", response.data);
+        if (response.status === 200) {
+          setActivitiesPerMonth(response.data.data.activitiesPerMonth);
+        }
+      } catch (error) {
+        console.error("Error fetching activities per month:", error);
+      }
+    };
+    fetchActivitiesPerMonth();
   }, []);
 
   return (
@@ -160,7 +191,7 @@ export default function DashboardPage() {
             <CardTitle className="text-sm font-medium">
               إجمالي المدربين
             </CardTitle>
-            <UserCheck className="h-4 w-4 text-muted-foreground" />
+            <User2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -177,7 +208,7 @@ export default function DashboardPage() {
             <CardTitle className="text-sm font-medium">
               عدد الجهات المختصة
             </CardTitle>
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
+            <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -209,7 +240,14 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart data={Types}>
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Pie dataKey="activities" nameKey="name" data={Types} legendType="plainline" label labelLine={false}/>
+                  <Pie
+                    dataKey="activities"
+                    nameKey="name"
+                    data={Types}
+                    legendType="plainline"
+                    label
+                    labelLine={false}
+                  />
                   <ChartLegend />
                 </PieChart>
               </ResponsiveContainer>
@@ -223,23 +261,28 @@ export default function DashboardPage() {
           <CardContent>
             <ChartContainer
               config={{
-                courses: {
-                  label: "Courses",
+                activities: {
+                  label: "الأنشطة التدريبية",
                   color: "hsl(var(--chart-1))",
                 },
               }}
               className="w-full"
             >
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={courseData}>
-                  <XAxis dataKey="month" />
-                  <YAxis />
+                <BarChart data={activitiesPerMonth}>
+                  <XAxis dataKey="month" name="month" />
+                  <YAxis dataKey={"activities"} name="activities" />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="courses" fill="var(--color-courses)" />
+                  <Bar dataKey="activities" fill="var(--color-activities)" />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
           </CardContent>
+          <CardFooter>
+            <CardDescription className="text-xs text-gray-400 dark:text-gray-600">
+              هذا البيانات مبنية على أساس تاريخ بداية كل نشاط
+            </CardDescription>
+          </CardFooter>
         </Card>
       </div>
 
@@ -288,7 +331,7 @@ export default function DashboardPage() {
                       alt={type.name}
                     />
                     <AvatarFallback>
-                      <Icon name={type.iconName} />
+                      <Icon name={type.iconName as IconName} />
                     </AvatarFallback>
                   </Avatar>
                   <div className="ms-4 space-y-1">

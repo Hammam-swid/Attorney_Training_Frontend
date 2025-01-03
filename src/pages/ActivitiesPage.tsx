@@ -17,13 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Pencil,
-  PlusCircle,
-  Trash,
-  UserPlus2,
-  UsersIcon,
-} from "lucide-react";
+import { Pencil, PlusCircle, Trash, UserPlus2, UsersIcon } from "lucide-react";
 import { ReactElement, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 // import jsLingua from "jslingua";
@@ -33,6 +27,8 @@ import SureModal from "@/components/SureModal";
 import { toast } from "react-hot-toast";
 import ActivityForm from "@/components/ActivityForm";
 import { FormikHelpers } from "formik";
+import ActivityTraineesDialog from "@/components/ActivityTraineesDialog";
+import InstructorActivityDialog from "@/components/InstructorActivityDialog";
 
 interface SureModalType {
   title: string;
@@ -61,6 +57,9 @@ export default function ActivitiesPage() {
   const [search, setSearch] = useState<string>("");
   const [activityType, setActivityType] = useState<ActivityType | null>(null);
   const [activityCount, setActivityCount] = useState<number>(0);
+  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(
+    null
+  );
 
   const [sureModal, setSureModal] = useState<SureModalType>({
     title: "",
@@ -343,15 +342,16 @@ export default function ActivitiesPage() {
                       variant={"secondary"}
                       size={"icon"}
                       className="hover:bg-primary hover:text-primary-foreground"
-                      title="إضافة مدرب"
+                      title={activityType?.instructorName || "المدرب/المدربون"}
                     >
                       <UserPlus2 />
                     </Button>
                     <Button
+                      onClick={() => setSelectedActivity(activity)}
                       variant={"secondary"}
                       size={"icon"}
                       className="hover:bg-primary hover:text-primary-foreground"
-                      title="إضافة متدرب"
+                      title="قائمة المتدربين"
                     >
                       <UsersIcon />
                     </Button>
@@ -416,6 +416,14 @@ export default function ActivitiesPage() {
             activity={activityForm.activity}
           />
         )}
+
+        {selectedActivity?.id && (
+          <ActivityTraineesDialog
+            activityId={selectedActivity.id}
+            onClose={() => setSelectedActivity(null)}
+          />
+        )}
+        <InstructorActivityDialog />
 
         <div className="flex items-center justify-center mt-4 gap-2">
           <Button
