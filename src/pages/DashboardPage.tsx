@@ -10,8 +10,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   BookOpen,
   Users,
-  GraduationCap,
-  UserCheck,
   LoaderCircle,
   PlusCircle,
   Trash,
@@ -43,21 +41,6 @@ import dynamicIconImports from "lucide-react/dynamicIconImports";
 
 type IconName = keyof typeof dynamicIconImports;
 
-// Mock data
-const courseData = [
-  { month: "يناير", courses: 10 },
-  { month: "فبراير", courses: 15 },
-  { month: "مارس", courses: 20 },
-  { month: "أبريل", courses: 25 },
-  { month: "مايو", courses: 30 },
-  { month: "يونيو", courses: 35 },
-  { month: "يوليو", courses: 40 },
-  { month: "أغسطس", courses: 45 },
-  { month: "سبتمبر", courses: 50 },
-  { month: "أكتوبر", courses: 55 },
-  { month: "نوفمبر", courses: 60 },
-  { month: "ديسمبر", courses: 65 },
-];
 
 export default function DashboardPage() {
   const [statistics, setStatistics] = useState({
@@ -331,7 +314,13 @@ export default function DashboardPage() {
                       alt={type.name}
                     />
                     <AvatarFallback>
-                      <Icon name={type.iconName as IconName} />
+                      <Icon
+                        name={
+                          type.iconName
+                            ? (type.iconName as IconName)
+                            : "notepad-text"
+                        }
+                      />
                     </AvatarFallback>
                   </Avatar>
                   <div className="ms-4 space-y-1">
