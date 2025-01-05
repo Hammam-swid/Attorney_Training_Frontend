@@ -57,9 +57,10 @@ export default function ActivitiesPage() {
   const [search, setSearch] = useState<string>("");
   const [activityType, setActivityType] = useState<ActivityType | null>(null);
   const [activityCount, setActivityCount] = useState<number>(0);
-  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(
-    null
-  );
+  const [selectedActivityForTrainee, setSelectedActivityForTrainee] =
+    useState<Activity | null>(null);
+  const [selectedActivityForInstructor, setSelectedActivityForInstructor] =
+    useState<Activity | null>(null);
 
   const [sureModal, setSureModal] = useState<SureModalType>({
     title: "",
@@ -339,6 +340,7 @@ export default function ActivitiesPage() {
                   <TableCell>{activity.executor.name}</TableCell>
                   <TableCell className="flex gap-2">
                     <Button
+                      onClick={() => setSelectedActivityForInstructor(activity)}
                       variant={"secondary"}
                       size={"icon"}
                       className="hover:bg-primary hover:text-primary-foreground"
@@ -347,7 +349,7 @@ export default function ActivitiesPage() {
                       <UserPlus2 />
                     </Button>
                     <Button
-                      onClick={() => setSelectedActivity(activity)}
+                      onClick={() => setSelectedActivityForTrainee(activity)}
                       variant={"secondary"}
                       size={"icon"}
                       className="hover:bg-primary hover:text-primary-foreground"
@@ -417,13 +419,18 @@ export default function ActivitiesPage() {
           />
         )}
 
-        {selectedActivity?.id && (
+        {selectedActivityForTrainee?.id && (
           <ActivityTraineesDialog
-            activityId={selectedActivity.id}
-            onClose={() => setSelectedActivity(null)}
+            activityId={selectedActivityForTrainee.id}
+            onClose={() => setSelectedActivityForTrainee(null)}
           />
         )}
-        <InstructorActivityDialog />
+        {selectedActivityForInstructor?.id && (
+          <InstructorActivityDialog
+            activityId={selectedActivityForInstructor.id}
+            onClose={() => setSelectedActivityForInstructor(null)}
+          />
+        )}
 
         <div className="flex items-center justify-center mt-4 gap-2">
           <Button

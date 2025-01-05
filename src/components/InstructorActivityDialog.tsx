@@ -17,10 +17,12 @@ import { MultiSelect } from "react-multi-select-component";
 
 interface InstructorActivityDialogProps {
   activityId: number;
+  onClose: () => void;
 }
 
 export default function InstructorActivityDialog({
   activityId = 1,
+  onClose,
 }: InstructorActivityDialogProps) {
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [allInstructors, setAllInstructors] = useState<
@@ -29,7 +31,7 @@ export default function InstructorActivityDialog({
   const [selectedInstructors, setSelectedInstructors] = useState<
     { label: string; value: number }[]
   >([]);
-  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<Instructor | null>(null);
 
   useEffect(() => {
     const fetchInstructors = async () => {
@@ -66,7 +68,43 @@ export default function InstructorActivityDialog({
   }, [activityId]);
   console.log(instructors);
 
-  const closeDialog = () => {};
+  const addInstructor = async () => {
+    try {
+      const { data } = await axios.post(
+        `/api/v1/training-activities/${activityId}/instructor`,
+        {
+          instructorIds: selectedInstructors.map(
+            (instructor) => instructor.value
+          ),
+        }
+      );
+      console.log(data);
+      setInstructors((prev) => [
+        ...prev.filter((i) => instructors.some((s) => s.id !== i.id)),
+        ...data.data.instructors,
+      ]);
+      setSelectedInstructors([]);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const deleteInstructor = async (instructor: Instructor) => {
+    const { data } = await axios.delete(
+      `/api/v1/training-activities/${activityId}/instructor`,
+      { data: { instructorId: instructor.id } }
+    );
+    console.log(data);
+    setInstructors((prev) => prev.filter((i) => i.id !== instructor.id));
+  };
+
+  const closeDialog = () => {
+    onClose();
+    setIsEditing(null);
+    setSelectedInstructors([]);
+    setAllInstructors([]);
+    setInstructors([]);
+  };
   return (
     <div
       onClick={(
@@ -98,8 +136,12 @@ export default function InstructorActivityDialog({
                   <TableCell className="font-medium">{instructor.id}</TableCell>
                   <TableCell>{instructor.name}</TableCell>
                   <TableCell>
-                    {!isEditing ? (
-                      instructor.rating.toFixed(2)
+                    {!isEditing || isEditing.id !== instructor.id ? (
+                      instructor.rating ? (
+                        instructor.rating?.toFixed(2)
+                      ) : (
+                        <span className="text-gray-500">لا يوجد تقييم</span>
+                      )
                     ) : (
                       <span className="relative">
                         <Input className="w-20" value={instructor.rating} />
@@ -107,7 +149,7 @@ export default function InstructorActivityDialog({
                           size={"icon"}
                           variant={"ghost"}
                           className="absolute left-0 top-0"
-                          onClick={() => setIsEditing(false)}
+                          onClick={() => setIsEditing(null)}
                         >
                           <X />
                         </Button>
@@ -119,17 +161,21 @@ export default function InstructorActivityDialog({
                       size={"icon"}
                       variant={"outline"}
                       onClick={() => {
-                        setIsEditing(!isEditing);
+                        setIsEditing(instructor);
                       }}
                       className="hover:bg-primary hover:text-primary-foreground"
                     >
-                      {!isEditing ? <Edit /> : <Check />}
+                      {!isEditing || isEditing.id !== instructor.id ? (
+                        <Edit />
+                      ) : (
+                        <Check />
+                      )}
                     </Button>
                     <Button
                       size={"icon"}
                       variant={"destructive"}
                       onClick={() => {
-                        console.log("delete");
+                        deleteInstructor(instructor);
                       }}
                     >
                       <Trash />
@@ -147,7 +193,7 @@ export default function InstructorActivityDialog({
           />
         </CardContent>
         <CardFooter className="flex flex-row-reverse gap-2">
-          <Button>
+          <Button onClick={() => addInstructor()}>
             <span>إضافة</span>
             <Plus />
           </Button>
