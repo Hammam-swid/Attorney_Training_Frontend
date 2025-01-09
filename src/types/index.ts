@@ -55,3 +55,11 @@ export interface Trainee {
   type: string;
   activityCount: number;
 }
+
+export interface User {
+  id: number;
+  fullName: string;
+  email: string;
+  phone: string;
+  role: "admin" | "instructor" | "trainee" | "moderator";
+}

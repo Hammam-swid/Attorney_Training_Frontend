@@ -324,7 +324,7 @@ export default function ActivitiesPage() {
                   <TableCell>
                     {activity.instructors
                       ?.map((instructor) => instructor.name)
-                      .join("/")}
+                      .join("، ")}
                   </TableCell>
                   {activityType?.isHaveRating && (
                     <TableCell>{activity.instructorRating}</TableCell>

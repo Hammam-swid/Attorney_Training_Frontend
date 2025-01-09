@@ -11,15 +11,35 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Building, Home, LogOut, Settings, Users, Users2 } from "lucide-react";
+import {
+  Building,
+  ChevronsUpDown,
+  Home,
+  LogOut,
+  Settings,
+  User,
+  Users,
+  Users2,
+} from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
 // import { createLucideIcon } from "lucide-react";
 import axios from "axios";
 import Icon from "./ui/Icon";
 import { ActivityType } from "@/types";
 import dynamicIconImports from "lucide-react/dynamicIconImports";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { setActivityTypes } from "@/store/uiSlice";
 
 interface NavLink {
   label: string;
@@ -33,7 +53,13 @@ export default function AppSidebar() {
   const { pathname, search } = useLocation();
   console.log(search);
   const { open } = useSidebar();
-  const [actLinks, setActLinks] = useState<NavLink[]>([]);
+  const ui = useAppSelector((state) => state.ui);
+  const dispatch = useAppDispatch();
+  const actLinks: NavLink[] = ui.activityTypes.map((type) => ({
+    label: type.name,
+    to: `/activities?type=${type.id}`,
+    iconName: type.iconName,
+  }));
   useEffect(() => {
     const getActionLinks = async () => {
       try {
@@ -42,13 +68,7 @@ export default function AppSidebar() {
         );
         // console.log(res?.data.data.types);
         if (res.status === 200) {
-          setActLinks(
-            res?.data.data.types.map((type) => ({
-              label: type.name,
-              to: `/activities?type=${type.id}`,
-              iconName: type.iconName,
-            }))
-          );
+          dispatch(setActivityTypes(res?.data.data.types));
         }
       } catch (err) {
         console.log(err);
@@ -73,6 +93,8 @@ export default function AppSidebar() {
     { label: "الجهات المختصة", to: "/organizations", icon: Building },
   ];
   // createLucideIcon("notepad-text");
+
+  const user = { name: "همام سويد", avatar: "", email: "hmam.swid@gmail.com" };
 
   return (
     <Sidebar side="right" collapsible="icon">
@@ -114,7 +136,9 @@ export default function AppSidebar() {
                   >
                     <Link to={link.to}>
                       {/* {link.iconName && <i date-lucide={link.iconName}></i>} */}
-                      <Icon name={(link.iconName as IconName) || "notepad-text"} />
+                      <Icon
+                        name={(link.iconName as IconName) || "notepad-text"}
+                      />
                       <span>{link.label}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -190,10 +214,76 @@ export default function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <Button className="hover:bg-red-500 wf">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <DropdownMenu dir="rtl">
+              <DropdownMenuTrigger className="w-full">
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-secondary hover:text-secondary-foreground"
+                >
+                  <Avatar className="h-8 w-8 rounded-lg">
+                    <AvatarImage src={user?.avatar} alt={user?.name} />
+                    <AvatarFallback className="rounded-lg">
+                      {user.name
+                        .split(" ")
+                        .map((word) => word[0])
+                        .join("")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-start text-sm leading-tight">
+                    <span className="truncate font-semibold">{user?.name}</span>
+                    <span className="truncate text-xs">{user?.email}</span>
+                  </div>
+                  <ChevronsUpDown className="ml-auto size-4" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                // side={isMobile ? "bottom" : "right"}
+                sideOffset={4}
+              >
+                <DropdownMenuLabel className="p-0 font-normal">
+                  <div className="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
+                    <Avatar className="h-8 w-8 rounded-lg">
+                      <AvatarImage src={user?.avatar} alt={user?.name} />
+                      <AvatarFallback className="rounded-lg">
+                        {user.name
+                          .split(" ")
+                          .map((word) => word[0])
+                          .join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="grid flex-1 text-start text-sm leading-tight">
+                      <span className="truncate font-semibold">
+                        {user?.name}
+                      </span>
+                      <span className="truncate text-xs">{user?.email}</span>
+                    </div>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem>
+                    <Link className="w-full h-full flex gap-2" to={"/settings"}>
+                      <User />
+                      الحساب
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <LogOut />
+                  تسجيل الخروج
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
+        {/* <Button className="hover:bg-red-500 wf">
           {open && <span>تسجيل الخروج</span>}
           <LogOut />
-        </Button>
+        </Button> */}
       </SidebarFooter>
     </Sidebar>
   );

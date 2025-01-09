@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -13,34 +13,30 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { User, Mail, Lock, Phone, Sun, Moon } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { toggleTheme } from "@/store/themeSlice";
 const Settings: React.FC = () => {
-  const [darkMode, setDarkMode] = useState(false);
   const [userData, setUserData] = useState({
     fullName: "زياد",
     email: "zyad@example.com",
     password: "",
     phone: "11111111",
   });
+  const theme = useAppSelector((state) => state.theme);
+  const dispatch = useAppDispatch();
 
-  useEffect(() => {
-    const isDarkMode = localStorage.getItem("darkMode") === "true";
-    setDarkMode(isDarkMode);
-    if (isDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
+  // useEffect(() => {
+  //   const isDarkMode = localStorage.getItem("darkMode") === "true";
+  //   setDarkMode(isDarkMode);
+  //   if (isDarkMode) {
+  //     document.documentElement.classList.add("dark");
+  //   } else {
+  //     document.documentElement.classList.remove("dark");
+  //   }
+  // }, []);
 
   const handleThemeToggle = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    localStorage.setItem("darkMode", newDarkMode.toString());
-    if (newDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    dispatch(toggleTheme());
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,30 +53,28 @@ const Settings: React.FC = () => {
     <div className="container mx-auto py-10 rtl">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-            الإعدادات
-          </h1>
+          <h1 className="text-4xl font-bold">الإعدادات</h1>
           <Button
             onClick={handleThemeToggle}
             variant="outline"
             size="icon"
-            className="w-12 h-12 rounded-full transition-all duration-300 ease-in-out hover:bg-gray-200 dark:hover:bg-gray-700"
+            className="w-12 h-12 rounded-full transition-all duration-300 ease-in-out"
           >
-            {darkMode ? (
+            {theme.darkMode ? (
               <Sun className="h-6 w-6 text-yellow-500 transition-transform duration-300 rotate-0 scale-100" />
             ) : (
-              <Moon className="h-6 w-6 text-slate-900 dark:text-white transition-transform duration-300 rotate-180 scale-100" />
+              <Moon className="h-6 w-6 transition-transform duration-300 rotate-180 scale-100" />
             )}
             <span className="sr-only">تبديل الوضع الداكن</span>
           </Button>
         </div>
 
-        <Card className="w-full shadow-xl bg-white dark:bg-gray-800">
-          <CardHeader className="space-y-1 bg-gray-50 dark:bg-gray-700 rounded-t-lg">
-            <CardTitle className="text-3xl font-bold text-right text-gray-900 dark:text-white">
+        <Card className="w-full shadow-xl">
+          <CardHeader className="space-y-1 rounded-t-lg">
+            <CardTitle className="text-3xl font-bold text-right">
               الملف الشخصي
             </CardTitle>
-            <CardDescription className="text-right text-lg text-gray-600 dark:text-gray-300">
+            <CardDescription className="text-right text-lg">
               قم بتحديث معلومات حسابك وتفضيلاتك
             </CardDescription>
           </CardHeader>
@@ -89,7 +83,7 @@ const Settings: React.FC = () => {
               <div className="flex flex-col space-y-2">
                 <Label
                   htmlFor="fullName"
-                  className="text-right text-lg font-medium text-gray-700 dark:text-gray-200"
+                  className="text-right text-lg font-medium"
                 >
                   الاسم الكامل
                 </Label>
@@ -99,16 +93,16 @@ const Settings: React.FC = () => {
                     name="fullName"
                     value={userData.fullName}
                     onChange={handleInputChange}
-                    className="pl-12 text-right text-lg py-6 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"
+                    className="pl-12 text-right text-lg py-6"
                     dir="rtl"
                   />
-                  <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
+                  <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6" />
                 </div>
               </div>
               <div className="flex flex-col space-y-2">
                 <Label
                   htmlFor="email"
-                  className="text-right text-lg font-medium text-gray-700 dark:text-gray-200"
+                  className="text-right text-lg font-medium"
                 >
                   البريد الإلكتروني
                 </Label>
@@ -119,16 +113,16 @@ const Settings: React.FC = () => {
                     type="email"
                     value={userData.email}
                     onChange={handleInputChange}
-                    className="pl-12 text-right text-lg py-6 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"
+                    className="pl-12 text-right text-lg py-6"
                     dir="rtl"
                   />
-                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
+                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6" />
                 </div>
               </div>
               <div className="flex flex-col space-y-2">
                 <Label
                   htmlFor="password"
-                  className="text-right text-lg font-medium text-gray-700 dark:text-gray-200"
+                  className="text-right text-lg font-medium"
                 >
                   كلمة المرور
                 </Label>
@@ -139,16 +133,16 @@ const Settings: React.FC = () => {
                     type="password"
                     value={userData.password}
                     onChange={handleInputChange}
-                    className="pl-12 text-right text-lg py-6 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"
+                    className="pl-12 text-right text-lg py-6"
                     dir="rtl"
                   />
-                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
+                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6" />
                 </div>
               </div>
               <div className="flex flex-col space-y-2">
                 <Label
                   htmlFor="phone"
-                  className="text-right text-lg font-medium text-gray-700 dark:text-gray-200"
+                  className="text-right text-lg font-medium"
                 >
                   رقم الهاتف
                 </Label>
@@ -158,18 +152,18 @@ const Settings: React.FC = () => {
                     name="phone"
                     value={userData.phone}
                     onChange={handleInputChange}
-                    className="pl-12 text-right text-lg py-6 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"
+                    className="pl-12 text-right text-lg py-6"
                     dir="rtl"
                   />
-                  <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
+                  <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6" />
                 </div>
               </div>
             </form>
           </CardContent>
-          <CardFooter className="bg-gray-50 dark:bg-gray-700 rounded-b-lg">
+          <CardFooter>
             <Button
               onClick={handleSubmit}
-              className="w-full text-lg py-6 bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300"
+              className="w-full text-lg py-6"
             >
               حفظ التغييرات
             </Button>

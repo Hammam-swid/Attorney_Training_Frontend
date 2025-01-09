@@ -218,7 +218,7 @@ export default function ActivityForm({
                 setOrganizationForm({
                   title: "إضافة جهة جديدة",
                   show: true,
-                  onSubmit: (values, helpers) => {},
+                  onSubmit: async (values, helpers) => {},
                   hideForm: () => {
                     setOrganizationForm({
                       title: "إضافة جهة جديدة",

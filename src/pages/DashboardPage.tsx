@@ -11,9 +11,6 @@ import {
   BookOpen,
   Users,
   LoaderCircle,
-  PlusCircle,
-  Trash,
-  Pencil,
   User2,
   Building,
 } from "lucide-react";
@@ -35,11 +32,7 @@ import {
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { ActivityType, Instructor } from "@/types";
-import { Button } from "@/components/ui/button";
-import Icon from "@/components/ui/Icon";
-import dynamicIconImports from "lucide-react/dynamicIconImports";
-
-type IconName = keyof typeof dynamicIconImports;
+import ActivityTypesCard from "@/components/ActivityTypesCard";
 
 
 export default function DashboardPage() {
@@ -49,7 +42,6 @@ export default function DashboardPage() {
     instructorsCount: 0,
     traineesCount: 0,
   });
-  const [activityTypes, setActivityTypes] = useState<ActivityType[]>([]);
   const [top5Instructors, setTop5Instructors] = useState<Instructor[]>([]);
 
   const [Types, setTypes] = useState<ActivityType[]>([]);
@@ -66,7 +58,6 @@ export default function DashboardPage() {
             activitiesCount: data.activitiesCount,
             organizationsCount: data.organizationsCount,
           }));
-          setActivityTypes(data.activityTypes);
         }
       } catch (error) {
         console.error("Error fetching statistics:", error);
@@ -300,62 +291,7 @@ export default function DashboardPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>أنواع الأنشطة التدريبية</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-8">
-              {activityTypes.map((type, index) => (
-                <div key={index} className="flex items-center">
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage
-                      src={`/placeholder.svg?height=36&width=36`}
-                      alt={type.name}
-                    />
-                    <AvatarFallback>
-                      <Icon
-                        name={
-                          type.iconName
-                            ? (type.iconName as IconName)
-                            : "notepad-text"
-                        }
-                      />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="ms-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {type.name}
-                    </p>
-                  </div>
-                  <div className="ms-auto font-medium">#{index + 1}</div>
-                  <div className="flex items-center gap-2 ms-4">
-                    <Button
-                      className="hover:bg-primary hover:text-primary-foreground"
-                      variant="outline"
-                      size="icon"
-                    >
-                      <Pencil />
-                    </Button>
-                    <Button
-                      className="hover:bg-destructive hover:text-destructive-foreground"
-                      variant="outline"
-                      size="icon"
-                    >
-                      <Trash />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 flex justify-end">
-              <Button>
-                <span>إضافة</span>
-                <PlusCircle />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <ActivityTypesCard />
       </div>
     </div>
   );
