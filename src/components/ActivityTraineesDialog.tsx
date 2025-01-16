@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { Trainee } from "@/types";
 import axios from "axios";
 import { Button } from "./ui/button";
-import { Trash, UserPlus, X } from "lucide-react";
+import { Pencil, Trash, UserPlus, X } from "lucide-react";
 import { Input } from "./ui/input";
 import { MultiSelect } from "react-multi-select-component";
 import toast from "react-hot-toast";
@@ -33,6 +33,7 @@ export default function ActivityTraineesDialog({
     { label: string; value: number }[]
   >([]);
   const [search, setSearch] = useState<string>("");
+  const [isEditing, setIsEditing] = useState<Trainee | null>(null);
 
   useEffect(() => {
     const fetchingAllTrainees = async () => {
@@ -56,7 +57,13 @@ export default function ActivityTraineesDialog({
       const { data } = await axios.get(
         `/api/v1/training-activities/${activityId}/trainee`
       );
-      setTrainees(data.data.activity.trainees);
+      setTrainees(
+        data.data.traineesForActivity.map((traineeA) => {
+          console.log(traineeA);
+          return traineeA.trainee;
+        })
+      );
+      console.log(data);
     };
     fetchingTrainees();
   }, [activityId]);
@@ -71,7 +78,7 @@ export default function ActivityTraineesDialog({
         }
       );
       if (res.status === 200) {
-        setTrainees(res.data.data.activity.trainees);
+        setTrainees(res.data.data.trainees);
         toast.success("تمت إضافة المتدربين بنجاح");
       }
       // setTrainees(data.data.activity.trainees);
@@ -88,8 +95,8 @@ export default function ActivityTraineesDialog({
         `/api/v1/training-activities/${activityId}/trainee`,
         { data: { traineeId: trainee.id } }
       );
-      if (res.status === 200) {
-        setTrainees(res.data.data.activity.trainees);
+      if (res.status === 204) {
+        setTrainees((prev) => prev.filter((t) => t.id !== trainee.id));
         toast.success("تم حذف المتدرب بنجاح");
       }
     } catch (error) {
@@ -97,6 +104,30 @@ export default function ActivityTraineesDialog({
       toast.error("حدث خطأ أثناء حذف المتدرب");
     }
   };
+
+  const rateTrainee = async (trainee: Trainee, rating: number) => {
+    try {
+      const res = await axios.put(
+        `/api/v1/training-activities/${activityId}/trainee/rate`,
+        { traineeId: trainee.id, rating: rating }
+      );
+      if (res.status === 200) {
+        setTrainees((prev) =>
+          prev.map((t) => {
+            if (t.id === trainee.id) {
+              return res.data.data.trainee;
+            }
+            return t;
+          })
+        );
+        toast.success("تم تقييم المتدرب بنجاح");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("حدث خطأ أثناء تقييم المتدرب");
+    }
+  };
+
   const closeDialog = () => {
     setSearch("");
     setSelectedTrainees([]);
@@ -133,6 +164,7 @@ export default function ActivityTraineesDialog({
                 <TableHead className="text-right">العنوان</TableHead>
                 <TableHead className="text-right">جهة العمل</TableHead>
                 <TableHead className="text-right">النوع</TableHead>
+                <TableHead className="text-right">التقييم</TableHead>
                 <TableHead className="text-right">الإجراءات</TableHead>
               </TableRow>
             </TableHeader>
@@ -153,14 +185,34 @@ export default function ActivityTraineesDialog({
                     <TableCell>{trainee.employer}</TableCell>
                     <TableCell>{trainee.type}</TableCell>
                     <TableCell>
-                      <Button
-                        className="hover:bg-destructive hover:text-destructive-foreground"
-                        size="icon"
-                        variant="outline"
-                        onClick={() => deleteTrainee(trainee)}
-                      >
-                        <Trash />
-                      </Button>
+                      {trainee.rating || (
+                        <span className="text-gray-500">لا يوجد تقييم</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button
+                          size={"icon"}
+                          variant="outline"
+                          className="hover:bg-primary hover:text-primary-foreground"
+                          onClick={() => {
+                            if (!isEditing) {
+                              setIsEditing(trainee);
+                            }
+                            if (isEditing?.id === trainee.id) return;
+                          }}
+                        >
+                          <Pencil />
+                        </Button>
+                        <Button
+                          className="hover:bg-destructive hover:text-destructive-foreground"
+                          size="icon"
+                          variant="outline"
+                          onClick={() => deleteTrainee(trainee)}
+                        >
+                          <Trash />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

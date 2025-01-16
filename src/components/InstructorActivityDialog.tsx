@@ -14,6 +14,7 @@ import { Button } from "./ui/button";
 import { Check, Edit, Plus, Trash, X } from "lucide-react";
 import { Input } from "./ui/input";
 import { MultiSelect } from "react-multi-select-component";
+import toast from "react-hot-toast";
 
 interface InstructorActivityDialogProps {
   activityId: number;
@@ -32,6 +33,7 @@ export default function InstructorActivityDialog({
     { label: string; value: number }[]
   >([]);
   const [isEditing, setIsEditing] = useState<Instructor | null>(null);
+  const [selectRating, setSelectRating] = useState<number>();
 
   useEffect(() => {
     const fetchInstructors = async () => {
@@ -98,6 +100,29 @@ export default function InstructorActivityDialog({
     setInstructors((prev) => prev.filter((i) => i.id !== instructor.id));
   };
 
+  const rateInstructor = async (instructor: Instructor, rating: number) => {
+    try {
+      const res = await axios.patch(
+        `/api/v1/training-activities/${activityId}/instructor/rate`,
+        {
+          instructorId: instructor.id,
+          rating,
+        }
+      );
+      if (res.status === 200) {
+        setInstructors((prev) =>
+          prev.map((i) =>
+            i.id === instructor.id ? { ...i, rating: +rating } : i
+          )
+        );
+        toast.success("تم تقييم المدرب بنجاح");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("حدث خطأ أثناء تقييم المدرب");
+    }
+  };
+
   const closeDialog = () => {
     onClose();
     setIsEditing(null);
@@ -138,13 +163,20 @@ export default function InstructorActivityDialog({
                   <TableCell>
                     {!isEditing || isEditing.id !== instructor.id ? (
                       instructor.rating ? (
-                        instructor.rating?.toFixed(2)
+                        instructor?.rating?.toFixed(2)
                       ) : (
                         <span className="text-gray-500">لا يوجد تقييم</span>
                       )
                     ) : (
                       <span className="relative">
-                        <Input className="w-20" value={instructor.rating} />
+                        <Input
+                          inputMode="numeric"
+                          className="w-20"
+                          value={selectRating}
+                          onChange={(e) =>
+                            setSelectRating(e.target.value as unknown as number)
+                          }
+                        />
                         <Button
                           size={"icon"}
                           variant={"ghost"}
@@ -161,7 +193,14 @@ export default function InstructorActivityDialog({
                       size={"icon"}
                       variant={"outline"}
                       onClick={() => {
-                        setIsEditing(instructor);
+                        if (!isEditing) {
+                          setIsEditing(instructor);
+                          setSelectRating(instructor.rating || 0);
+                        }
+                        if (isEditing && isEditing.id === instructor.id) {
+                          rateInstructor(instructor, selectRating || 0);
+                          setIsEditing(null);
+                        }
                       }}
                       className="hover:bg-primary hover:text-primary-foreground"
                     >

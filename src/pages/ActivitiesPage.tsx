@@ -29,6 +29,7 @@ import ActivityForm from "@/components/ActivityForm";
 import { FormikHelpers } from "formik";
 import ActivityTraineesDialog from "@/components/ActivityTraineesDialog";
 import InstructorActivityDialog from "@/components/InstructorActivityDialog";
+import { Helmet } from "react-helmet";
 
 interface SureModalType {
   title: string;
@@ -238,6 +239,13 @@ export default function ActivitiesPage() {
   };
   return (
     <div className="container mx-auto py-10">
+      <Helmet>
+        <title>إدارة المتدربين | {activityType?.name || ""}</title>
+        <meta
+          name="description"
+          content={`إدارة كل الأنشطة التدريبية من نوع ${activityType?.name}`}
+        />
+      </Helmet>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-3xl font-bold">
           {activityType?.name || "الأنشطة التدريبية"}

@@ -6,12 +6,15 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { LoaderCircle } from "lucide-react";
 import axios from "axios";
-import toast from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
+import { useAppDispatch } from "@/store/hooks";
+import { setToken, setUser } from "@/store/authSlice";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"form">) {
+  const dispatch = useAppDispatch();
   const formik = useFormik({
     initialValues: {
       email: "",
@@ -29,10 +32,16 @@ export function LoginForm({
       try {
         const { data } = await axios.post("/api/v1/users/login", values);
         console.log(data);
-        toast.success("تم تسجيل الدخول بنجاح");
+        if (data.data.token) {
+          toast.success("تم تسجيل الدخول بنجاح");
+          dispatch(setToken(data.data.token));
+          dispatch(setUser(data.data.user));
+        }
       } catch (error) {
         console.log(error);
-        toast.error("حدث خطأ أثناء تسجيل الدخول");
+        toast.error(
+          error?.response?.data?.message || "حدث خطأ أثناء تسجيل الدخول"
+        );
       }
     },
   });
@@ -90,6 +99,7 @@ export function LoginForm({
           )}
         </Button>
       </div>
+      <Toaster position="bottom-center" />
     </form>
   );
 }

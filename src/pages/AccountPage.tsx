@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -15,7 +13,7 @@ import {
 import { User, Mail, Lock, Phone, Sun, Moon } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { toggleTheme } from "@/store/themeSlice";
-const Settings: React.FC = () => {
+const Account: React.FC = () => {
   const [userData, setUserData] = useState({
     fullName: "زياد",
     email: "zyad@example.com",
@@ -174,4 +172,4 @@ const Settings: React.FC = () => {
   );
 };
 
-export default Settings;
+export default Account;

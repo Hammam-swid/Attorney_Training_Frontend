@@ -7,7 +7,8 @@ import LoginPage from "./pages/LoginPage";
 import InstructorsPage from "./pages/InstructorsPage";
 import TraineesPage from "./pages/TraineesPage";
 import OrganizationPage from "./pages/OrganizationPage";
-import SettingsPage from "./pages/SettingsPage";
+import AccountPage from "./pages/AccountPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 const routes = createRoutesFromElements(
   <>
@@ -18,9 +19,9 @@ const routes = createRoutesFromElements(
       <Route path="instructors" element={<InstructorsPage />} />
       <Route path="trainees" element={<TraineesPage />} />
       <Route path="organizations" element={<OrganizationPage />} />
-      <Route path="settings" element={<SettingsPage />} />
+      <Route path="account" element={<AccountPage />} />
 
-      <Route path="*" element={<h1>هذه الصفحة غير موجودة</h1>} />
+      <Route path="*" element={<NotFoundPage />} />
     </Route>
   </>
 );

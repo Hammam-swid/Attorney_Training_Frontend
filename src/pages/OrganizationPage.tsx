@@ -15,6 +15,7 @@ import axios from "axios";
 import { FormikHelpers } from "formik";
 import { Pencil, PlusCircle, Trash } from "lucide-react";
 import { ReactElement, useEffect, useState } from "react";
+import { Helmet } from "react-helmet";
 import { toast } from "react-hot-toast";
 
 interface SureModalType {
@@ -166,6 +167,13 @@ export default function OrganizationPage() {
 
   return (
     <div className="container mx-auto py-10">
+      <Helmet>
+        <title>إدارة المتدربين | الجهات المختصة</title>
+        <meta
+          name="description"
+          content={`إدارة كل الجهات المختصة الخاصة بالمركز`}
+        />
+      </Helmet>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-3xl font-bold">الجهات المختصة</h1>
         <Button

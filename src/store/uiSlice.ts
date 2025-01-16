@@ -16,8 +16,22 @@ export const uiSlice = createSlice({
     setActivityTypes: (state, action: PayloadAction<ActivityType[]>) => {
       state.activityTypes = action.payload;
     },
+    removeType: (state, action: PayloadAction<ActivityType>) => {
+      state.activityTypes = state.activityTypes.filter(
+        (type) => type.id !== action.payload.id
+      );
+    },
+    addType: (state, action: PayloadAction<ActivityType>) => {
+      state.activityTypes.push(action.payload);
+    },
+    updateType: (state, action: PayloadAction<ActivityType>) => {
+      state.activityTypes = state.activityTypes.map((type) =>
+        type.id === action.payload.id ? action.payload : type
+      );
+    },
   },
 });
 
-export const { setActivityTypes } = uiSlice.actions;
+export const { setActivityTypes, addType, removeType, updateType } =
+  uiSlice.actions;
 export default uiSlice.reducer;

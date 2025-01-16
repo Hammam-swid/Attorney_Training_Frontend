@@ -88,3 +88,8 @@
   @apply bg-background;
   direction: rtl;
 }
+
+.multi-select .dropdown-content .panel-content .select-panel .search button {
+  @apply end-0;
+  right: auto;
+}

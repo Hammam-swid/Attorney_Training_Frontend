@@ -53,6 +53,7 @@ export interface Trainee {
   address: string;
   employer: string;
   type: string;
+  rating: number;
   activityCount: number;
 }
 

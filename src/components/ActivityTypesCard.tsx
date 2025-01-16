@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { ActivityType } from "@/types";
 import { Avatar, AvatarFallback } from "./ui/avatar";
@@ -11,35 +11,35 @@ import SureModal from "./SureModal";
 import EditTypeModal from "./EditTypeModal";
 import AddTypeModal from "./AddTypeModal";
 import toast from "react-hot-toast";
-import { useAppDispatch } from "@/store/hooks";
-import { setActivityTypes as setUiTypes } from "@/store/uiSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { addType, removeType, updateType } from "@/store/uiSlice";
 
 type IconName = keyof typeof dynamicIconImports;
 
 export default function ActivityTypesCard() {
-  const [activityTypes, setActivityTypes] = useState<ActivityType[]>([]);
+  // const [activityTypes, setActivityTypes] = useState<ActivityType[]>([]);
   const [selectedType, setSelectedType] = useState<ActivityType | null>(null);
   const [addingType, setAddingType] = useState(false);
 
+  const activityTypes = useAppSelector((state) => state.ui.activityTypes);
   const dispatch = useAppDispatch();
-  useEffect(() => {
-    const fetchActivityTypes = async () => {
-      try {
-        const { data } = await axios.get("/api/v1/activity-types");
-        setActivityTypes(data?.data?.types);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchActivityTypes();
-  }, []);
+  // useEffect(() => {
+  //   const fetchActivityTypes = async () => {
+  //     try {
+  //       const { data } = await axios.get("/api/v1/activity-types");
+  //       setActivityTypes(data?.data?.types);
+  //     } catch (error) {
+  //       console.log(error);
+  //     }
+  //   };
+  //   fetchActivityTypes();
+  // }, []);
 
   async function deleteType(type: ActivityType) {
     try {
       const res = await axios.delete(`/api/v1/activity-types/${type.id}`);
       if (res.status === 204) {
-        updateUi(activityTypes.filter((t) => t.id !== type.id));
-        setActivityTypes((prev) => prev.filter((t) => t.id !== type.id));
+        dispatch(removeType(type));
         toast.success("تم حذف النوع بنجاح");
       }
     } catch (error) {
@@ -72,9 +72,9 @@ export default function ActivityTypesCard() {
     });
   }
 
-  const updateUi = (types) => {
-    dispatch(setUiTypes([...activityTypes]));
-  };
+  // const updateUi = (types) => {
+  //   dispatch(setUiTypes([...activityTypes]));
+  // };
   return (
     <Card>
       <SureModal
@@ -159,12 +159,7 @@ export default function ActivityTypesCard() {
           type={selectedType}
           onClose={() => setSelectedType(null)}
           onEdit={(newType: ActivityType) => {
-            updateUi(activityTypes.map((type) =>
-              type.id === newType.id ? newType : type
-            ));
-            setActivityTypes((prev) =>
-              prev.map((type) => (type.id === newType.id ? newType : type))
-            );
+            dispatch(updateType(newType));
           }}
         />
       )}
@@ -172,8 +167,7 @@ export default function ActivityTypesCard() {
         <AddTypeModal
           onClose={() => setAddingType(false)}
           onAdd={(newType: ActivityType) => {
-            updateUi([...activityTypes, newType]);
-            setActivityTypes((prev) => [...prev, newType]);
+            dispatch(addType(newType));
           }}
         />
       )}

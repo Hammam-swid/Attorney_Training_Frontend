@@ -14,15 +14,15 @@ import {
 import {
   Building,
   ChevronsUpDown,
+  Files,
   Home,
   LogOut,
-  Settings,
   User,
   Users,
   Users2,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 // import { createLucideIcon } from "lucide-react";
 import axios from "axios";
 import Icon from "./ui/Icon";
@@ -40,6 +40,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setActivityTypes } from "@/store/uiSlice";
+import { logout } from "@/store/authSlice";
+import toast from "react-hot-toast";
 
 interface NavLink {
   label: string;
@@ -95,7 +97,23 @@ export default function AppSidebar() {
   // createLucideIcon("notepad-text");
 
   const user = { name: "همام سويد", avatar: "", email: "hmam.swid@gmail.com" };
+  const navigate = useNavigate();
 
+  const logoutHandle = async () => {
+    try {
+      const res = await axios.post("/api/v1/users/logout");
+      if (res.status === 200) {
+        toast.success("تم تسجيل الخروج بنجاح");
+        setTimeout(() => {
+          dispatch(logout());
+          navigate("/login");
+        }, 1000);
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error("حدث خطأ أثناء تسجيل الخروج");
+    }
+  };
   return (
     <Sidebar side="right" collapsible="icon">
       {open && (
@@ -193,19 +211,19 @@ export default function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        {/* مجموعة الإعدادات */}
+        {/* مجموعة التقارير */}
         <SidebarGroup>
-          <SidebarGroupLabel>الإعدادات</SidebarGroupLabel>
+          <SidebarGroupLabel>التقارير</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname + search === "/settings"}
+                  isActive={pathname + search === "/reports"}
                 >
-                  <Link to="/settings">
-                    <Settings />
-                    <span>الإعدادات</span>
+                  <Link to="/reports">
+                    <Files />
+                    <span>التقارير</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -265,14 +283,17 @@ export default function AppSidebar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   <DropdownMenuItem>
-                    <Link className="w-full h-full flex gap-2" to={"/settings"}>
+                    <Link className="w-full h-full flex gap-2" to={"/account"}>
                       <User />
                       الحساب
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={logoutHandle}
+                >
                   <LogOut />
                   تسجيل الخروج
                 </DropdownMenuItem>
