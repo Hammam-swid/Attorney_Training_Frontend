@@ -113,7 +113,7 @@ export default function ActivitiesPage() {
           setActivities(
             res?.data.data.activities.map((activity: Activity) => ({
               id: activity.id,
-              name: activity.name,
+              title: activity.title,
               status: activity.status,
               startDate: new Date(activity.startDate),
               endDate: new Date(activity.endDate),
@@ -311,7 +311,7 @@ export default function ActivitiesPage() {
               .map((activity) => (
                 <TableRow dir="rtl" key={activity.id}>
                   <TableCell>{activity.id}</TableCell>
-                  <TableCell dir="rtl">{activity.name}</TableCell>
+                  <TableCell dir="rtl">{activity.title}</TableCell>
                   <TableCell>{activity.status}</TableCell>
                   <TableCell>{activity.hours}</TableCell>
                   <TableCell>
@@ -382,7 +382,7 @@ export default function ActivitiesPage() {
                           description: (
                             <p>
                               هل أنت متأكد من حذف{" "}
-                              <span className="font-bold">{activity.name}</span>
+                              <span className="font-bold">{activity.title}</span>
                               ؟
                             </p>
                           ),

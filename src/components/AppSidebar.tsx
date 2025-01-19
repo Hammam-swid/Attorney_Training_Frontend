@@ -219,7 +219,7 @@ export default function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname + search === "/reports"}
+                  isActive={(pathname + search).includes("/reports")}
                 >
                   <Link to="/reports">
                     <Files />
