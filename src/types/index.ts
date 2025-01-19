@@ -1,6 +1,6 @@
 export interface Activity {
   id: number;
-  name: string;
+  title: string;
   status: string;
   startDate: Date;
   endDate: Date;
@@ -8,6 +8,7 @@ export interface Activity {
   instructors: Instructor[];
   hours: number;
   studentsCount: number;
+  rating: number;
 
   host: Organization;
   executor: Organization;
