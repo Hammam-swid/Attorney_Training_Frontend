@@ -53,7 +53,7 @@ export default function TraineesPage() {
     };
 
     fetchData();
-  }, [searchQuery]);
+  }, []);
 
   const handleDeleteConfirm = async () => {
     if (!traineeToDelete) return;
@@ -140,7 +140,7 @@ export default function TraineesPage() {
             placeholder="ابحث عن متدرب..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-sm"
+            className="max-w-sm m-4"
           />
         </div>
       </div>

@@ -45,9 +45,21 @@ const FormDialog: React.FC<FormDialogProps> = ({
     }
   };
 
+  const handleClose = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center rtl">
-      <div className="bg-background p-6 rounded-lg w-96">
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center rtl z-50"
+      onClick={handleClose}
+    >
+      <div
+        className="bg-background p-6 rounded-lg w-96"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="text-2xl font-bold mb-4">{title}</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">

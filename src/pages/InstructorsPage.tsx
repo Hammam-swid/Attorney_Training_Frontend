@@ -66,7 +66,7 @@ export default function TrainersPage() {
     };
 
     fetchData();
-  }, [searchQuery]);
+  }, []);
 
   const handleDeleteConfirm = async () => {
     if (!trainerToDelete) return;
@@ -160,7 +160,7 @@ export default function TrainersPage() {
             placeholder="ابحث عن مدرب..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)} // التحديث التلقائي
-            className="max-w-sm"
+            className="max-w-sm m-4"
           />
         </div>
       </div>

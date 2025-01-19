@@ -7,15 +7,22 @@ interface DeleteConfirmModalProps<T> {
   onConfirm: () => void;
   onClose: () => void;
 }
-
 function DeleteConfirmModal<T>({
   item,
   itemName,
   onConfirm,
   onClose,
 }: DeleteConfirmModalProps<T>) {
+  const handleClose = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center rtl">
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center rtl"
+      onClick={handleClose}
+    >
       <div className="bg-white p-6 rounded-lg w-96">
         <h2 className="text-2xl font-bold mb-4">تأكيد الحذف</h2>
         <p className="mb-6">
