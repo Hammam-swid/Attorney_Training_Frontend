@@ -11,11 +11,17 @@ import AccountPage from "./pages/AccountPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ReportsLayout from "./pages/ReportsLayout";
 import ActivitiesReports from "./pages/Reports/Activities/ActivitiesReports";
-import InstructorsReports from "./pages/Reports/InstructorsReports";
-import TraineesReports from "./pages/Reports/TraineesReports";
-import OrganizationsReports from "./pages/Reports/OrganizationsReports";
+import InstructorsReports from "./pages/Reports/Instructors/InstructorsReports";
+import TraineesReports from "./pages/Reports/Trainees/TraineesReports";
+import OrganizationsReports from "./pages/Reports/Organizations/OrganizationsReports";
 import ActivitiesLayout from "./pages/Reports/Activities/ActivitiesLayout";
 import OneActivity from "./pages/Reports/Activities/OneActivity";
+import OrganizationsLayout from "./pages/Reports/Organizations/OrganizationsLayout";
+import OrganizationActivities from "./pages/Reports/Organizations/OrganizationActivities";
+import InstructorsLayout from "./pages/Reports/Instructors/InstructorsLayout";
+import InstructorActivities from "./pages/Reports/Instructors/InstructorActivities";
+import TraineesLayout from "./pages/Reports/Trainees/TraineesLayout";
+import TraineeActivity from "./pages/Reports/Trainees/TraineeActivity";
 
 const routes = createRoutesFromElements(
   <>
@@ -32,9 +38,27 @@ const routes = createRoutesFromElements(
           <Route index element={<ActivitiesReports />} />
           <Route path="one-activity" element={<OneActivity />} />
         </Route>
-        <Route path="instructors" element={<InstructorsReports />} />
-        <Route path="trainees" element={<TraineesReports />} />
-        <Route path="organizations" element={<OrganizationsReports />} />
+
+        <Route path="instructors" element={<InstructorsLayout />}>
+          <Route index element={<InstructorsReports />} />
+          <Route
+            path="instructor-activities"
+            element={<InstructorActivities />}
+          />
+        </Route>
+
+        <Route path="organizations" element={<OrganizationsLayout />}>
+          <Route index element={<OrganizationsReports />} />
+          <Route
+            path="organization-activities"
+            element={<OrganizationActivities />}
+          />
+        </Route>
+
+        <Route path="trainees" element={<TraineesLayout />}>
+          <Route index element={<TraineesReports />} />
+          <Route path="trainee-activities" element={<TraineeActivity />} />
+        </Route>
       </Route>
 
       <Route path="*" element={<NotFoundPage />} />

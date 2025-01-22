@@ -10,7 +10,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   BookOpen,
   Users,
-  LoaderCircle,
   User2,
   Building,
   Files,
@@ -38,12 +37,19 @@ import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
+interface StatisticsState {
+  activitiesCount: number | undefined;
+  organizationsCount: number | undefined;
+  instructorsCount: number | undefined;
+  traineesCount: number | undefined;
+}
+
 export default function DashboardPage() {
-  const [statistics, setStatistics] = useState({
-    activitiesCount: 0,
-    organizationsCount: 0,
-    instructorsCount: 0,
-    traineesCount: 0,
+  const [statistics, setStatistics] = useState<StatisticsState>({
+    activitiesCount: undefined,
+    organizationsCount: undefined,
+    instructorsCount: undefined,
+    traineesCount: undefined,
   });
   const [top5Instructors, setTop5Instructors] = useState<Instructor[]>([]);
 
@@ -151,8 +157,12 @@ export default function DashboardPage() {
             <div className="text-2xl font-bold">
               {statistics.activitiesCount ? (
                 <span>{statistics.activitiesCount}</span>
+              ) : statistics.activitiesCount === 0 ? (
+                <span className="text-muted text-sm">
+                  لا يوجد أنشطة مسجلة في النظام
+                </span>
               ) : (
-                <LoaderCircle className="animate-spin" />
+                <span className="animate-pulse h-7 rounded-md bg-muted block mt-1" />
               )}
             </div>
           </CardContent>
@@ -168,8 +178,12 @@ export default function DashboardPage() {
             <div className="text-2xl font-bold">
               {statistics.traineesCount ? (
                 <span>{statistics.traineesCount}</span>
+              ) : statistics.traineesCount === 0 ? (
+                <span className="text-muted text-sm">
+                  لا يوجد متدربين مسجلين في النظام
+                </span>
               ) : (
-                <LoaderCircle className="animate-spin" />
+                <span className="animate-pulse h-7 rounded-md bg-muted block mt-1" />
               )}
             </div>
           </CardContent>
@@ -185,8 +199,12 @@ export default function DashboardPage() {
             <div className="text-2xl font-bold">
               {statistics.instructorsCount ? (
                 <span>{statistics.instructorsCount}</span>
+              ) : statistics.instructorsCount === 0 ? (
+                <span className="text-muted text-sm">
+                  لا يوجد مدربين مسجلين في النظام
+                </span>
               ) : (
-                <LoaderCircle className="animate-spin" />
+                <span className="animate-pulse h-7 rounded-md bg-muted block mt-1" />
               )}
             </div>
           </CardContent>
@@ -202,8 +220,12 @@ export default function DashboardPage() {
             <div className="text-2xl font-bold">
               {statistics.organizationsCount ? (
                 <span>{statistics.organizationsCount}</span>
+              ) : statistics.organizationsCount === 0 ? (
+                <span className="text-muted text-sm">
+                  لا يوجد جهات مسجلة في النظام
+                </span>
               ) : (
-                <LoaderCircle className="animate-spin" />
+                <span className="animate-pulse h-7 rounded-md bg-muted block mt-1" />
               )}
             </div>
           </CardContent>

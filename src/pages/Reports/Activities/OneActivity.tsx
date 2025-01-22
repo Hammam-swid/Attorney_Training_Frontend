@@ -20,6 +20,8 @@ import { Trainee } from "@/types";
 import axios from "axios";
 import { Check, ChevronDown, CircleCheck, Download } from "lucide-react";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { utils, writeFile } from "xlsx";
 
 const allFields = [
   { label: "الاسم", value: "name" },
@@ -45,7 +47,66 @@ export default function OneActivity() {
     };
     fetchTrainees();
   }, [search]);
-  console.log(trainees);
+
+  const handleExport = () => {
+    if (trainees.length === 0) {
+      toast.error("لا يوجد بيانات لتصديرها");
+      return;
+    }
+    const data = trainees.map((trainee) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const traineeData: any = {};
+      fields.forEach((field) => {
+        switch (field) {
+          case "type":
+            traineeData["النوع"] = trainee.type || "//";
+            break;
+          case "rating":
+            traineeData["التقييم"] = trainee.rating
+              ? trainee.rating.toFixed(2)
+              : "//";
+            break;
+          case "name":
+            traineeData["الاسم"] = trainee.name || "//";
+            break;
+          case "phone":
+            traineeData["الهاتف"] = trainee.phone || "//";
+            break;
+          case "address":
+            traineeData["العنوان"] = trainee.address || "//";
+            break;
+          case "employer":
+            traineeData["جهة العمل"] = trainee.employer || "//";
+            break;
+
+          default:
+            break;
+        }
+      });
+      return traineeData;
+    });
+
+    const workbook = utils.book_new();
+    const titleRow = [
+      [
+        search
+          ? `تقرير-الأنشطة-التدريبية-${search}`
+          : "تقرير-الأنشطة-التدريبية",
+      ],
+    ];
+    const worksheet = utils.aoa_to_sheet(titleRow);
+
+    worksheet["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: fields.length - 1 } },
+    ];
+    utils.sheet_add_json(worksheet, data, { origin: "A2" });
+    worksheet["!cols"] = fields.map(() => ({ wch: 15 }));
+    worksheet["!dir"] = "rtl";
+    utils.book_append_sheet(workbook, worksheet, "تقرير الأنشطة");
+
+    writeFile(workbook, "trainees.xlsx");
+  };
+
   return (
     <div>
       <div className="flex justify-between mb-4">
@@ -110,7 +171,7 @@ export default function OneActivity() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <Button>
+        <Button onClick={handleExport}>
           <span>تصدير</span>
           <Download />
         </Button>
@@ -144,7 +205,10 @@ export default function OneActivity() {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={allFields.length + 1} className="text-center text-muted">
+              <TableCell
+                colSpan={allFields.length + 1}
+                className="text-center text-muted"
+              >
                 لا يوجد بيانات
               </TableCell>
             </TableRow>

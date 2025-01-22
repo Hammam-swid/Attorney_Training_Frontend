@@ -81,7 +81,7 @@ export default function ActivityForm({
     });
   const formik = useFormik({
     initialValues: {
-      title: activity?.name || "",
+      title: activity?.title || "",
       location: activity?.location || "",
       hours: activity?.hours || 0,
       startDate: activity?.startDate || new Date(),

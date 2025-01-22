@@ -42,6 +42,7 @@ import {
   Download,
 } from "lucide-react";
 import { useLayoutEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { utils, writeFile as writeExcelFile } from "xlsx";
 
 const allFields = [
@@ -123,15 +124,21 @@ export default function ActivitiesReports() {
   }, [fields, dateFilter, selectedType]);
 
   const handleExport = () => {
+    if (activities.length === 0) {
+      toast.error("لا يوجد بيانات لتصديرها");
+      return;
+    }
     const workbook = utils.book_new();
 
     // Add title row
     const titleRow = [
       [
-        `تقرير-الأنشطة-التدريبية-من-${format(
-          dateFilter.startDate,
-          "yyy-MM-dd"
-        )}-إلى-${format(dateFilter.endDate, "yyyy-MM-dd")}`,
+        dateFilter.startDate && dateFilter.endDate
+          ? `تقرير-الأنشطة-التدريبية-من-${format(
+              dateFilter.startDate,
+              "yyy-MM-dd"
+            )}-إلى-${format(dateFilter.endDate, "yyyy-MM-dd")}`
+          : "تقرير-الأنشطة-التدريبية",
       ],
     ];
     const worksheet = utils.aoa_to_sheet(titleRow);
@@ -229,10 +236,14 @@ export default function ActivitiesReports() {
     utils.book_append_sheet(workbook, worksheet, "Activities");
     writeExcelFile(
       workbook,
-      `تقرير-الأنشطة-التدريبية-من-${format(
-        dateFilter.startDate,
-        "yyy-MM-dd"
-      )}-إلى-${format(dateFilter.endDate, "yyyy-MM-dd")}.xlsx`
+      `تقرير-الأنشطة-التدريبية${
+        dateFilter.startDate && dateFilter.endDate
+          ? `-من-${format(dateFilter.startDate, "yyy-MM-dd")}-إلى-${format(
+              dateFilter.endDate,
+              "yyyy-MM-dd"
+            )}`
+          : ""
+      }.xlsx`
     );
   };
   console.log(activities);
@@ -245,7 +256,9 @@ export default function ActivitiesReports() {
             onClick={() => setFields(initialFields)}
           >
             تحديد الكل
-            {fields.length === allFields.length && <CircleCheck className="text-green-500" />}
+            {fields.length === allFields.length && (
+              <CircleCheck className="text-green-500" />
+            )}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger>
