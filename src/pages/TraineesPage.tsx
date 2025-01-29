@@ -14,6 +14,7 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import FormDialog from "../components/TraineeFormDialog";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
+import { Pencil, Trash } from "lucide-react";
 interface Trainee {
   id: number;
   name: string;
@@ -175,16 +176,20 @@ export default function TraineesPage() {
                   variant="destructive"
                   className="ml-2"
                 >
-                  حذف
+                  <span>حذف</span>
+                  <Trash />
                 </Button>
                 <Button
                   size="sm"
+                  variant={"secondary"}
                   onClick={() => {
                     setCurrentTrainee(trainee);
                     setShowEditForm(true);
                   }}
+                  className="hover:bg-primary hover:text-primary-foreground"
                 >
-                  تعديل
+                  <span>تعديل</span>
+                  <Pencil />
                 </Button>
               </TableCell>
             </TableRow>

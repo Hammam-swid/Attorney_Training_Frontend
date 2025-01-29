@@ -7,13 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  BookOpen,
-  Users,
-  User2,
-  Building,
-  Files,
-} from "lucide-react";
+import { BookOpen, Users, User2, Building, Files } from "lucide-react";
 import {
   ChartContainer,
   ChartLegend,

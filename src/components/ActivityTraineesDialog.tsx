@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { Trainee } from "@/types";
 import axios from "axios";
 import { Button } from "./ui/button";
-import { Pencil, Trash, UserPlus, X } from "lucide-react";
+import { Check, Pencil, Trash, UserPlus, X } from "lucide-react";
 import { Input } from "./ui/input";
 import { MultiSelect } from "react-multi-select-component";
 import toast from "react-hot-toast";
@@ -34,6 +34,7 @@ export default function ActivityTraineesDialog({
   >([]);
   const [search, setSearch] = useState<string>("");
   const [isEditing, setIsEditing] = useState<Trainee | null>(null);
+  const [selectRating, setSelectRating] = useState<number>();
 
   useEffect(() => {
     const fetchingAllTrainees = async () => {
@@ -45,7 +46,7 @@ export default function ActivityTraineesDialog({
       setAllTrainees(
         data.data.trainees.map((trainee) => ({
           label: trainee.name,
-          value: trainee.id,
+          value: trainee?.id,
         }))
       );
     };
@@ -58,10 +59,11 @@ export default function ActivityTraineesDialog({
         `/api/v1/training-activities/${activityId}/trainee`
       );
       setTrainees(
-        data.data.traineesForActivity.map((traineeA) => {
-          console.log(traineeA);
-          return traineeA.trainee;
-        })
+        data.data.traineesForActivity.map(
+          (traineeA: { rating: number; trainee: Trainee }) => {
+            return { ...traineeA.trainee, rating: traineeA.rating };
+          }
+        )
       );
       console.log(data);
     };
@@ -93,10 +95,10 @@ export default function ActivityTraineesDialog({
     try {
       const res = await axios.delete(
         `/api/v1/training-activities/${activityId}/trainee`,
-        { data: { traineeId: trainee.id } }
+        { data: { traineeId: trainee?.id } }
       );
       if (res.status === 204) {
-        setTrainees((prev) => prev.filter((t) => t.id !== trainee.id));
+        setTrainees((prev) => prev.filter((t) => t?.id !== trainee?.id));
         toast.success("تم حذف المتدرب بنجاح");
       }
     } catch (error) {
@@ -107,19 +109,20 @@ export default function ActivityTraineesDialog({
 
   const rateTrainee = async (trainee: Trainee, rating: number) => {
     try {
-      const res = await axios.put(
+      const res = await axios.post(
         `/api/v1/training-activities/${activityId}/trainee/rate`,
-        { traineeId: trainee.id, rating: rating }
+        { traineeId: trainee?.id, rating: rating }
       );
       if (res.status === 200) {
         setTrainees((prev) =>
           prev.map((t) => {
-            if (t.id === trainee.id) {
+            if (t?.id === trainee?.id) {
               return res.data.data.trainee;
             }
             return t;
           })
         );
+        console.log(res);
         toast.success("تم تقييم المتدرب بنجاح");
       }
     } catch (error) {
@@ -141,7 +144,7 @@ export default function ActivityTraineesDialog({
         e: React.MouseEvent<HTMLDivElement, MouseEvent> & {
           target: HTMLDivElement;
         }
-      ) => e.target.id === "trainees-dialog-overlay" && closeDialog()}
+      ) => e.target?.id === "trainees-dialog-overlay" && closeDialog()}
       id="trainees-dialog-overlay"
       className="fixed inset-0 bg-black bg-opacity-50 h-screen z-50 flex items-center justify-center"
     >
@@ -177,16 +180,41 @@ export default function ActivityTraineesDialog({
                     .includes(search.toLowerCase());
                 })
                 .map((trainee) => (
-                  <TableRow key={trainee.id}>
-                    <TableCell className="font-medium">{trainee.id}</TableCell>
-                    <TableCell>{trainee.name}</TableCell>
-                    <TableCell>{trainee.phone}</TableCell>
-                    <TableCell>{trainee.address}</TableCell>
-                    <TableCell>{trainee.employer}</TableCell>
-                    <TableCell>{trainee.type}</TableCell>
+                  <TableRow key={trainee?.id}>
+                    <TableCell className="font-medium">{trainee?.id}</TableCell>
+                    <TableCell>{trainee?.name}</TableCell>
+                    <TableCell>{trainee?.phone}</TableCell>
+                    <TableCell>{trainee?.address}</TableCell>
+                    <TableCell>{trainee?.employer}</TableCell>
+                    <TableCell>{trainee?.type}</TableCell>
                     <TableCell>
-                      {trainee.rating || (
-                        <span className="text-gray-500">لا يوجد تقييم</span>
+                      {!isEditing || isEditing?.id !== trainee?.id ? (
+                        trainee?.rating ? (
+                          trainee?.rating?.toFixed(2)
+                        ) : (
+                          <span className="text-gray-500">لا يوجد تقييم</span>
+                        )
+                      ) : (
+                        <span className="relative">
+                          <Input
+                            inputMode="numeric"
+                            className="w-20"
+                            value={selectRating}
+                            onChange={(e) =>
+                              setSelectRating(
+                                e.target.value as unknown as number
+                              )
+                            }
+                          />
+                          <Button
+                            size={"icon"}
+                            variant={"ghost"}
+                            className="absolute left-0 top-0"
+                            onClick={() => setIsEditing(null)}
+                          >
+                            <X />
+                          </Button>
+                        </span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -198,11 +226,19 @@ export default function ActivityTraineesDialog({
                           onClick={() => {
                             if (!isEditing) {
                               setIsEditing(trainee);
+                              setSelectRating(trainee.rating || 0);
                             }
-                            if (isEditing?.id === trainee.id) return;
+                            if (isEditing && isEditing?.id === trainee?.id) {
+                              rateTrainee(trainee, selectRating || 0);
+                              setIsEditing(null);
+                            }
                           }}
                         >
-                          <Pencil />
+                          {isEditing && isEditing?.id === trainee?.id ? (
+                            <Check />
+                          ) : (
+                            <Pencil />
+                          )}
                         </Button>
                         <Button
                           className="hover:bg-destructive hover:text-destructive-foreground"

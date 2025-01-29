@@ -4,6 +4,7 @@ import { Outlet } from "react-router";
 import { Toaster } from "react-hot-toast";
 import { useAppSelector } from "@/store/hooks";
 import { useEffect } from "react";
+import AuthProvider from "@/auth/AuthProvider";
 
 export default function MainLayout() {
   const theme = useAppSelector((state) => state.theme);
@@ -16,11 +17,13 @@ export default function MainLayout() {
     }
   }, [theme]);
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarTrigger  />
-      <Toaster position="bottom-center" />
-      <Outlet />
-    </SidebarProvider>
+    <AuthProvider>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarTrigger />
+        <Toaster position="bottom-center" />
+        <Outlet />
+      </SidebarProvider>
+    </AuthProvider>
   );
 }

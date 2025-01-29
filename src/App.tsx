@@ -22,42 +22,105 @@ import InstructorsLayout from "./pages/Reports/Instructors/InstructorsLayout";
 import InstructorActivities from "./pages/Reports/Instructors/InstructorActivities";
 import TraineesLayout from "./pages/Reports/Trainees/TraineesLayout";
 import TraineeActivity from "./pages/Reports/Trainees/TraineeActivity";
+import ErrorPage from "./pages/ErrorPage";
 
 const routes = createRoutesFromElements(
   <>
-    <Route path="/login" element={<LoginPage />} />
-    <Route path="/" element={<MainLayout />}>
-      <Route index element={<DashboardPage />} />
-      <Route path="activities" element={<ActivitiesPage />} />
-      <Route path="instructors" element={<InstructorsPage />} />
-      <Route path="trainees" element={<TraineesPage />} />
-      <Route path="organizations" element={<OrganizationPage />} />
-      <Route path="account" element={<AccountPage />} />
+    <Route path="/login" element={<LoginPage />} errorElement={<ErrorPage />} />
+    <Route path="/" element={<MainLayout />} errorElement={<ErrorPage />}>
+      <Route index element={<DashboardPage />} errorElement={<ErrorPage />} />
+      <Route
+        path="activities"
+        element={<ActivitiesPage />}
+        errorElement={<ErrorPage />}
+      />
+      <Route
+        path="instructors"
+        element={<InstructorsPage />}
+        errorElement={<ErrorPage />}
+      />
+      <Route
+        path="trainees"
+        element={<TraineesPage />}
+        errorElement={<ErrorPage />}
+      />
+      <Route
+        path="organizations"
+        element={<OrganizationPage />}
+        errorElement={<ErrorPage />}
+      />
+      <Route
+        path="account"
+        element={<AccountPage />}
+        errorElement={<ErrorPage />}
+      />
       <Route path="reports" element={<ReportsLayout />}>
-        <Route path="activities" element={<ActivitiesLayout />}>
-          <Route index element={<ActivitiesReports />} />
-          <Route path="one-activity" element={<OneActivity />} />
+        <Route
+          path="activities"
+          element={<ActivitiesLayout />}
+          errorElement={<ErrorPage />}
+        >
+          <Route
+            index
+            element={<ActivitiesReports />}
+            errorElement={<ErrorPage />}
+          />
+          <Route
+            path="one-activity"
+            element={<OneActivity />}
+            errorElement={<ErrorPage />}
+          />
         </Route>
 
-        <Route path="instructors" element={<InstructorsLayout />}>
-          <Route index element={<InstructorsReports />} />
+        <Route
+          path="instructors"
+          element={<InstructorsLayout />}
+          errorElement={<ErrorPage />}
+        >
+          <Route
+            index
+            element={<InstructorsReports />}
+            errorElement={<ErrorPage />}
+          />
           <Route
             path="instructor-activities"
             element={<InstructorActivities />}
+            errorElement={<ErrorPage />}
           />
         </Route>
 
-        <Route path="organizations" element={<OrganizationsLayout />}>
-          <Route index element={<OrganizationsReports />} />
+        <Route
+          path="organizations"
+          element={<OrganizationsLayout />}
+          errorElement={<ErrorPage />}
+        >
+          <Route
+            index
+            element={<OrganizationsReports />}
+            errorElement={<ErrorPage />}
+          />
           <Route
             path="organization-activities"
             element={<OrganizationActivities />}
+            errorElement={<ErrorPage />}
           />
         </Route>
 
-        <Route path="trainees" element={<TraineesLayout />}>
-          <Route index element={<TraineesReports />} />
-          <Route path="trainee-activities" element={<TraineeActivity />} />
+        <Route
+          path="trainees"
+          element={<TraineesLayout />}
+          errorElement={<ErrorPage />}
+        >
+          <Route
+            index
+            element={<TraineesReports />}
+            errorElement={<ErrorPage />}
+          />
+          <Route
+            path="trainee-activities"
+            element={<TraineeActivity />}
+            errorElement={<ErrorPage />}
+          />
         </Route>
       </Route>
 

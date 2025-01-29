@@ -56,6 +56,7 @@ export default function AppSidebar() {
   console.log(search);
   const { open } = useSidebar();
   const ui = useAppSelector((state) => state.ui);
+  const user = useAppSelector((state) => state.auth.user);
   const dispatch = useAppDispatch();
   const actLinks: NavLink[] = ui.activityTypes.map((type) => ({
     label: type.name,
@@ -96,7 +97,7 @@ export default function AppSidebar() {
   ];
   // createLucideIcon("notepad-text");
 
-  const user = { name: "همام سويد", avatar: "", email: "hmam.swid@gmail.com" };
+  // const user = { name: "همام سويد", avatar: "", email: "hmam.swid@gmail.com" };
   const navigate = useNavigate();
 
   const logoutHandle = async () => {
@@ -241,16 +242,16 @@ export default function AppSidebar() {
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-secondary hover:text-secondary-foreground"
                 >
                   <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src={user?.avatar} alt={user?.name} />
+                    {/* <AvatarImage src={user?.avatar} alt={user?.fullName} /> */}
                     <AvatarFallback className="rounded-lg">
-                      {user.name
+                      {user?.fullName
                         .split(" ")
                         .map((word) => word[0])
                         .join("")}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-start text-sm leading-tight">
-                    <span className="truncate font-semibold">{user?.name}</span>
+                    <span className="truncate font-semibold">{user?.fullName}</span>
                     <span className="truncate text-xs">{user?.email}</span>
                   </div>
                   <ChevronsUpDown className="ml-auto size-4" />
@@ -264,9 +265,8 @@ export default function AppSidebar() {
                 <DropdownMenuLabel className="p-0 font-normal">
                   <div className="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
                     <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarImage src={user?.avatar} alt={user?.name} />
-                      <AvatarFallback className="rounded-lg">
-                        {user.name
+                        <AvatarFallback className="rounded-lg">
+                        {user?.fullName
                           .split(" ")
                           .map((word) => word[0])
                           .join("")}
@@ -274,7 +274,7 @@ export default function AppSidebar() {
                     </Avatar>
                     <div className="grid flex-1 text-start text-sm leading-tight">
                       <span className="truncate font-semibold">
-                        {user?.name}
+                        {user?.fullName}
                       </span>
                       <span className="truncate text-xs">{user?.email}</span>
                     </div>

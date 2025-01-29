@@ -14,6 +14,7 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import FormDialog from "../components/InstructorsFormDialog";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
+import { Pencil, Trash } from "lucide-react";
 
 interface Trainer {
   id: number;
@@ -194,16 +195,20 @@ export default function TrainersPage() {
                   variant="destructive"
                   className="ml-2"
                 >
-                  حذف
+                  <span>حذف</span>
+                  <Trash />
                 </Button>
                 <Button
                   size="sm"
+                  variant={"secondary"}
+                  className="hover:bg-primary hover:text-primary-foreground"
                   onClick={() => {
                     setCurrentTrainer(trainer);
                     setShowEditForm(true);
                   }}
                 >
-                  تعديل
+                  <span>تعديل</span>
+                  <Pencil />
                 </Button>
               </TableCell>
             </TableRow>

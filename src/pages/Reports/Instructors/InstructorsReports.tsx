@@ -15,29 +15,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Instructor } from "@/types";
 import axios from "axios";
 import { Check, ChevronDown, CircleCheck, Download } from "lucide-react";
 import { useLayoutEffect, useState } from "react";
 import { utils, writeFile as writeExcelFile } from "xlsx";
 
-type Instructor = {
-  id: number;
-  name: string;
-  phone: string;
-  averageRating: number | null;
-  activityCount: number;
-};
-
 type Field = {
   label: string;
-  value: "name" | "phone" | "averageRating" | "activityCount";
+  value: "name" | "phone" | "avgRating" | "activityCount" | "organization";
 };
 
 const allFields: Field[] = [
   { label: "اسم المدرب", value: "name" },
   { label: "رقم الهاتف", value: "phone" },
-  { label: "متوسط التقييم", value: "averageRating" },
+  { label: "متوسط التقييم", value: "avgRating" },
   { label: "عدد الأنشطة", value: "activityCount" },
+  { label: "المؤسسة التابع لها", value: "organization" },
 ];
 
 export default function InstructorsReports() {
@@ -49,6 +43,7 @@ export default function InstructorsReports() {
       try {
         const res = await axios.get("/api/v1/reports/instructors");
         setInstructors(res.data.data.instructors);
+        console.log(res.data.data.instructors);
       } catch (error) {
         console.log(error);
       }
@@ -58,12 +53,23 @@ export default function InstructorsReports() {
 
   const handleExport = () => {
     const data = instructors.map((instructor) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const instructorData: any = {};
       allFields
         .filter((f) => fields.includes(f.value))
         .forEach((field) => {
           instructorData[field.label] =
-            instructor[field.value] ?? "لا يوجد بيانات";
+            field.value === "name"
+              ? instructor.name || "//"
+              : field.value === "activityCount"
+              ? instructor.activityCount || "//"
+              : field.value === "organization"
+              ? instructor.organization.name || "//"
+              : field.value === "phone"
+              ? instructor.phone || "//"
+              : field.value === "avgRating"
+              ? instructor.avgRating || "//"
+              : "";
         });
       return instructorData;
     });
@@ -150,9 +156,27 @@ export default function InstructorsReports() {
                 .filter((f) => fields.includes(f.value))
                 .map((field) => (
                   <TableCell className="text-center" key={field.value}>
-                    {instructor[field.value] ?? (
-                      <span className="text-gray-500">لا يوجد بيانات</span>
-                    )}
+                    {field.value === "name"
+                      ? instructor.name || (
+                          <span className="text-gray-500">//</span>
+                        )
+                      : field.value === "activityCount"
+                      ? instructor.activityCount || (
+                          <span className="text-gray-500">//</span>
+                        )
+                      : field.value === "organization"
+                      ? instructor.organization.name || (
+                          <span className="text-gray-500">//</span>
+                        )
+                      : field.value === "phone"
+                      ? instructor.phone || (
+                          <span className="text-gray-500">//</span>
+                        )
+                      : field.value === "avgRating"
+                      ? instructor.avgRating || (
+                          <span className="text-gray-500">//</span>
+                        )
+                      : ""}
                   </TableCell>
                 ))}
             </TableRow>

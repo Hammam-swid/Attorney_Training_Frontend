@@ -2,6 +2,13 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 interface FormDialogProps {
   title: string;
@@ -104,13 +111,24 @@ const FormDialog: React.FC<FormDialogProps> = ({
           </div>
           <div className="mb-4">
             <Label htmlFor="type">النوع</Label>
-            <Input
-              id="type"
-              name="type"
+            <Select
               value={formData.type || ""}
-              onChange={handleChange}
-              required
-            />
+              onValueChange={(val) =>
+                setFormData((prev) => ({ ...prev, type: val }))
+              }
+            >
+              <SelectTrigger dir="rtl">
+                <SelectValue placeholder="اختر نوع" />
+              </SelectTrigger>
+              <SelectContent dir="rtl">
+                <SelectItem value="موظف">موظف</SelectItem>
+                <SelectItem value="ضابط">ضابط</SelectItem>
+                <SelectItem value="عضو هيئة النيابة">
+                  عضو هيئة النيابة
+                </SelectItem>
+                <SelectItem value="أخرى">أخرى</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex justify-start">
             <Button type="button" variant="outline" onClick={onClose}>

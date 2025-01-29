@@ -250,6 +250,7 @@ export default function OrganizationPage() {
                 </TableCell>
                 <TableCell className="flex gap-2">
                   <Button
+                    size="sm"
                     onClick={() => {
                       setSureModal({
                         title: "حذف الجهة",
@@ -296,6 +297,7 @@ export default function OrganizationPage() {
                     <Trash />
                   </Button>
                   <Button
+                    size="sm"
                     onClick={() => handleForm("edit", organization)}
                     variant={"secondary"}
                   >

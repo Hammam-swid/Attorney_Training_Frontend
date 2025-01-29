@@ -19,6 +19,8 @@ export interface Activity {
 
   traineesCount: number;
   instructorRating: number;
+
+  activityTrainees: ActivityTrainee[];
 }
 
 export interface Instructor {
@@ -29,6 +31,8 @@ export interface Instructor {
 
   rating: number;
   avgRating: number;
+  activityCount: number;
+  organization: Organization;
 }
 export interface ActivityType {
   id: number;
@@ -56,6 +60,13 @@ export interface Trainee {
   type: string;
   rating: number;
   activityCount: number;
+}
+
+export interface ActivityTrainee {
+  id: number;
+  trainee: Trainee;
+  activity: Activity;
+  rating: number;
 }
 
 export interface User {

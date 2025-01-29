@@ -262,7 +262,7 @@ export default function ActivitiesPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <Select value={status} onValueChange={setStatus}>
+        <Select dir="rtl" value={status} onValueChange={setStatus}>
           <SelectTrigger className="w-64">
             <SelectValue placeholder="الحالة" />
           </SelectTrigger>
@@ -382,7 +382,9 @@ export default function ActivitiesPage() {
                           description: (
                             <p>
                               هل أنت متأكد من حذف{" "}
-                              <span className="font-bold">{activity.title}</span>
+                              <span className="font-bold">
+                                {activity.title}
+                              </span>
                               ؟
                             </p>
                           ),

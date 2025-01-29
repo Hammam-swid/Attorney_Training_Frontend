@@ -9,12 +9,14 @@ import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import { useAppDispatch } from "@/store/hooks";
 import { setToken, setUser } from "@/store/authSlice";
+import { useNavigate } from "react-router";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"form">) {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const formik = useFormik({
     initialValues: {
       email: "",
@@ -36,6 +38,10 @@ export function LoginForm({
           toast.success("تم تسجيل الدخول بنجاح");
           dispatch(setToken(data.data.token));
           dispatch(setUser(data.data.user));
+          setTimeout(() => {
+            navigate("/");
+          },1000);
+          // navigate("/");
         }
       } catch (error) {
         console.log(error);
