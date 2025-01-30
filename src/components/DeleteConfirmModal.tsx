@@ -20,7 +20,7 @@ function DeleteConfirmModal<T>({
   };
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center rtl"
+      className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center rtl"
       onClick={handleClose}
     >
       <div className="bg-background p-6 rounded-lg w-96">

@@ -185,13 +185,15 @@ export default function OrganizationPage() {
           <span>إضافة جهة جديدة</span>
           <PlusCircle />
         </Button>
-        <AddOrganizationForm
-          title={organizationForm.title}
-          show={organizationForm.show}
-          hideForm={organizationForm.hideForm}
-          onSubmit={organizationForm.onSubmit}
-          orgName={organizationForm.orgName}
-        />
+        {organizationForm.show && (
+          <AddOrganizationForm
+            title={organizationForm.title}
+            show={organizationForm.show}
+            hideForm={organizationForm.hideForm}
+            onSubmit={organizationForm.onSubmit}
+            orgName={organizationForm.orgName}
+          />
+        )}
       </div>
       <div className="flex items-center justify-between mb-4 mt-4">
         <Input

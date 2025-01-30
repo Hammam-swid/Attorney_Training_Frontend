@@ -181,13 +181,13 @@ export default function ActivitiesPage() {
           hideForm: () => {},
         }),
       onSubmit: async (values, helpers) => {
-        console.log(values);
         try {
           const res = await axios.patch(
             `/api/v1/training-activities/${activity.id}`,
             values
           );
           if (res.status === 200) {
+            console.log(res);
             toast.success("تم تعديل النشاط بنجاح");
             helpers.resetForm();
             setActivityForm({
@@ -198,6 +198,11 @@ export default function ActivitiesPage() {
               onSubmit: () => {},
               hideForm: () => {},
             });
+            setActivities((prev) =>
+              prev.map((act) =>
+                act.id === activity.id ? res.data.data.activity : act
+              )
+            );
           }
         } catch (error) {
           console.log(error);
@@ -229,6 +234,7 @@ export default function ActivitiesPage() {
           if (res.status === 201) {
             toast.success("تمت إضافة نشاط تدريبي بنجاح");
             helpers.resetForm();
+            setActivities((prev) => [res.data.data.activity, ...prev]);
           }
         } catch (error) {
           console.log(error);
@@ -424,7 +430,7 @@ export default function ActivitiesPage() {
             onSubmit={activityForm.onSubmit}
             title={activityForm.title}
             show={activityForm.show}
-            activityTypeId={activityForm.activityTypeId}
+            activityTypeId={typeId ? +typeId : 0}
             activity={activityForm.activity}
           />
         )}
