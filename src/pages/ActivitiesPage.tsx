@@ -124,6 +124,7 @@ export default function ActivitiesPage() {
               location: activity.location,
               instructors: activity.instructors,
               hours: activity.hours,
+              rating: activity.rating,
               traineesCount: activity.traineesCount,
               host: activity.host,
               executor: activity.executor,

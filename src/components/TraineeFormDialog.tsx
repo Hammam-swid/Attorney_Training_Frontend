@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +11,7 @@ import {
 import { Trainee } from "@/types";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { Save, X } from "lucide-react";
 
 interface FormDialogProps {
   title: string;
@@ -28,6 +28,7 @@ const FormDialog: React.FC<FormDialogProps> = ({
 }) => {
   const formik = useFormik({
     initialValues: {
+      id: initialData.id || undefined,
       name: initialData.name || "",
       phone: initialData.phone || "",
       address: initialData.address || "",
@@ -40,31 +41,14 @@ const FormDialog: React.FC<FormDialogProps> = ({
         /^(\+218|00218|0)?(9[1-5]\d{7})$/,
         "يجب إدخال الرقم بشكل صحيح"
       ),
-      address: Yup.string().min(3),
+      address: Yup.string(),
       employer: Yup.string().required("يجب إدخال جهة العمل"),
       type: Yup.string().required("يجب إدخال النوع"),
     }),
-    onSubmit: () => {},
+    onSubmit: (values) => {
+      onSubmit(values as Trainee);
+    },
   });
-  const [formData, setFormData] = useState<Partial<Trainee>>(initialData);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (
-      formData.name &&
-      formData.phone &&
-      formData.address &&
-      formData.employer &&
-      formData.type
-    ) {
-      onSubmit(formData as Trainee);
-    }
-  };
 
   const handleClose = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -82,54 +66,75 @@ const FormDialog: React.FC<FormDialogProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-2xl font-bold mb-4">{title}</h2>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={formik.handleSubmit}>
           <div className="mb-4">
             <Label htmlFor="name">الاسم</Label>
             <Input
               id="name"
               name="name"
-              value={formData.name || ""}
-              onChange={handleChange}
-              required
+              value={formik.values.name}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
             />
+            {formik.touched.name && formik.errors.name && (
+              <div className="text-sm text-destructive">
+                {formik.errors.name}
+              </div>
+            )}
           </div>
           <div className="mb-4">
             <Label htmlFor="phone">رقم الهاتف</Label>
             <Input
               id="phone"
               name="phone"
-              value={formData.phone || ""}
-              onChange={handleChange}
-              required
+              value={formik.values.phone}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
             />
+            {formik.touched.phone && formik.errors.phone && (
+              <div className="text-sm text-destructive">
+                {formik.errors.phone}
+              </div>
+            )}
           </div>
           <div className="mb-4">
             <Label htmlFor="address">العنوان</Label>
             <Input
               id="address"
               name="address"
-              value={formData.address || ""}
-              onChange={handleChange}
-              required
+              value={formik.values.address}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
             />
+            {formik.touched.address && formik.errors.address && (
+              <div className="text-sm text-destructive">
+                {formik.errors.address}
+              </div>
+            )}
           </div>
           <div className="mb-4">
             <Label htmlFor="employer">جهة العمل</Label>
             <Input
               id="employer"
               name="employer"
-              value={formData.employer || ""}
-              onChange={handleChange}
-              required
+              value={formik.values.employer}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
             />
+            {formik.touched.employer && formik.errors.employer && (
+              <div className="text-sm text-destructive">
+                {formik.errors.employer}
+              </div>
+            )}
           </div>
           <div className="mb-4">
             <Label htmlFor="type">النوع</Label>
             <Select
-              value={formData.type || ""}
-              onValueChange={(val) =>
-                setFormData((prev) => ({ ...prev, type: val }))
-              }
+              value={formik.values.type}
+              onValueChange={(val) => {
+                formik.setFieldValue("type", val);
+                formik.setFieldTouched("type", true);
+              }}
             >
               <SelectTrigger dir="rtl">
                 <SelectValue placeholder="اختر نوع" />
@@ -143,13 +148,20 @@ const FormDialog: React.FC<FormDialogProps> = ({
                 <SelectItem value="أخرى">أخرى</SelectItem>
               </SelectContent>
             </Select>
+            {formik.touched.type && formik.errors.type && (
+              <div className="text-sm text-destructive">
+                {formik.errors.type}
+              </div>
+            )}
           </div>
-          <div className="flex justify-start">
-            <Button type="button" variant="outline" onClick={onClose}>
-              إلغاء
+          <div className="flex flex-row-reverse gap-2">
+            <Button type="submit">
+              <span>حفظ</span>
+              <Save />
             </Button>
-            <Button type="submit" className="ml-2">
-              حفظ
+            <Button type="button" variant="outline" onClick={onClose}>
+              <span>إلغاء</span>
+              <X />
             </Button>
           </div>
         </form>

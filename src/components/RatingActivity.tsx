@@ -59,11 +59,11 @@ function RatingActivity({
       id="rating-activity-overlay"
       className="fixed inset-0 bg-black bg-opacity-50 h-screen w-screen flex items-center justify-center z-50"
     >
-      <Card className="p-3">
-        <CardTitle>
+      <Card className="p-6">
+        <CardTitle className="text-center mb-8">
           تقييم <span>{activity.title}</span>
         </CardTitle>
-        <CardContent className="mt-5">
+        <CardContent>
           <form onSubmit={formik.handleSubmit}>
             <Input
               id="rating"

@@ -15,14 +15,7 @@ import { toast } from "react-hot-toast";
 import FormDialog from "../components/TraineeFormDialog";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
 import { Pencil, Trash } from "lucide-react";
-interface Trainee {
-  id: number;
-  name: string;
-  phone: string;
-  address: string;
-  employer: string;
-  type: string;
-}
+import { Trainee } from "@/types";
 
 export default function TraineesPage() {
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
@@ -89,9 +82,10 @@ export default function TraineesPage() {
         `/api/v1/trainees/${updatedTrainee.id}`,
         updatedTrainee
       );
-      setTrainees(
-        trainees.map((trainee) =>
-          trainee.id === updatedTrainee.id ? res.data.data.trainee : trainee
+      console.log(res.data.data.trainee);
+      setTrainees((prev) =>
+        prev.map((trainee) =>
+          trainee.id === +updatedTrainee.id ? res.data.data.trainee : trainee
         )
       );
       toast.success("تم تعديل المتدرب بنجاح");
