@@ -1,4 +1,9 @@
-import { createRoutesFromElements, Route, RouterProvider } from "react-router";
+import {
+  createRoutesFromElements,
+  redirect,
+  Route,
+  RouterProvider,
+} from "react-router";
 import MainLayout from "./pages/MainLayout";
 import { createBrowserRouter } from "react-router-dom";
 import DashboardPage from "./pages/DashboardPage";
@@ -23,10 +28,16 @@ import InstructorActivities from "./pages/Reports/Instructors/InstructorActiviti
 import TraineesLayout from "./pages/Reports/Trainees/TraineesLayout";
 import TraineeActivity from "./pages/Reports/Trainees/TraineeActivity";
 import ErrorPage from "./pages/ErrorPage";
+import { store } from "./store";
 
 const routes = createRoutesFromElements(
   <>
-    <Route path="/login" element={<LoginPage />} errorElement={<ErrorPage />} />
+    <Route
+      path="/login"
+      loader={loginLoader}
+      element={<LoginPage />}
+      errorElement={<ErrorPage />}
+    />
     <Route path="/" element={<MainLayout />} errorElement={<ErrorPage />}>
       <Route index element={<DashboardPage />} errorElement={<ErrorPage />} />
       <Route
@@ -133,6 +144,13 @@ const router = createBrowserRouter(routes);
 
 function App() {
   return <RouterProvider router={router} />;
+}
+function loginLoader() {
+  const auth = store.getState().auth;
+  if (auth.token) {
+    return redirect("/");
+  }
+  return null;
 }
 
 export default App;

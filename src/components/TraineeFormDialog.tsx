@@ -9,6 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { Trainee } from "@/types";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
 interface FormDialogProps {
   title: string;
@@ -17,21 +20,32 @@ interface FormDialogProps {
   onClose: () => void;
 }
 
-interface Trainee {
-  id: number;
-  name: string;
-  phone: string;
-  address: string;
-  employer: string;
-  type: string;
-}
-
 const FormDialog: React.FC<FormDialogProps> = ({
   title,
   initialData,
   onSubmit,
   onClose,
 }) => {
+  const formik = useFormik({
+    initialValues: {
+      name: initialData.name || "",
+      phone: initialData.phone || "",
+      address: initialData.address || "",
+      employer: initialData.employer,
+      type: initialData.type || "",
+    },
+    validationSchema: Yup.object({
+      name: Yup.string().required("يجب ادخال اسم المتدرب"),
+      phone: Yup.string().matches(
+        /^(\+218|00218|0)?(9[1-5]\d{7})$/,
+        "يجب إدخال الرقم بشكل صحيح"
+      ),
+      address: Yup.string().min(3),
+      employer: Yup.string().required("يجب إدخال جهة العمل"),
+      type: Yup.string().required("يجب إدخال النوع"),
+    }),
+    onSubmit: () => {},
+  });
   const [formData, setFormData] = useState<Partial<Trainee>>(initialData);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

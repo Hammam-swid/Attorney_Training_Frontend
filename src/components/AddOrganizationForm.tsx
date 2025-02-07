@@ -63,7 +63,7 @@ export default function AddOrganizationForm({
               onChange={formik.handleChange}
             />
             {formik.errors.name && formik.touched.name && (
-              <p className="text-red-500">{formik.errors.name}</p>
+              <p className="text-sm text-destructive">{formik.errors.name}</p>
             )}
             <div className="flex flex-row-reverse gap-2 mt-6">
               <Button type="submit">

@@ -26,13 +26,13 @@ export interface Activity {
 export interface Instructor {
   id: number;
   name: string;
-  email: string;
+  email?: string;
   phone: string;
 
-  rating: number;
-  avgRating: number;
-  activityCount: number;
-  organization: Organization;
+  rating?: number;
+  avgRating?: number;
+  activityCount?: number;
+  organization?: Organization;
 }
 export interface ActivityType {
   id: number;
@@ -57,7 +57,7 @@ export interface Trainee {
   phone: string;
   address: string;
   employer: string;
-  type: string;
+  type: "موظف" | "ضابط" | "عضو هيئة النيابة" | "أخرى";
   rating: number;
   activityCount: number;
 }

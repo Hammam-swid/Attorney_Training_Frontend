@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil, PlusCircle, Trash, UserPlus2, UsersIcon } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { ReactElement, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 // import jsLingua from "jslingua";
@@ -30,6 +30,8 @@ import { FormikHelpers } from "formik";
 import ActivityTraineesDialog from "@/components/ActivityTraineesDialog";
 import InstructorActivityDialog from "@/components/InstructorActivityDialog";
 import { Helmet } from "react-helmet";
+import ActivityActions from "@/components/ActivityActions";
+import RatingActivity from "@/components/RatingActivity";
 
 interface SureModalType {
   title: string;
@@ -42,11 +44,11 @@ interface SureModalType {
 interface FormValues {
   title: string;
   location: string;
-  hours: number;
+  hours: number | undefined;
   startDate: Date;
   endDate: Date;
-  hostId: number;
-  executorId: number;
+  hostId: number | undefined;
+  executorId: number | undefined;
   activityTypeId: number;
 }
 
@@ -61,6 +63,8 @@ export default function ActivitiesPage() {
   const [selectedActivityForTrainee, setSelectedActivityForTrainee] =
     useState<Activity | null>(null);
   const [selectedActivityForInstructor, setSelectedActivityForInstructor] =
+    useState<Activity | null>(null);
+  const [selectedActivityForRating, setSelectedActivityForRating] =
     useState<Activity | null>(null);
 
   const [sureModal, setSureModal] = useState<SureModalType>({
@@ -146,6 +150,9 @@ export default function ActivitiesPage() {
       setPage((prev) => prev + 1);
     }
   };
+  const handleRating = (activity: Activity) => {
+    setSelectedActivityForRating(activity);
+  };
   const deleteActivity = async (id: number) => {
     try {
       const res = await axios.delete(`/api/v1/training-activities/${id}`);
@@ -211,6 +218,26 @@ export default function ActivitiesPage() {
       },
     });
   };
+  const handleDelete = (activity: Activity) =>
+    setSureModal({
+      description: (
+        <p>
+          هل أنت متأكد من حذف{" "}
+          <span className="font-bold">{activity.title}</span>؟
+        </p>
+      ),
+      title: "حذف نشاط",
+      show: true,
+      onConfirm: () => deleteActivity(activity.id),
+      onCancel: () =>
+        setSureModal({
+          show: false,
+          description: <></>,
+          title: "",
+          onConfirm: () => {},
+          onCancel: () => {},
+        }),
+    });
 
   const handleAdd = () => {
     setActivityForm({
@@ -242,6 +269,14 @@ export default function ActivitiesPage() {
         }
       },
     });
+  };
+
+  const updateRating = (activityId: number, rating: number) => {
+    setActivities((prev) =>
+      prev.map((activity) =>
+        activity.id === activityId ? { ...activity, rating: rating } : activity
+      )
+    );
   };
   return (
     <div className="container mx-auto py-10">
@@ -353,7 +388,18 @@ export default function ActivitiesPage() {
                   <TableCell>{activity.host.name}</TableCell>
                   <TableCell>{activity.executor.name}</TableCell>
                   <TableCell className="flex gap-2">
-                    <Button
+                    <ActivityActions
+                      handleDelete={() => handleDelete(activity)}
+                      handleEdit={() => handleEdit(activity)}
+                      handleInstructors={() =>
+                        setSelectedActivityForInstructor(activity)
+                      }
+                      handleTrainees={() =>
+                        setSelectedActivityForTrainee(activity)
+                      }
+                      handleRating={() => handleRating(activity)}
+                    />
+                    {/* <Button
                       onClick={() => setSelectedActivityForInstructor(activity)}
                       variant={"secondary"}
                       size={"icon"}
@@ -410,7 +456,7 @@ export default function ActivitiesPage() {
                       variant={"destructive"}
                     >
                       <Trash />
-                    </Button>
+                    </Button> */}
                   </TableCell>
                 </TableRow>
               ))}
@@ -432,6 +478,13 @@ export default function ActivitiesPage() {
             show={activityForm.show}
             activityTypeId={typeId ? +typeId : 0}
             activity={activityForm.activity}
+          />
+        )}
+        {selectedActivityForRating?.id && (
+          <RatingActivity
+            updateRating={updateRating}
+            activity={selectedActivityForRating}
+            onCancel={() => setSelectedActivityForRating(null)}
           />
         )}
 

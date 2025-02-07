@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -15,31 +15,22 @@ import { toast } from "react-hot-toast";
 import FormDialog from "../components/InstructorsFormDialog";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
 import { Pencil, Trash } from "lucide-react";
-
-interface Trainer {
-  id: number;
-  name: string;
-  phone: string;
-  organization: number;
-}
-
-interface Organization {
-  id: number;
-  name: string;
-}
+import { Instructor, Organization } from "@/types";
 
 export default function TrainersPage() {
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
   const [showEditForm, setShowEditForm] = useState<boolean>(false);
-  const [trainers, setTrainers] = useState<Trainer[]>([]);
+  const [trainers, setTrainers] = useState<Instructor[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage] = useState<number>(5);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
-  const [currentTrainer, setCurrentTrainer] = useState<Trainer | null>(null);
+  const [currentTrainer, setCurrentTrainer] = useState<Instructor | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
-  const [trainerToDelete, setTrainerToDelete] = useState<Trainer | null>(null);
+  const [trainerToDelete, setTrainerToDelete] = useState<Instructor | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,7 +58,7 @@ export default function TrainersPage() {
     };
 
     fetchData();
-  }, []);
+  }, [searchQuery]);
 
   const handleDeleteConfirm = async () => {
     if (!trainerToDelete) return;
@@ -84,7 +75,7 @@ export default function TrainersPage() {
       setTrainerToDelete(null);
     }
   };
-  const handleAddTrainer = async (newTrainer: Trainer) => {
+  const handleAddTrainer = async (newTrainer: Instructor) => {
     try {
       const res = await axios.post("/api/v1/instructors", {
         name: newTrainer.name,
@@ -99,7 +90,7 @@ export default function TrainersPage() {
     }
   };
 
-  const handleEditTrainer = async (updatedTrainer: Trainer) => {
+  const handleEditTrainer = async (updatedTrainer: Instructor) => {
     try {
       const res = await axios.patch(
         `/api/v1/instructors/${updatedTrainer.id}`,
@@ -171,7 +162,7 @@ export default function TrainersPage() {
             <TableHead className="text-right">المعرف</TableHead>
             <TableHead className="text-right">الاسم</TableHead>
             <TableHead className="text-right">رقم الهاتف</TableHead>
-            <TableHead className="text-right">الجهة المنضمة</TableHead>
+            <TableHead className="text-right">الجهة التابع لها</TableHead>
             <TableHead className="text-right">الإجراءات</TableHead>
           </TableRow>
         </TableHeader>
@@ -182,8 +173,7 @@ export default function TrainersPage() {
               <TableCell>{trainer.name}</TableCell>
               <TableCell>{trainer.phone}</TableCell>
               <TableCell>
-                {organizations.find((org) => org.id === trainer.organization)
-                  ?.name || "الجهة غير موجودة"}
+                {trainer?.organization?.name || "الجهة غير موجودة"}
               </TableCell>
               <TableCell>
                 <Button

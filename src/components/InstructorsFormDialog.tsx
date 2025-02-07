@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -9,24 +8,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-
-interface Trainer {
-  id: number;
-  name: string;
-  phone: string;
-  organization: number;
-}
-
-interface Organization {
-  id: number;
-  name: string;
-}
+import { Instructor, Organization } from "@/types";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
 interface FormDialogProps {
   title: string;
-  initialData: Partial<Trainer>;
+  initialData: Partial<Instructor>;
   organizations: Organization[];
-  onSubmit: (data: Trainer) => void;
+  onSubmit: (data: Instructor) => void;
   onClose: () => void;
 }
 
@@ -37,18 +27,30 @@ const FormDialog: React.FC<FormDialogProps> = ({
   onSubmit,
   onClose,
 }) => {
-  const [name, setName] = useState<string>(initialData.name || "");
-  const [phone, setPhone] = useState<string>(initialData.phone || "");
-  const [organization, setOrganization] = useState<number>(
-    initialData.organization || 0
-  );
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (organization) {
-      onSubmit({ id: initialData.id || 0, name, phone, organization });
-    }
-  };
+  const formik = useFormik({
+    initialValues: {
+      name: initialData.name || "",
+      phone: initialData.phone || "",
+      organizationId: initialData.organization?.id || 0,
+    },
+    validationSchema: Yup.object({
+      name: Yup.string().required("يرجى إدخال اسم المدرب"),
+      phone: Yup.string().matches(
+        /^(\+218|00218|0)?(9[1-5]\d{7})$/,
+        "يجب إدخال الرقم بشكل صحيح"
+      ),
+      organizationId: Yup.number().required("يرجى تحديد الجهة"),
+    }),
+    onSubmit: (values) => {
+      const instructor: Instructor = {
+        id: 0,
+        name: values.name,
+        phone: values.phone,
+        organization: { name: "", id: values.organizationId },
+      };
+      onSubmit(instructor);
+    },
+  });
 
   const handleClose = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -66,31 +68,39 @@ const FormDialog: React.FC<FormDialogProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-2xl font-bold mb-4">{title}</h2>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={formik.handleSubmit}>
           <div className="mb-4">
             <Label htmlFor="name">الاسم</Label>
             <Input
               id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
+              value={formik.values.name}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
             />
+            {formik.touched.name && formik.errors.name && (
+              <p className="text-sm text-destructive">{formik.errors.name}</p>
+            )}
           </div>
           <div className="mb-4">
             <Label htmlFor="phone">رقم الهاتف</Label>
             <Input
               id="phone"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
+              value={formik.values.phone}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
             />
+            {formik.touched.phone && formik.errors.phone && (
+              <p className="text-sm text-destructive">{formik.errors.phone}</p>
+            )}
           </div>
           <div className="mb-4">
-            <Label htmlFor="organization">الجهة المنضمة</Label>
+            <Label htmlFor="organization">الجهة التابع لها</Label>
             <Select
-              value={String(organization)}
-              onValueChange={(value) => setOrganization(Number(value))}
-              required
+              value={String(formik.values.organizationId)}
+              onValueChange={(value) => {
+                formik.setFieldValue("organizationId", Number(value));
+                formik.setFieldTouched("organizationId", true);
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="اختر الجهة" />
@@ -103,6 +113,11 @@ const FormDialog: React.FC<FormDialogProps> = ({
                 ))}
               </SelectContent>
             </Select>
+            {formik.touched.organizationId && formik.errors.organizationId && (
+              <p className="text-sm text-destructive">
+                {formik.errors.organizationId}
+              </p>
+            )}
           </div>
           <div className="flex justify-start">
             <Button
