@@ -23,7 +23,13 @@ import { utils, writeFile as writeExcelFile } from "xlsx";
 
 type Field = {
   label: string;
-  value: "name" | "phone" | "avgRating" | "activityCount" | "organization";
+  value:
+    | "name"
+    | "phone"
+    | "avgRating"
+    | "activityCount"
+    | "organization"
+    | "hours";
 };
 
 const allFields: Field[] = [
@@ -31,6 +37,7 @@ const allFields: Field[] = [
   { label: "رقم الهاتف", value: "phone" },
   { label: "متوسط التقييم", value: "avgRating" },
   { label: "عدد الأنشطة", value: "activityCount" },
+  { label: "عدد الساعات", value: "hours" },
   { label: "المؤسسة التابع لها", value: "organization" },
 ];
 
@@ -64,11 +71,13 @@ export default function InstructorsReports() {
               : field.value === "activityCount"
               ? instructor.activityCount || "//"
               : field.value === "organization"
-              ? instructor.organization.name || "//"
+              ? instructor.organization?.name || "//"
               : field.value === "phone"
               ? instructor.phone || "//"
               : field.value === "avgRating"
               ? instructor.avgRating || "//"
+              : field.value === "hours"
+              ? instructor.hours || "//"
               : "";
         });
       return instructorData;
@@ -165,7 +174,7 @@ export default function InstructorsReports() {
                           <span className="text-gray-500">//</span>
                         )
                       : field.value === "organization"
-                      ? instructor.organization.name || (
+                      ? instructor.organization?.name || (
                           <span className="text-gray-500">//</span>
                         )
                       : field.value === "phone"
@@ -174,6 +183,10 @@ export default function InstructorsReports() {
                         )
                       : field.value === "avgRating"
                       ? instructor.avgRating || (
+                          <span className="text-gray-500">//</span>
+                        )
+                      : field.value === "hours"
+                      ? instructor.hours || (
                           <span className="text-gray-500">//</span>
                         )
                       : ""}

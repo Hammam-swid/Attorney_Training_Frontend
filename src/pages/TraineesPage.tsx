@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -21,33 +21,36 @@ export default function TraineesPage() {
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
   const [showEditForm, setShowEditForm] = useState<boolean>(false);
   const [trainees, setTrainees] = useState<Trainee[]>([]);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [itemsPerPage] = useState<number>(5);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
+  const [AllTraineesCount, setAllTraineesCount] = useState<number>(0);
   const [currentTrainee, setCurrentTrainee] = useState<Trainee | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
   const [traineeToDelete, setTraineeToDelete] = useState<Trainee | null>(null);
 
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [page, setPage] = useState<number>(1);
+  const limit = 10;
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
         const searchParam = searchQuery
-          ? `?search=${encodeURIComponent(searchQuery)}`
+          ? `&search=${encodeURIComponent(searchQuery)}`
           : "";
 
-        const res = await axios.get(`/api/v1/trainees${searchParam}`);
+        const pageParam = `?page=${page}&limit=${limit}`;
+
+        const res = await axios.get(
+          `/api/v1/trainees${pageParam}${searchParam}`
+        );
         setTrainees(res.data.data.trainees);
+        setAllTraineesCount(res.data.data.count);
       } catch (error) {
         console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [searchQuery, page]);
 
   const handleDeleteConfirm = async () => {
     if (!traineeToDelete) return;
@@ -96,29 +99,9 @@ export default function TraineesPage() {
     }
   };
 
-  const filteredTrainees = useMemo(() => {
-    return trainees.filter((trainee) =>
-      Object.values(trainee).some((value) =>
-        value.toString().toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    );
-  }, [trainees, searchQuery]);
-
-  const pageCount = Math.ceil(filteredTrainees.length / itemsPerPage);
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredTrainees.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
-
-  const paginate = (pageNumber: number) => {
-    setCurrentPage(Math.max(1, Math.min(pageNumber, pageCount)));
-  };
-
-  if (loading) {
-    return <div className="text-center">جاري التحميل...</div>;
-  }
+  // if (loading) {
+  //   return <div className="text-center">جاري التحميل...</div>;
+  // }
 
   return (
     <div className="container mx-auto py-10 rtl">
@@ -134,6 +117,7 @@ export default function TraineesPage() {
             type="text"
             placeholder="ابحث عن متدرب..."
             value={searchQuery}
+            onFocus={() => setPage(1)}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="max-w-sm m-4"
           />
@@ -152,7 +136,7 @@ export default function TraineesPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {currentItems.map((trainee) => (
+          {trainees.map((trainee) => (
             <TableRow key={trainee.id}>
               <TableCell className="font-medium">{trainee.id}</TableCell>
               <TableCell>{trainee.name}</TableCell>
@@ -192,16 +176,16 @@ export default function TraineesPage() {
       </Table>
       <div className="mt-4 flex justify-center">
         <Button
-          onClick={() => paginate(currentPage - 1)}
-          disabled={currentPage === 1}
+          onClick={() => setPage(page - 1)}
+          disabled={page === 1}
           variant="outline"
           className="mx-1"
         >
           السابق
         </Button>
         <Button
-          onClick={() => paginate(currentPage + 1)}
-          disabled={currentPage === pageCount}
+          onClick={() => setPage(page + 1)}
+          disabled={trainees.length + limit * (page - 1) >= AllTraineesCount}
           variant="outline"
           className="mx-1"
         >

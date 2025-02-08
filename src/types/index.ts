@@ -32,6 +32,7 @@ export interface Instructor {
   rating?: number;
   avgRating?: number;
   activityCount?: number;
+  hours?: number;
   organization?: Organization;
 }
 export interface ActivityType {

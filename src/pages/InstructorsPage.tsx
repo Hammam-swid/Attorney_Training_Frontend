@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -17,48 +17,44 @@ import DeleteConfirmModal from "../components/DeleteConfirmModal";
 import { Pencil, Trash } from "lucide-react";
 import { Instructor, Organization } from "@/types";
 
-export default function TrainersPage() {
+export default function TrainerPage() {
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
   const [showEditForm, setShowEditForm] = useState<boolean>(false);
   const [trainers, setTrainers] = useState<Instructor[]>([]);
+  const [allTrainersCount, setAllTrainersCount] = useState<number>(0);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [itemsPerPage] = useState<number>(5);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
   const [currentTrainer, setCurrentTrainer] = useState<Instructor | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
   const [trainerToDelete, setTrainerToDelete] = useState<Instructor | null>(
     null
   );
 
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [page, setPage] = useState<number>(1);
+  const limit = 10;
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
+        const searchParam = searchQuery ? `&search=${searchQuery}` : "";
+        const pageParam = `?page=${page}&limit=${limit}`;
 
-        const searchParam = searchQuery
-          ? `?search=${encodeURIComponent(searchQuery)}`
-          : "";
-
+        console.log(`/api/v1/instructors${pageParam}${searchParam}`);
         const [trainersRes, orgsRes] = await Promise.all([
-          axios.get(`/api/v1/instructors${searchParam}`),
+          axios.get(`/api/v1/instructors${pageParam}${searchParam}`),
           axios.get("/api/v1/organizations"),
         ]);
 
         setTrainers(trainersRes.data.data.instructors);
-        console.log(trainersRes.data.data.instructors);
         setOrganizations(orgsRes.data.data.organizations);
-        console.log(orgsRes.data.data.organizations);
+        setAllTrainersCount(trainersRes.data.data.count);
       } catch (error) {
         console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchData();
-  }, [searchQuery]);
+  }, [searchQuery, page]);
 
   const handleDeleteConfirm = async () => {
     if (!trainerToDelete) return;
@@ -113,30 +109,6 @@ export default function TrainersPage() {
     }
   };
 
-  const filteredTrainers = useMemo(() => {
-    return trainers.filter((trainer) =>
-      Object.values(trainer).some((value) =>
-        value.toString().toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    );
-  }, [trainers, searchQuery]);
-
-  const pageCount = Math.ceil(filteredTrainers.length / itemsPerPage);
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredTrainers.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
-
-  const paginate = (pageNumber: number) => {
-    setCurrentPage(Math.max(1, Math.min(pageNumber, pageCount)));
-  };
-
-  if (loading) {
-    return <div className="text-center">جاري التحميل...</div>;
-  }
-
   return (
     <div className="container mx-auto py-10 rtl">
       <h1 className="text-3xl font-bold mb-5">قائمة المدربين</h1>
@@ -167,7 +139,7 @@ export default function TrainersPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {currentItems.map((trainer) => (
+          {trainers.map((trainer) => (
             <TableRow key={trainer.id}>
               <TableCell className="font-medium">{trainer.id}</TableCell>
               <TableCell>{trainer.name}</TableCell>
@@ -207,16 +179,16 @@ export default function TrainersPage() {
       </Table>
       <div className="mt-4 flex justify-center">
         <Button
-          onClick={() => paginate(currentPage - 1)}
-          disabled={currentPage === 1}
+          onClick={() => setPage(page - 1)}
+          disabled={page <= 1}
           variant="outline"
           className="mx-1"
         >
           السابق
         </Button>
         <Button
-          onClick={() => paginate(currentPage + 1)}
-          disabled={currentPage === pageCount}
+          onClick={() => setPage(page + 1)}
+          disabled={trainers.length + limit * (page - 1) >= allTrainersCount}
           variant="outline"
           className="mx-1"
         >

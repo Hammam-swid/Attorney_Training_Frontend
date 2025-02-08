@@ -119,7 +119,8 @@ const FormDialog: React.FC<FormDialogProps> = ({
               </p>
             )}
           </div>
-          <div className="flex justify-start">
+          <div className="flex justify-start flex-row-reverse">
+            <Button type="submit">حفظ</Button>
             <Button
               type="button"
               variant="outline"
@@ -128,7 +129,6 @@ const FormDialog: React.FC<FormDialogProps> = ({
             >
               إلغاء
             </Button>
-            <Button type="submit">حفظ</Button>
           </div>
         </form>
       </div>

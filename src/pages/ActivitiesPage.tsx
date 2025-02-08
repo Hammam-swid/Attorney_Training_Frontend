@@ -206,10 +206,16 @@ export default function ActivitiesPage() {
               onSubmit: () => {},
               hideForm: () => {},
             });
+            const newActivity = {
+              ...res.data.data.activity,
+              startDate: new Date(res.data.data.activity.startDate),
+              endDate: new Date(res.data.data.activity.endDate),
+              hostName: res.data.data.activity.host?.name || activity.host.name,
+              executorName:
+                res.data.data.activity.executor?.name || activity.executor.name,
+            };
             setActivities((prev) =>
-              prev.map((act) =>
-                act.id === activity.id ? res.data.data.activity : act
-              )
+              prev.map((act) => (act.id === activity.id ? newActivity : act))
             );
           }
         } catch (error) {
@@ -262,7 +268,12 @@ export default function ActivitiesPage() {
           if (res.status === 201) {
             toast.success("تمت إضافة نشاط تدريبي بنجاح");
             helpers.resetForm();
-            setActivities((prev) => [res.data.data.activity, ...prev]);
+            const newActivity = {
+              ...res.data.data.activity,
+              startDate: new Date(res.data.data.activity.startDate),
+              endDate: new Date(res.data.data.activity.endDate),
+            };
+            setActivities((prev) => [newActivity, ...prev]);
           }
         } catch (error) {
           console.log(error);
@@ -337,7 +348,7 @@ export default function ActivitiesPage() {
                 {activityType?.instructorName || "المدرب/المدربون"}
               </TableHead>
               {activityType?.isHaveRating && (
-                <TableHead>تقييم المدرب</TableHead>
+                <TableHead>تقييم المدرب/المدربين</TableHead>
               )}
               <TableHead>عدد المتدربين</TableHead>
               <TableHead>الجهة المنظمة</TableHead>
@@ -374,10 +385,18 @@ export default function ActivitiesPage() {
                   <TableCell>
                     {activity.instructors
                       ?.map((instructor) => instructor.name)
-                      .join("، ")}
+                      .join("، ") || (
+                      <span className="text-muted">لا يوجد مدربين</span>
+                    )}
                   </TableCell>
                   {activityType?.isHaveRating && (
-                    <TableCell>{activity.instructorRating}</TableCell>
+                    <TableCell>
+                      {activity.instructors
+                        ?.map((i) => i.rating)
+                        ?.join("، ") || (
+                        <span className="text-muted">لا يوجد تقييم</span>
+                      )}
+                    </TableCell>
                   )}
                   <TableCell>
                     {!activity.traineesCount ? (
@@ -400,64 +419,6 @@ export default function ActivitiesPage() {
                       }
                       handleRating={() => handleRating(activity)}
                     />
-                    {/* <Button
-                      onClick={() => setSelectedActivityForInstructor(activity)}
-                      variant={"secondary"}
-                      size={"icon"}
-                      className="hover:bg-primary hover:text-primary-foreground"
-                      title={activityType?.instructorName || "المدرب/المدربون"}
-                    >
-                      <UserPlus2 />
-                    </Button>
-                    <Button
-                      onClick={() => setSelectedActivityForTrainee(activity)}
-                      variant={"secondary"}
-                      size={"icon"}
-                      className="hover:bg-primary hover:text-primary-foreground"
-                      title="قائمة المتدربين"
-                    >
-                      <UsersIcon />
-                    </Button>
-                    <Button
-                      size={"icon"}
-                      onClick={() => handleEdit(activity)}
-                      variant={"secondary"}
-                      className="hover:bg-primary hover:text-primary-foreground"
-                      title="تعديل"
-                    >
-                      <Pencil />
-                    </Button>
-                    <Button
-                      title="حذف"
-                      size={"icon"}
-                      onClick={() =>
-                        setSureModal({
-                          description: (
-                            <p>
-                              هل أنت متأكد من حذف{" "}
-                              <span className="font-bold">
-                                {activity.title}
-                              </span>
-                              ؟
-                            </p>
-                          ),
-                          title: "حذف نشاط",
-                          show: true,
-                          onConfirm: () => deleteActivity(activity.id),
-                          onCancel: () =>
-                            setSureModal({
-                              show: false,
-                              description: <></>,
-                              title: "",
-                              onConfirm: () => {},
-                              onCancel: () => {},
-                            }),
-                        })
-                      }
-                      variant={"destructive"}
-                    >
-                      <Trash />
-                    </Button> */}
                   </TableCell>
                 </TableRow>
               ))}

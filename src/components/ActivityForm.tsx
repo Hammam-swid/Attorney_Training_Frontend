@@ -323,7 +323,6 @@ export default function ActivityForm({
                 onSubmit={organizationForm.onSubmit}
               />
             </div>
-            {formik.errors.hostId}
             {formik.touched.hostId && formik.errors.hostId && (
               <p className="text-sm text-destructive">
                 {formik.errors.hostId as string}
