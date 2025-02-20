@@ -15,24 +15,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Trainee } from "@/types";
 import axios from "axios";
 import { Check, ChevronDown, CircleCheck, Download } from "lucide-react";
 import { useLayoutEffect, useState } from "react";
 import { utils, writeFile as writeExcelFile } from "xlsx";
 
-type Trainee = {
-  id: number;
-  name: string;
-  phone: string;
-  address: string;
-  employer: string;
-  type: string;
-  activitiesCount: number;
-};
-
 type Field = {
   label: string;
-  value: "name" | "phone" | "address" | "employer" | "type" | "activitiesCount";
+  value: keyof Trainee;
+  // | "name"
+  // | "phone"
+  // | "address"
+  // | "employer"
+  // | "type"
+  // | "activitiesCount"
+  // | "payGrade";
 };
 
 const allFields: Field[] = [
@@ -41,7 +39,8 @@ const allFields: Field[] = [
   { label: "العنوان", value: "address" },
   { label: "جهة العمل", value: "employer" },
   { label: "النوع", value: "type" },
-  { label: "عدد الأنشطة", value: "activitiesCount" },
+  { label: "الدرجة الوظيفية", value: "payGrade" },
+  { label: "عدد الأنشطة", value: "activityCount" },
 ];
 
 export default function TraineesReports() {
@@ -62,11 +61,13 @@ export default function TraineesReports() {
 
   const handleExport = () => {
     const data = trainees.map((trainee) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const traineeData: any = {};
       allFields
         .filter((f) => fields.includes(f.value))
         .forEach((field) => {
-          traineeData[field.label] = trainee[field.value] ?? "لا يوجد بيانات";
+          traineeData[field.label] =
+            trainee[field.value as keyof Trainee] ?? "لا يوجد بيانات";
         });
       return traineeData;
     });
@@ -153,7 +154,7 @@ export default function TraineesReports() {
                 .filter((f) => fields.includes(f.value))
                 .map((field) => (
                   <TableCell className="text-center" key={field.value}>
-                    {trainee[field.value] ?? (
+                    {trainee[field.value as keyof Trainee] ?? (
                       <span className="text-gray-500">لا يوجد بيانات</span>
                     )}
                   </TableCell>

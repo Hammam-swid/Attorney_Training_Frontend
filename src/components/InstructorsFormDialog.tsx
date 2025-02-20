@@ -43,7 +43,7 @@ const FormDialog: React.FC<FormDialogProps> = ({
     }),
     onSubmit: (values) => {
       const instructor: Instructor = {
-        id: 0,
+        id: initialData.id || 0,
         name: values.name,
         phone: values.phone,
         organization: { name: "", id: values.organizationId },

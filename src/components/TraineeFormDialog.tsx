@@ -19,6 +19,19 @@ interface FormDialogProps {
   onSubmit: (data: Trainee) => void;
   onClose: () => void;
 }
+const payGrades = [
+  "محامي عام من الفئة أ",
+  "محامي عام من الفئة ب",
+  "رئيس نيابة",
+  "نائب نيابة من الدرجة الأولى",
+  "نائب نيابة من الدرجة الثانية",
+  "وكيل نيابة من الدرجة الأولى",
+  "وكيل نيابة من الدرجة الثانية",
+  "وكيل نيابة من الدرجة الثالثة",
+  "مساعد نيابة",
+  "معاون نيابة",
+  "أخرى",
+];
 
 const FormDialog: React.FC<FormDialogProps> = ({
   title,
@@ -34,6 +47,7 @@ const FormDialog: React.FC<FormDialogProps> = ({
       address: initialData.address || "",
       employer: initialData.employer,
       type: initialData.type || "",
+      payGrade: initialData.payGrade || "",
     },
     validationSchema: Yup.object({
       name: Yup.string().required("يجب ادخال اسم المتدرب"),
@@ -44,6 +58,9 @@ const FormDialog: React.FC<FormDialogProps> = ({
       address: Yup.string(),
       employer: Yup.string().required("يجب إدخال جهة العمل"),
       type: Yup.string().required("يجب إدخال النوع"),
+      payGrade: Yup.string()
+        .required("يجب إدخال الرتبة الوظيفية")
+        .oneOf(payGrades, "يجب إدخال الرتبة الوظيفية بشكل صحيح"),
     }),
     onSubmit: (values) => {
       onSubmit(values as Trainee);
@@ -133,7 +150,9 @@ const FormDialog: React.FC<FormDialogProps> = ({
               value={formik.values.type}
               onValueChange={(val) => {
                 formik.setFieldValue("type", val);
-                formik.setFieldTouched("type", true);
+                setTimeout(() => {
+                  formik.setFieldTouched("type", true);
+                }, 100);
               }}
             >
               <SelectTrigger dir="rtl">
@@ -151,6 +170,34 @@ const FormDialog: React.FC<FormDialogProps> = ({
             {formik.touched.type && formik.errors.type && (
               <div className="text-sm text-destructive">
                 {formik.errors.type}
+              </div>
+            )}
+          </div>
+          <div className="mb-4">
+            <Label htmlFor="type">الرتبة الوظيفية</Label>
+            <Select
+              value={formik.values.payGrade}
+              onValueChange={(val) => {
+                formik.setFieldValue("payGrade", val);
+                setTimeout(() => {
+                  formik.setFieldTouched("payGrade", true);
+                }, 100);
+              }}
+            >
+              <SelectTrigger dir="rtl">
+                <SelectValue placeholder="اختر الرتبة الوظيفية" />
+              </SelectTrigger>
+              <SelectContent dir="rtl">
+                {payGrades.map((payGrade) => (
+                  <SelectItem key={payGrade} value={payGrade}>
+                    {payGrade}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {formik.touched.payGrade && formik.errors.payGrade && (
+              <div className="text-sm text-destructive">
+                {formik.errors.payGrade}
               </div>
             )}
           </div>

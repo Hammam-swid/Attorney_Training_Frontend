@@ -88,6 +88,7 @@ export default function TrainerPage() {
 
   const handleEditTrainer = async (updatedTrainer: Instructor) => {
     try {
+      console.log(updatedTrainer);
       const res = await axios.patch(
         `/api/v1/instructors/${updatedTrainer.id}`,
         {

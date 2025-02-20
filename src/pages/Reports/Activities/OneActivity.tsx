@@ -29,6 +29,7 @@ const allFields = [
   { label: "العنوان", value: "address" },
   { label: "جهة العمل", value: "employer" },
   { label: "النوع", value: "type" },
+  { label: "الدرجة الوظيفية", value: "payGrade" },
   { label: "التقييم", value: "rating" },
 ];
 
@@ -43,6 +44,7 @@ export default function OneActivity() {
           search ? `?activityName=${search}` : ""
         }`
       );
+      console.log(res);
       setTrainees(res.data.data.trainees);
     };
     fetchTrainees();
@@ -60,6 +62,9 @@ export default function OneActivity() {
         switch (field) {
           case "type":
             traineeData["النوع"] = trainee.type || "//";
+            break;
+          case "payGrade":
+            traineeData["الدرجة الوظيفية"] = trainee.payGrade || "//";
             break;
           case "rating":
             traineeData["التقييم"] = trainee.rating
@@ -88,11 +93,7 @@ export default function OneActivity() {
 
     const workbook = utils.book_new();
     const titleRow = [
-      [
-        search
-          ? `تقرير-الأنشطة-التدريبية-${search}`
-          : "تقرير-الأنشطة-التدريبية",
-      ],
+      [search ? `تقرير-المتدربين-للنشاط-${search}` : "تقرير-الأنشطة-التدريبية"],
     ];
     const worksheet = utils.aoa_to_sheet(titleRow);
 
@@ -102,9 +103,13 @@ export default function OneActivity() {
     utils.sheet_add_json(worksheet, data, { origin: "A2" });
     worksheet["!cols"] = fields.map(() => ({ wch: 15 }));
     worksheet["!dir"] = "rtl";
-    utils.book_append_sheet(workbook, worksheet, "تقرير الأنشطة");
+    utils.book_append_sheet(
+      workbook,
+      worksheet,
+      `تقرير-المتدربين-للنشاط-${search}`
+    );
 
-    writeFile(workbook, "trainees.xlsx");
+    writeFile(workbook, `تقرير-المتدربين-للنشاط-${search}.xlsx`);
   };
 
   return (

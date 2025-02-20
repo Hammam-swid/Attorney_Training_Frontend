@@ -126,24 +126,40 @@ export default function TraineesPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="text-right">المعرف</TableHead>
-            <TableHead className="text-right">الاسم</TableHead>
-            <TableHead className="text-right">رقم الهاتف</TableHead>
-            <TableHead className="text-right">العنوان</TableHead>
-            <TableHead className="text-right">جهة العمل</TableHead>
-            <TableHead className="text-right">النوع</TableHead>
-            <TableHead className="text-right">الإجراءات</TableHead>
+            <TableHead className="text-center">المعرف</TableHead>
+            <TableHead className="text-center">الاسم</TableHead>
+            <TableHead className="text-center">رقم الهاتف</TableHead>
+            <TableHead className="text-center">العنوان</TableHead>
+            <TableHead className="text-center">جهة العمل</TableHead>
+            <TableHead className="text-center">النوع</TableHead>
+            <TableHead className="text-center">الدرجة الوظيفية</TableHead>
+            <TableHead className="text-center">الإجراءات</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {trainees.map((trainee) => (
             <TableRow key={trainee.id}>
-              <TableCell className="font-medium">{trainee.id}</TableCell>
-              <TableCell>{trainee.name}</TableCell>
-              <TableCell>{trainee.phone}</TableCell>
-              <TableCell>{trainee.address}</TableCell>
-              <TableCell>{trainee.employer}</TableCell>
-              <TableCell>{trainee.type}</TableCell>
+              <TableCell className="font-medium text-center">
+                {trainee.id}
+              </TableCell>
+              <TableCell className="text-center">
+                {trainee.name || <span className="text-muted">//</span>}
+              </TableCell>
+              <TableCell className="text-center">
+                {trainee.phone || <span className="text-muted">//</span>}
+              </TableCell>
+              <TableCell className="text-center">
+                {trainee.address || <span className="text-muted">//</span>}
+              </TableCell>
+              <TableCell className="text-center">
+                {trainee.employer || <span className="text-muted">//</span>}
+              </TableCell>
+              <TableCell className="text-center">
+                {trainee.type || <span className="text-muted">//</span>}
+              </TableCell>
+              <TableCell className="text-center">
+                {trainee.payGrade || <span className="text-muted">//</span>}
+              </TableCell>
               <TableCell>
                 <Button
                   size="sm"

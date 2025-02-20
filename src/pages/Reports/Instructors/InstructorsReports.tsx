@@ -83,9 +83,17 @@ export default function InstructorsReports() {
       return instructorData;
     });
     const workbook = utils.book_new();
-    const worksheet = utils.json_to_sheet(data);
-    utils.book_append_sheet(workbook, worksheet, "Instructors");
-    writeExcelFile(workbook, "instructors.xlsx");
+    const titleRow = [["تقرير-المدربين"]];
+
+    const worksheet = utils.aoa_to_sheet(titleRow);
+    worksheet["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: fields.length - 1 } },
+    ];
+
+    utils.sheet_add_json(worksheet, data, { origin: "A2" });
+    worksheet["!cols"] = fields.map(() => ({ wch: 15 }));
+    utils.book_append_sheet(workbook, worksheet, "تقرير-المدربين");
+    writeExcelFile(workbook, "تقرير-المدربين.xlsx");
   };
 
   return (

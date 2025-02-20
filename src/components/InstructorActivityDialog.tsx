@@ -40,7 +40,7 @@ export default function InstructorActivityDialog({
       const { data } = await axios.get<
         unknown,
         { data: { data: { instructors: Instructor[] } } }
-      >(`/api/v1/instructors`);
+      >(`/api/v1/instructors/all`);
       console.log(data);
       setAllInstructors(
         data.data.instructors
@@ -68,7 +68,6 @@ export default function InstructorActivityDialog({
     };
     fetchInstructors();
   }, [activityId]);
-  console.log(instructors);
 
   const addInstructor = async () => {
     try {
@@ -140,13 +139,13 @@ export default function InstructorActivityDialog({
       id="instructors-dialog-overlay"
       className="fixed inset-0 bg-black bg-opacity-50 h-screen z-50 flex items-center justify-center"
     >
-      <Card className="bg-background p-6">
+      <Card className="bg-background h-96 overflow-y-scroll p-6">
         <CardHeader>
           {/* <CardTitle>قائمة المدربين</CardTitle> */}
           <h3 className="text-lg font-bold text-center">قائمة المدربين</h3>
         </CardHeader>
         <CardContent>
-          <Table className="min-w-96">
+          <Table className="min-w-96 ">
             <TableHeader>
               <TableRow>
                 <TableHead className="text-right">المعرف</TableHead>
