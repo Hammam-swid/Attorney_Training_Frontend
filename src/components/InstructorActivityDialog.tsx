@@ -19,11 +19,13 @@ import toast from "react-hot-toast";
 interface InstructorActivityDialogProps {
   activityId: number;
   onClose: () => void;
+  refresh: () => void;
 }
 
 export default function InstructorActivityDialog({
   activityId = 1,
   onClose,
+  refresh,
 }: InstructorActivityDialogProps) {
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [allInstructors, setAllInstructors] = useState<
@@ -84,7 +86,9 @@ export default function InstructorActivityDialog({
         ...prev.filter((i) => instructors.some((s) => s.id !== i.id)),
         ...data.data.instructors,
       ]);
+      toast.success("تمت الإضافة بنجاح");
       setSelectedInstructors([]);
+      refresh();
     } catch (error) {
       console.log(error);
     }
@@ -97,6 +101,8 @@ export default function InstructorActivityDialog({
     );
     console.log(data);
     setInstructors((prev) => prev.filter((i) => i.id !== instructor.id));
+    toast.success("تمت الإزالة بنجاح");
+    refresh();
   };
 
   const rateInstructor = async (instructor: Instructor, rating: number) => {
@@ -115,6 +121,7 @@ export default function InstructorActivityDialog({
           )
         );
         toast.success("تم تقييم المدرب بنجاح");
+        refresh();
       }
     } catch (error) {
       console.log(error);
@@ -139,90 +146,101 @@ export default function InstructorActivityDialog({
       id="instructors-dialog-overlay"
       className="fixed inset-0 bg-black bg-opacity-50 h-screen z-50 flex items-center justify-center"
     >
-      <Card className="bg-background h-96 overflow-y-scroll p-6">
+      <Card
+        className="bg-background max-h-[80vh]"
+        style={{
+          scrollbarWidth: "thin",
+        }}
+      >
         <CardHeader>
           {/* <CardTitle>قائمة المدربين</CardTitle> */}
           <h3 className="text-lg font-bold text-center">قائمة المدربين</h3>
         </CardHeader>
         <CardContent>
-          <Table className="min-w-96 ">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-right">المعرف</TableHead>
-                <TableHead className="text-right">الاسم</TableHead>
-                <TableHead className="text-right">التقييم</TableHead>
-                <TableHead className="text-right">الإجراءات</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {instructors.map((instructor) => (
-                <TableRow key={instructor.id}>
-                  <TableCell className="font-medium">{instructor.id}</TableCell>
-                  <TableCell>{instructor.name}</TableCell>
-                  <TableCell>
-                    {!isEditing || isEditing.id !== instructor.id ? (
-                      instructor.rating ? (
-                        instructor?.rating?.toFixed(2)
-                      ) : (
-                        <span className="text-gray-500">لا يوجد تقييم</span>
-                      )
-                    ) : (
-                      <span className="relative">
-                        <Input
-                          inputMode="numeric"
-                          className="w-20"
-                          value={selectRating}
-                          onChange={(e) =>
-                            setSelectRating(e.target.value as unknown as number)
-                          }
-                        />
-                        <Button
-                          size={"icon"}
-                          variant={"ghost"}
-                          className="absolute left-0 top-0"
-                          onClick={() => setIsEditing(null)}
-                        >
-                          <X />
-                        </Button>
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="flex gap-2">
-                    <Button
-                      size={"icon"}
-                      variant={"outline"}
-                      onClick={() => {
-                        if (!isEditing) {
-                          setIsEditing(instructor);
-                          setSelectRating(instructor.rating || 0);
-                        }
-                        if (isEditing && isEditing.id === instructor.id) {
-                          rateInstructor(instructor, selectRating || 0);
-                          setIsEditing(null);
-                        }
-                      }}
-                      className="hover:bg-primary hover:text-primary-foreground"
-                    >
-                      {!isEditing || isEditing.id !== instructor.id ? (
-                        <Edit />
-                      ) : (
-                        <Check />
-                      )}
-                    </Button>
-                    <Button
-                      size={"icon"}
-                      variant={"destructive"}
-                      onClick={() => {
-                        deleteInstructor(instructor);
-                      }}
-                    >
-                      <Trash />
-                    </Button>
-                  </TableCell>
+          <div className="max-h-72 mb-8 overflow-y-scroll">
+            <Table className="min-w-96">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-right">المعرف</TableHead>
+                  <TableHead className="text-right">الاسم</TableHead>
+                  <TableHead className="text-right">التقييم</TableHead>
+                  <TableHead className="text-right">الإجراءات</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {instructors.map((instructor) => (
+                  <TableRow key={instructor.id}>
+                    <TableCell className="font-medium">
+                      {instructor.id}
+                    </TableCell>
+                    <TableCell>{instructor.name}</TableCell>
+                    <TableCell>
+                      {!isEditing || isEditing.id !== instructor.id ? (
+                        instructor.rating ? (
+                          instructor?.rating?.toFixed(2)
+                        ) : (
+                          <span className="text-gray-500">لا يوجد تقييم</span>
+                        )
+                      ) : (
+                        <span className="relative">
+                          <Input
+                            inputMode="numeric"
+                            className="w-20"
+                            value={selectRating}
+                            onChange={(e) =>
+                              setSelectRating(
+                                e.target.value as unknown as number
+                              )
+                            }
+                          />
+                          <Button
+                            size={"icon"}
+                            variant={"ghost"}
+                            className="absolute left-0 top-0"
+                            onClick={() => setIsEditing(null)}
+                          >
+                            <X />
+                          </Button>
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="flex gap-2">
+                      <Button
+                        size={"icon"}
+                        variant={"outline"}
+                        onClick={() => {
+                          if (!isEditing) {
+                            setIsEditing(instructor);
+                            setSelectRating(instructor.rating || 0);
+                          }
+                          if (isEditing && isEditing.id === instructor.id) {
+                            rateInstructor(instructor, selectRating || 0);
+                            setIsEditing(null);
+                          }
+                        }}
+                        className="hover:bg-primary hover:text-primary-foreground"
+                      >
+                        {!isEditing || isEditing.id !== instructor.id ? (
+                          <Edit />
+                        ) : (
+                          <Check />
+                        )}
+                      </Button>
+                      <Button
+                        size={"icon"}
+                        variant={"destructive"}
+                        onClick={() => {
+                          deleteInstructor(instructor);
+                        }}
+                      >
+                        <Trash />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
           <MultiSelect
             labelledBy=""
             options={allInstructors}
@@ -231,7 +249,12 @@ export default function InstructorActivityDialog({
           />
         </CardContent>
         <CardFooter className="flex flex-row-reverse gap-2">
-          <Button onClick={() => addInstructor()}>
+          <Button
+            disabled={
+              isEditing || selectedInstructors.length <= 0 ? true : false
+            }
+            onClick={() => addInstructor()}
+          >
             <span>إضافة</span>
             <Plus />
           </Button>

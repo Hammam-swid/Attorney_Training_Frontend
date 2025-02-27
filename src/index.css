@@ -93,3 +93,6 @@
   @apply end-0;
   right: auto;
 }
+.multi-select .dropdown-content .panel-content .select-panel .search input {
+  @apply focus:bg-background;
+}

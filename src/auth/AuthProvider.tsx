@@ -1,6 +1,6 @@
 import { logout, setToken, setUser } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useLayoutEffect } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router";
@@ -26,7 +26,7 @@ export default function AuthProvider({
         }
       } catch (error) {
         console.log(error);
-        if (error?.response?.status === 403) {
+        if (error instanceof AxiosError && error?.response?.status === 403) {
           await axios.post("/api/v1/users/logout");
           dispatch(logout());
           navigate("/login");

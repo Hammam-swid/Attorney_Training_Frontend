@@ -393,6 +393,7 @@ export default function ActivitiesPage() {
                     <TableCell>
                       {activity.instructors
                         ?.map((i) => i.rating)
+                        .map((i) => (!i ? "//" : i))
                         ?.join("، ") || (
                         <span className="text-muted">لا يوجد تقييم</span>
                       )}
@@ -407,7 +408,7 @@ export default function ActivitiesPage() {
                   </TableCell>
                   <TableCell>{activity.host.name}</TableCell>
                   <TableCell>{activity.executor.name}</TableCell>
-                  <TableCell className="flex gap-2">
+                  <TableCell className="flex items-center justify-center">
                     <ActivityActions
                       handleDelete={() => handleDelete(activity)}
                       handleEdit={() => handleEdit(activity)}
@@ -454,12 +455,24 @@ export default function ActivitiesPage() {
           <ActivityTraineesDialog
             activityId={selectedActivityForTrainee.id}
             onClose={() => setSelectedActivityForTrainee(null)}
+            refresh={() => {
+              setSearch(" ");
+              setTimeout(() => {
+                setSearch("");
+              }, 1);
+            }}
           />
         )}
         {selectedActivityForInstructor?.id && (
           <InstructorActivityDialog
             activityId={selectedActivityForInstructor.id}
             onClose={() => setSelectedActivityForInstructor(null)}
+            refresh={() => {
+              setSearch(" ");
+              setTimeout(() => {
+                setSearch("");
+              }, 1);
+            }}
           />
         )}
 

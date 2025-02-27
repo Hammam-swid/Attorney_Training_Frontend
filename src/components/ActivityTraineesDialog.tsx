@@ -19,11 +19,13 @@ import toast from "react-hot-toast";
 interface TraineeDialogProps {
   activityId: number;
   onClose: () => void;
+  refresh: () => void;
 }
 
 export default function ActivityTraineesDialog({
   activityId,
   onClose,
+  refresh,
 }: TraineeDialogProps) {
   const [trainees, setTrainees] = useState<Trainee[]>([]);
   const [allTrainees, setAllTrainees] = useState<
@@ -80,8 +82,9 @@ export default function ActivityTraineesDialog({
         }
       );
       if (res.status === 200) {
-        setTrainees(res.data.data.trainees);
+        setTrainees((prev) => [...prev, ...res.data.data.trainees]);
         toast.success("تمت إضافة المتدربين بنجاح");
+        refresh();
       }
       // setTrainees(data.data.activity.trainees);
     } catch (error) {
@@ -100,6 +103,7 @@ export default function ActivityTraineesDialog({
       if (res.status === 204) {
         setTrainees((prev) => prev.filter((t) => t?.id !== trainee?.id));
         toast.success("تم حذف المتدرب بنجاح");
+        refresh();
       }
     } catch (error) {
       console.log(error);
@@ -148,7 +152,7 @@ export default function ActivityTraineesDialog({
       id="trainees-dialog-overlay"
       className="fixed inset-0 bg-black bg-opacity-50 h-screen z-50 flex items-center justify-center"
     >
-      <Card className="p-6 bg-background">
+      <Card className="p-6 bg-background max-h-[80vh]">
         <CardHeader>
           <h3 className="text-center text-lg font-bold">قائمة المتدربين</h3>
         </CardHeader>
@@ -158,112 +162,123 @@ export default function ActivityTraineesDialog({
             onChange={(e) => setSearch(e.target.value)}
             placeholder="البحث عن متدرب"
           />
-          <Table className="min-w-96">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-right">المعرف</TableHead>
-                <TableHead className="text-right">الاسم</TableHead>
-                <TableHead className="text-right">رقم الهاتف</TableHead>
-                <TableHead className="text-right">العنوان</TableHead>
-                <TableHead className="text-right">جهة العمل</TableHead>
-                <TableHead className="text-right">النوع</TableHead>
-                <TableHead className="text-right">التقييم</TableHead>
-                <TableHead className="text-right">الإجراءات</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {trainees
-                ?.filter((trainee) => {
-                  if (!search) return true;
-                  return trainee.name
-                    .toLowerCase()
-                    .includes(search.toLowerCase());
-                })
-                .map((trainee) => (
-                  <TableRow key={trainee?.id}>
-                    <TableCell className="font-medium">{trainee?.id}</TableCell>
-                    <TableCell>{trainee?.name}</TableCell>
-                    <TableCell>{trainee?.phone}</TableCell>
-                    <TableCell>{trainee?.address}</TableCell>
-                    <TableCell>{trainee?.employer}</TableCell>
-                    <TableCell>{trainee?.type}</TableCell>
-                    <TableCell>
-                      {!isEditing || isEditing?.id !== trainee?.id ? (
-                        trainee?.rating ? (
-                          trainee?.rating?.toFixed(2)
+          <div className="max-h-80 overflow-y-scroll mb-4">
+            <Table className="min-w-96 max-h-96 overflow-y-scroll ">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-right">المعرف</TableHead>
+                  <TableHead className="text-right">الاسم</TableHead>
+                  <TableHead className="text-right">رقم الهاتف</TableHead>
+                  {/* <TableHead className="text-right">العنوان</TableHead> */}
+                  <TableHead className="text-right">جهة العمل</TableHead>
+                  {/* <TableHead className="text-right">النوع</TableHead> */}
+                  <TableHead className="text-right">التقييم</TableHead>
+                  <TableHead className="text-right">الإجراءات</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="overflow-y-hidden max-h-96">
+                {trainees
+                  ?.filter((trainee) => {
+                    if (!search) return true;
+                    return trainee.name
+                      .toLowerCase()
+                      .includes(search.toLowerCase());
+                  })
+                  .map((trainee) => (
+                    <TableRow key={trainee?.id}>
+                      <TableCell className="font-medium">
+                        {trainee?.id}
+                      </TableCell>
+                      <TableCell>{trainee?.name}</TableCell>
+                      <TableCell>{trainee?.phone}</TableCell>
+                      {/* <TableCell>{trainee?.address}</TableCell> */}
+                      <TableCell>{trainee?.employer}</TableCell>
+                      {/* <TableCell>{trainee?.type}</TableCell> */}
+                      <TableCell>
+                        {!isEditing || isEditing?.id !== trainee?.id ? (
+                          trainee?.rating ? (
+                            trainee?.rating?.toFixed(2)
+                          ) : (
+                            <span className="text-gray-500">لا يوجد تقييم</span>
+                          )
                         ) : (
-                          <span className="text-gray-500">لا يوجد تقييم</span>
-                        )
-                      ) : (
-                        <span className="relative">
-                          <Input
-                            inputMode="numeric"
-                            className="w-20"
-                            value={selectRating}
-                            onChange={(e) =>
-                              setSelectRating(
-                                e.target.value as unknown as number
-                              )
-                            }
-                          />
+                          <span className="relative">
+                            <Input
+                              inputMode="numeric"
+                              className="w-20"
+                              value={selectRating}
+                              onChange={(e) =>
+                                setSelectRating(
+                                  e.target.value as unknown as number
+                                )
+                              }
+                            />
+                            <Button
+                              size={"icon"}
+                              variant={"ghost"}
+                              className="absolute left-0 top-0"
+                              onClick={() => setIsEditing(null)}
+                            >
+                              <X />
+                            </Button>
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
                           <Button
                             size={"icon"}
-                            variant={"ghost"}
-                            className="absolute left-0 top-0"
-                            onClick={() => setIsEditing(null)}
+                            variant="outline"
+                            className="hover:bg-primary hover:text-primary-foreground"
+                            onClick={() => {
+                              if (!isEditing) {
+                                setIsEditing(trainee);
+                                setSelectRating(trainee.rating || 0);
+                              }
+                              if (isEditing && isEditing?.id === trainee?.id) {
+                                rateTrainee(trainee, selectRating || 0);
+                                setIsEditing(null);
+                              }
+                            }}
                           >
-                            <X />
+                            {isEditing && isEditing?.id === trainee?.id ? (
+                              <Check />
+                            ) : (
+                              <Pencil />
+                            )}
                           </Button>
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          size={"icon"}
-                          variant="outline"
-                          className="hover:bg-primary hover:text-primary-foreground"
-                          onClick={() => {
-                            if (!isEditing) {
-                              setIsEditing(trainee);
-                              setSelectRating(trainee.rating || 0);
-                            }
-                            if (isEditing && isEditing?.id === trainee?.id) {
-                              rateTrainee(trainee, selectRating || 0);
-                              setIsEditing(null);
-                            }
-                          }}
-                        >
-                          {isEditing && isEditing?.id === trainee?.id ? (
-                            <Check />
-                          ) : (
-                            <Pencil />
-                          )}
-                        </Button>
-                        <Button
-                          className="hover:bg-destructive hover:text-destructive-foreground"
-                          size="icon"
-                          variant="outline"
-                          onClick={() => deleteTrainee(trainee)}
-                        >
-                          <Trash />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
+                          <Button
+                            className="hover:bg-destructive hover:text-destructive-foreground"
+                            size="icon"
+                            variant="outline"
+                            onClick={() => deleteTrainee(trainee)}
+                          >
+                            <Trash />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </div>
           <MultiSelect
             className="multi-select"
-            options={allTrainees}
+            options={allTrainees.filter(
+              (at) => !trainees.some((t) => t.id === at.value)
+            )}
             value={selectedTrainees}
             onChange={setSelectedTrainees}
             labelledBy="label"
             isLoading={!allTrainees}
           />
           <div className="flex flex-row-reverse mt-4 gap-2">
-            <Button onClick={addTrainees}>
+            <Button
+              disabled={
+                isEditing || selectedTrainees.length <= 0 ? true : false
+              }
+              onClick={addTrainees}
+            >
               <span>إضافة</span>
               <UserPlus />
             </Button>
