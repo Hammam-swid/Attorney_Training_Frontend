@@ -18,12 +18,14 @@ import toast from "react-hot-toast";
 
 interface InstructorActivityDialogProps {
   activityId: number;
+  activityName: string;
   onClose: () => void;
   refresh: () => void;
 }
 
 export default function InstructorActivityDialog({
   activityId = 1,
+  activityName,
   onClose,
   refresh,
 }: InstructorActivityDialogProps) {
@@ -154,7 +156,9 @@ export default function InstructorActivityDialog({
       >
         <CardHeader>
           {/* <CardTitle>قائمة المدربين</CardTitle> */}
-          <h3 className="text-lg font-bold text-center">قائمة المدربين</h3>
+          <h3 className="text-lg font-bold text-center">
+            قائمة المدربين الخاصة بـ{activityName}
+          </h3>
         </CardHeader>
         <CardContent>
           <div className="max-h-72 mb-8 overflow-y-scroll">

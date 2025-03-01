@@ -18,12 +18,14 @@ import toast from "react-hot-toast";
 
 interface TraineeDialogProps {
   activityId: number;
+  activityName: string;
   onClose: () => void;
   refresh: () => void;
 }
 
 export default function ActivityTraineesDialog({
   activityId,
+  activityName,
   onClose,
   refresh,
 }: TraineeDialogProps) {
@@ -154,7 +156,9 @@ export default function ActivityTraineesDialog({
     >
       <Card className="p-6 bg-background max-h-[80vh]">
         <CardHeader>
-          <h3 className="text-center text-lg font-bold">قائمة المتدربين</h3>
+          <h3 className="text-center text-lg font-bold">
+            قائمة المتدربين الخاصة بـ{activityName}
+          </h3>
         </CardHeader>
         <CardContent>
           <Input

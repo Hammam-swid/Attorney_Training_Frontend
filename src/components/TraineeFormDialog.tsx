@@ -11,7 +11,9 @@ import {
 import { Trainee } from "@/types";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { Save, X } from "lucide-react";
+import { AlertCircle, Save, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 interface FormDialogProps {
   title: string;
@@ -39,6 +41,7 @@ const FormDialog: React.FC<FormDialogProps> = ({
   onSubmit,
   onClose,
 }) => {
+  const [warning, setWarning] = useState(false);
   const formik = useFormik({
     initialValues: {
       id: initialData.id || undefined,
@@ -58,9 +61,10 @@ const FormDialog: React.FC<FormDialogProps> = ({
       address: Yup.string(),
       employer: Yup.string().required("يجب إدخال جهة العمل"),
       type: Yup.string().required("يجب إدخال النوع"),
-      payGrade: Yup.string()
-        .required("يجب إدخال الرتبة الوظيفية")
-        .oneOf(payGrades, "يجب إدخال الرتبة الوظيفية بشكل صحيح"),
+      payGrade: Yup.string().oneOf(
+        payGrades,
+        "يجب إدخال الدرجة القضائية بشكل صحيح"
+      ),
     }),
     onSubmit: (values) => {
       onSubmit(values as Trainee);
@@ -73,6 +77,21 @@ const FormDialog: React.FC<FormDialogProps> = ({
     }
   };
 
+  useEffect(() => {
+    const checkName = async () => {
+      const res = await axios.get(
+        `/api/v1/trainees/check?search=${formik.values.name}`
+      );
+      if (res.status === 200) {
+        if (res.data.data.isTrainee) {
+          setWarning(true);
+        } else {
+          setWarning(false);
+        }
+      }
+    };
+    checkName();
+  }, [formik.values.name]);
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center rtl z-50"
@@ -96,6 +115,12 @@ const FormDialog: React.FC<FormDialogProps> = ({
             {formik.touched.name && formik.errors.name && (
               <div className="text-sm text-destructive">
                 {formik.errors.name}
+              </div>
+            )}
+            {warning && formik.values.name !== initialData.name && (
+              <div className="text-sm text-yellow-500">
+                <AlertCircle className="inline-block me-1 w-4 h-4" />
+                هذا الاسم مستخدم من قبل متدرب آخر
               </div>
             )}
           </div>
@@ -150,6 +175,9 @@ const FormDialog: React.FC<FormDialogProps> = ({
               value={formik.values.type}
               onValueChange={(val) => {
                 formik.setFieldValue("type", val);
+                if (val !== "عضو نيابة") {
+                  formik.setFieldValue("payGrade", "");
+                }
                 setTimeout(() => {
                   formik.setFieldTouched("type", true);
                 }, 100);
@@ -161,9 +189,7 @@ const FormDialog: React.FC<FormDialogProps> = ({
               <SelectContent dir="rtl">
                 <SelectItem value="موظف">موظف</SelectItem>
                 <SelectItem value="ضابط">ضابط</SelectItem>
-                <SelectItem value="عضو هيئة النيابة">
-                  عضو هيئة النيابة
-                </SelectItem>
+                <SelectItem value="عضو نيابة">عضو نيابة</SelectItem>
                 <SelectItem value="أخرى">أخرى</SelectItem>
               </SelectContent>
             </Select>
@@ -173,34 +199,36 @@ const FormDialog: React.FC<FormDialogProps> = ({
               </div>
             )}
           </div>
-          <div className="mb-4">
-            <Label htmlFor="type">الرتبة الوظيفية</Label>
-            <Select
-              value={formik.values.payGrade}
-              onValueChange={(val) => {
-                formik.setFieldValue("payGrade", val);
-                setTimeout(() => {
-                  formik.setFieldTouched("payGrade", true);
-                }, 100);
-              }}
-            >
-              <SelectTrigger dir="rtl">
-                <SelectValue placeholder="اختر الرتبة الوظيفية" />
-              </SelectTrigger>
-              <SelectContent dir="rtl">
-                {payGrades.map((payGrade) => (
-                  <SelectItem key={payGrade} value={payGrade}>
-                    {payGrade}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {formik.touched.payGrade && formik.errors.payGrade && (
-              <div className="text-sm text-destructive">
-                {formik.errors.payGrade}
-              </div>
-            )}
-          </div>
+          {formik.values.type === "عضو نيابة" && (
+            <div className="mb-4">
+              <Label htmlFor="type">الدرجة القضائية</Label>
+              <Select
+                value={formik.values.payGrade}
+                onValueChange={(val) => {
+                  formik.setFieldValue("payGrade", val);
+                  setTimeout(() => {
+                    formik.setFieldTouched("payGrade", true);
+                  }, 100);
+                }}
+              >
+                <SelectTrigger dir="rtl">
+                  <SelectValue placeholder="اختر الدرجة القضائية" />
+                </SelectTrigger>
+                <SelectContent dir="rtl">
+                  {payGrades.map((payGrade) => (
+                    <SelectItem key={payGrade} value={payGrade}>
+                      {payGrade}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {formik.touched.payGrade && formik.errors.payGrade && (
+                <div className="text-sm text-destructive">
+                  {formik.errors.payGrade}
+                </div>
+              )}
+            </div>
+          )}
           <div className="flex flex-row-reverse gap-2">
             <Button type="submit">
               <span>حفظ</span>

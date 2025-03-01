@@ -39,7 +39,7 @@ const allFields: Field[] = [
   { label: "العنوان", value: "address" },
   { label: "جهة العمل", value: "employer" },
   { label: "النوع", value: "type" },
-  { label: "الدرجة الوظيفية", value: "payGrade" },
+  { label: "الدرجة القضائية", value: "payGrade" },
   { label: "عدد الأنشطة", value: "activityCount" },
 ];
 

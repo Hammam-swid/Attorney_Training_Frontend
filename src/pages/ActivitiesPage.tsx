@@ -343,7 +343,7 @@ export default function ActivitiesPage() {
               <TableHead>عدد الساعات</TableHead>
               <TableHead>تاريخ البداية</TableHead>
               <TableHead>تاريخ النهاية</TableHead>
-              <TableHead>مكان الإقامة</TableHead>
+              <TableHead>مكان الانعقاد</TableHead>
               <TableHead>
                 {activityType?.instructorName || "المدرب/المدربون"}
               </TableHead>
@@ -454,6 +454,7 @@ export default function ActivitiesPage() {
         {selectedActivityForTrainee?.id && (
           <ActivityTraineesDialog
             activityId={selectedActivityForTrainee.id}
+            activityName={selectedActivityForTrainee.title}
             onClose={() => setSelectedActivityForTrainee(null)}
             refresh={() => {
               setSearch(" ");
@@ -466,6 +467,7 @@ export default function ActivitiesPage() {
         {selectedActivityForInstructor?.id && (
           <InstructorActivityDialog
             activityId={selectedActivityForInstructor.id}
+            activityName={selectedActivityForInstructor.title}
             onClose={() => setSelectedActivityForInstructor(null)}
             refresh={() => {
               setSearch(" ");

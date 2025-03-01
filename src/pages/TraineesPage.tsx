@@ -70,7 +70,10 @@ export default function TraineesPage() {
 
   const handleAddTrainee = async (newTrainee: Trainee) => {
     try {
-      const res = await axios.post("/api/v1/trainees", newTrainee);
+      const res = await axios.post("/api/v1/trainees", {
+        ...newTrainee,
+        payGrade: newTrainee.payGrade ? newTrainee.payGrade : null,
+      });
       setTrainees([...trainees, res.data.data.trainee]);
       toast.success("تم إضافة المتدرب بنجاح");
       setShowAddForm(false);
@@ -132,7 +135,7 @@ export default function TraineesPage() {
             <TableHead className="text-center">العنوان</TableHead>
             <TableHead className="text-center">جهة العمل</TableHead>
             <TableHead className="text-center">النوع</TableHead>
-            <TableHead className="text-center">الدرجة الوظيفية</TableHead>
+            <TableHead className="text-center">الدرجة القضائية</TableHead>
             <TableHead className="text-center">الإجراءات</TableHead>
           </TableRow>
         </TableHeader>

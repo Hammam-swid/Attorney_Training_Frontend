@@ -29,7 +29,7 @@ const allFields = [
   { label: "العنوان", value: "address" },
   { label: "جهة العمل", value: "employer" },
   { label: "النوع", value: "type" },
-  { label: "الدرجة الوظيفية", value: "payGrade" },
+  { label: "الدرجة القضائية", value: "payGrade" },
   { label: "التقييم", value: "rating" },
 ];
 
@@ -64,7 +64,7 @@ export default function OneActivity() {
             traineeData["النوع"] = trainee.type || "//";
             break;
           case "payGrade":
-            traineeData["الدرجة الوظيفية"] = trainee.payGrade || "//";
+            traineeData["الدرجة القضائية"] = trainee.payGrade || "//";
             break;
           case "rating":
             traineeData["التقييم"] = trainee.rating

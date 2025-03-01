@@ -39,7 +39,7 @@ const FormDialog: React.FC<FormDialogProps> = ({
         /^(\+218|00218|0)?(9[1-5]\d{7})$/,
         "يجب إدخال الرقم بشكل صحيح"
       ),
-      organizationId: Yup.number().required("يرجى تحديد الجهة"),
+      organizationId: Yup.number(),
     }),
     onSubmit: (values) => {
       const instructor: Instructor = {

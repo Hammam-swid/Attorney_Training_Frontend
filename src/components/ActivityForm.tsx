@@ -116,7 +116,7 @@ export default function ActivityForm({
     },
     validationSchema: Yup.object({
       title: Yup.string().required("العنوان مطلوب"),
-      location: Yup.string().required("مكان الإقامة مطلوب"),
+      location: Yup.string().required("مكان الانعقاد مطلوب"),
       hours: Yup.number()
         .required("عدد الساعات مطلوب")
         .positive("عدد الساعات يجب أن يكون موجب")
@@ -176,7 +176,7 @@ export default function ActivityForm({
               <p className="text-sm text-destructive">{formik.errors.hours}</p>
             )}
           </div>
-          <Label htmlFor="location">مكان الإقامة</Label>
+          <Label htmlFor="location">مكان الانعقاد</Label>
           <div>
             <Input
               id="location"
@@ -316,12 +316,6 @@ export default function ActivityForm({
                 <span>إضافة</span>
                 <PlusCircle />
               </Button>
-              <AddOrganizationForm
-                hideForm={organizationForm.hideForm}
-                show={organizationForm.show}
-                title="إضافة جهة جديدة"
-                onSubmit={organizationForm.onSubmit}
-              />
             </div>
             {formik.touched.hostId && formik.errors.hostId && (
               <p className="text-sm text-destructive">
@@ -380,6 +374,12 @@ export default function ActivityForm({
             </Button>
           </div>
         </form>
+        <AddOrganizationForm
+          hideForm={organizationForm.hideForm}
+          show={organizationForm.show}
+          title="إضافة جهة جديدة"
+          onSubmit={organizationForm.onSubmit}
+        />
       </div>
     </div>
   );
