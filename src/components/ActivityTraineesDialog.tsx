@@ -164,7 +164,7 @@ export default function ActivityTraineesDialog({
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="البحث عن متدرب"
+            placeholder="البحث عن متدرب داخل النشاط"
           />
           <div className="max-h-80 overflow-y-scroll mb-4">
             <Table className="min-w-96 max-h-96 overflow-y-scroll ">
@@ -283,7 +283,7 @@ export default function ActivityTraineesDialog({
               }
               onClick={addTrainees}
             >
-              <span>إضافة</span>
+              <span>إضافة متدربين إلى النشاط</span>
               <UserPlus />
             </Button>
             <Button

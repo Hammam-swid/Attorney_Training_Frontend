@@ -146,7 +146,9 @@ export default function TrainerPage() {
               <TableCell>{trainer.name}</TableCell>
               <TableCell>{trainer.phone}</TableCell>
               <TableCell>
-                {trainer?.organization?.name || "الجهة غير موجودة"}
+                {trainer?.organization?.name || (
+                  <span className="text-sm text-muted">الجهة غير موجودة</span>
+                )}
               </TableCell>
               <TableCell>
                 <Button

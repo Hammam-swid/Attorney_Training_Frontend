@@ -259,7 +259,7 @@ export default function InstructorActivityDialog({
             }
             onClick={() => addInstructor()}
           >
-            <span>إضافة</span>
+            <span>إضافة مدربين إلى النشاط</span>
             <Plus />
           </Button>
           <Button

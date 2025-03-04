@@ -33,7 +33,7 @@ export interface Instructor {
   avgRating?: number;
   activityCount?: number;
   hours?: number;
-  organization?: Organization;
+  organization?: Organization | null;
 }
 export interface ActivityType {
   id: number;

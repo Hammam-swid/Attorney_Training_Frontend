@@ -63,7 +63,7 @@ export default function ActivityForm({
   useEffect(() => {
     const getOrganizations = async () => {
       try {
-        const res = await axios.get("/api/v1/organizations");
+        const res = await axios.get("/api/v1/organizations/all");
         if (res.status === 200) {
           setOrganizations(res.data.data.organizations);
         }
@@ -215,10 +215,13 @@ export default function ActivityForm({
               <PopoverContent className="w-auto p-0">
                 <Calendar
                   mode="single"
+                  onDayBlur={() => formik.setFieldTouched("startDate", true)}
+                  modifiersStyles={{
+                    today: { backgroundColor: "var(--background)" },
+                  }}
                   selected={formik.values.startDate}
                   onSelect={(date) => {
                     formik.setFieldValue("startDate", date);
-                    formik.setFieldTouched("startDate", true);
                   }}
                   initialFocus
                 />
@@ -254,11 +257,15 @@ export default function ActivityForm({
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
                 <Calendar
+                  id="endDate"
                   mode="single"
+                  onDayBlur={() => formik.setFieldTouched("endDate", true)}
+                  modifiersStyles={{
+                    today: { backgroundColor: "var(--background)" },
+                  }}
                   selected={formik.values.endDate}
                   onSelect={(date) => {
                     formik.setFieldValue("endDate", date);
-                    formik.setFieldTouched("endDate", true);
                   }}
                   initialFocus
                 />
@@ -278,13 +285,14 @@ export default function ActivityForm({
                 value={formik.values.hostId + ""}
                 onValueChange={(value) => {
                   formik.setFieldValue("hostId", +value);
-                  formik.setFieldTouched("hostId", true);
                 }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="اختر الجهة المنظمة" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent
+                  onBlur={() => formik.setFieldTouched("hostId", true)}
+                >
                   {organizations.map((organization) => (
                     <SelectItem
                       key={organization.id}
@@ -326,16 +334,19 @@ export default function ActivityForm({
           <Label htmlFor="executorId">الجهة المنفذة</Label>
           <div>
             <Select
+              autoComplete=""
               value={formik.values.executorId + ""}
               onValueChange={(value) => {
                 formik.setFieldValue("executorId", +value);
-                formik.setFieldTouched("executorId", true);
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger aria-autocomplete="list" dir="rtl">
                 <SelectValue placeholder="اختر الجهة المنفذة" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                dir="rtl"
+                onBlur={() => formik.setFieldTouched("executorId", true)}
+              >
                 {organizations.map((organization) => (
                   <SelectItem
                     key={organization.id}
