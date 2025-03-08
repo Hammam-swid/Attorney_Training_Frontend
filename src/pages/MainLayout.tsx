@@ -5,9 +5,11 @@ import { Toaster } from "react-hot-toast";
 import { useAppSelector } from "@/store/hooks";
 import { useEffect } from "react";
 import AuthProvider from "@/auth/AuthProvider";
+import ChangePasswordAlert from "@/components/ChangePasswordAlert";
 
 export default function MainLayout() {
   const theme = useAppSelector((state) => state.theme);
+  const alert = useAppSelector((state) => state.alert);
   useEffect(() => {
     const root = document.documentElement;
     if (theme.darkMode) {
@@ -23,6 +25,7 @@ export default function MainLayout() {
         <SidebarTrigger />
         <Toaster position="bottom-center" />
         <Outlet />
+        {alert.isAlert && <ChangePasswordAlert />}
       </SidebarProvider>
     </AuthProvider>
   );

@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./authSlice";
 import themeReducer from "./themeSlice";
 import uiReducer from "./uiSlice";
+import alertReducer from "./alertSlice";
 
 export const store = configureStore({
   reducer: {
@@ -9,6 +10,7 @@ export const store = configureStore({
     auth: authReducer,
     theme: themeReducer,
     ui: uiReducer,
+    alert: alertReducer,
   },
 });
 

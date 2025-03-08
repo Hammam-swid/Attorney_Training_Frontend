@@ -87,5 +87,6 @@ export interface User {
   fullName: string;
   email: string;
   phone: string;
+  isLoggedIn: boolean;
   role: "admin" | "instructor" | "trainee" | "moderator";
 }

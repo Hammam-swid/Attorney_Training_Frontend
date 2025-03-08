@@ -5,11 +5,12 @@ import { Label } from "@/components/ui/label";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { LoaderCircle } from "lucide-react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import { useAppDispatch } from "@/store/hooks";
 import { setToken, setUser } from "@/store/authSlice";
 import { useNavigate } from "react-router";
+import { setAlert } from "@/store/alertSlice";
 
 export function LoginForm({
   className,
@@ -38,16 +39,20 @@ export function LoginForm({
           toast.success("تم تسجيل الدخول بنجاح");
           dispatch(setToken(data.data.token));
           dispatch(setUser(data.data.user));
+          if (!data.data.isLoggedIn) {
+            dispatch(setAlert(true));
+          }
           setTimeout(() => {
             navigate("/");
-          },1000);
-          // navigate("/");
+          }, 1000);
+          navigate("/");
         }
       } catch (error) {
         console.log(error);
-        toast.error(
-          error?.response?.data?.message || "حدث خطأ أثناء تسجيل الدخول"
-        );
+        if (error instanceof AxiosError)
+          toast.error(
+            error?.response?.data?.message || "حدث خطأ أثناء تسجيل الدخول"
+          );
       }
     },
   });
@@ -80,12 +85,12 @@ export function LoginForm({
         <div className="grid gap-2">
           <div className="flex items-center">
             <Label htmlFor="password">كلمة المرور</Label>
-            <a
+            {/* <a
               href="#"
               className="ms-auto text-sm underline-offset-4 hover:underline"
             >
               هل نسيت كلمة المرور؟
-            </a>
+              </a> */}
           </div>
           <Input
             id="password"

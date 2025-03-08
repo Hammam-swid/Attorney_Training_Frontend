@@ -29,6 +29,10 @@ import TraineesLayout from "./pages/Reports/Trainees/TraineesLayout";
 import TraineeActivity from "./pages/Reports/Trainees/TraineeActivity";
 import ErrorPage from "./pages/ErrorPage";
 import { store } from "./store";
+// import axios, { AxiosError } from "axios";
+// import { logout, setToken, setUser } from "./store/authSlice";
+// import toast from "react-hot-toast";
+// import { setAlert } from "./store/alertSlice";
 
 const routes = createRoutesFromElements(
   <>
@@ -38,7 +42,34 @@ const routes = createRoutesFromElements(
       element={<LoginPage />}
       errorElement={<ErrorPage />}
     />
-    <Route path="/" element={<MainLayout />} errorElement={<ErrorPage />}>
+    <Route
+      path="/"
+      // loader={async () => {
+      //   const { user } = store.getState().auth;
+      //   if (!user) return null;
+      //   try {
+      //     const res = await axios.post("/api/v1/users/refresh-access-token");
+      //     if (res.status == 200) {
+      //       store.dispatch(setToken(res.data.data.token));
+      //       store.dispatch(setUser(res.data.data.user));
+      //     }
+      //     return null;
+      //   } catch (error) {
+      //     console.log(error);
+      //     if (error instanceof AxiosError && error?.response?.status === 403) {
+      //       await axios.post("/api/v1/users/logout");
+      //       store.dispatch(logout());
+      //       toast.error(
+      //         "تمت صلاحية الجلسة، الرجاء محاولة تسجيل الدخول مرة أخرى"
+      //       );
+      //       return redirect("/login");
+      //     }
+      //   }
+      //   return null;
+      // }}
+      element={<MainLayout />}
+      errorElement={<ErrorPage />}
+    >
       <Route index element={<DashboardPage />} errorElement={<ErrorPage />} />
       <Route
         path="activities"

@@ -12,13 +12,16 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import { Eye, EyeOff, Loader2, Lock } from "lucide-react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import toast from "react-hot-toast";
+import { useAppDispatch } from "@/store/hooks";
+import { setAlert } from "@/store/alertSlice";
 
 export default function ChangePasswordForm() {
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const dispatch = useAppDispatch();
   const formik = useFormik({
     initialValues: {
       oldPassword: "",
@@ -36,20 +39,23 @@ export default function ChangePasswordForm() {
         ),
       confirmPassword: Yup.string()
         .required("تأكيد كلمة المرور مطلوب")
-        .oneOf([Yup.ref("newPassword"), undefined], "كلمة المرور غير متطابقة"),
+        .oneOf([Yup.ref("newPassword")], "كلمة المرور غير متطابقة"),
     }),
     onSubmit: async (values) => {
       try {
         const res = await axios.patch("/api/v1/users/change-password", values);
         if (res.status === 200) {
           formik.resetForm();
+          dispatch(setAlert(false));
           toast.success("تم تغيير كلمة المرور بنجاح");
         }
       } catch (error) {
-        console.log(error);
-        toast.error(
-          error?.response?.data?.message || "حدث خطأ أثناء تغيير كلمة المرور"
-        );
+        if (error instanceof AxiosError) {
+          console.log(error);
+          toast.error(
+            error?.response?.data?.message || "حدث خطأ أثناء تغيير كلمة المرور"
+          );
+        }
       }
     },
   });
