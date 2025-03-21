@@ -21,7 +21,7 @@ import { PlusCircle } from "lucide-react";
 import { ReactElement, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 // import jsLingua from "jslingua";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { Activity, ActivityType } from "@/types";
 import SureModal from "@/components/SureModal";
 import { toast } from "react-hot-toast";
@@ -170,7 +170,9 @@ export default function ActivitiesPage() {
       }
     } catch (error) {
       console.log(error);
-      toast.error("حدث خطأ أثناء حذف النشاط");
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data.message);
+      } else toast.error("حدث خطأ أثناء حذف النشاط");
     }
   };
   const handleEdit = (activity: Activity) => {
@@ -220,7 +222,9 @@ export default function ActivitiesPage() {
           }
         } catch (error) {
           console.log(error);
-          toast.error("حدث خطأ أثناء تعديل النشاط");
+          if (error instanceof AxiosError) {
+            toast.error(error.response?.data.message);
+          } else toast.error("حدث خطأ أثناء تعديل النشاط");
         }
       },
     });
@@ -276,8 +280,9 @@ export default function ActivitiesPage() {
             setActivities((prev) => [newActivity, ...prev]);
           }
         } catch (error) {
-          console.log(error);
-          toast.error("حدث خطأ أثناء عملية الإضافة");
+          if (error instanceof AxiosError) {
+            toast.error(error?.response?.data.message);
+          } else toast.error("حدث خطأ أثناء عملية الإضافة");
         }
       },
     });

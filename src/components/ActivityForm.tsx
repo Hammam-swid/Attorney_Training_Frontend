@@ -144,7 +144,7 @@ export default function ActivityForm({
       ) => (e.target.id === "activity-form-overlay" ? hideForm() : undefined)}
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center rtl z-50"
     >
-      <div className="bg-background rounded-md p-6">
+      <div className="bg-background max-h-[80vh] overflow-y-scroll rounded-md p-6">
         <form
           onSubmit={formik.handleSubmit}
           className="flex flex-col gap-4 w-96"
