@@ -35,7 +35,7 @@ export default function MainLayout() {
 function Logo() {
   return (
     <div className="absolute inset-0 p-2 z-50 flex items-center justify-center pointer-events-none">
-      <img src="/small-logo.svg" alt="logo" className="h-full opacity-15" />
+      <img src="/small-logo.svg" alt="logo" className="h-full opacity-10" />
     </div>
   );
 }

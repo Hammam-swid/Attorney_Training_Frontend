@@ -1,35 +1,17 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookOpen, Users, User2, Building, Files } from "lucide-react";
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  PieChart,
-  Pie,
-} from "recharts";
+
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { ActivityType, Instructor } from "@/types";
+import { Instructor } from "@/types";
 import ActivityTypesCard from "@/components/ActivityTypesCard";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+
+import ActivitiesPerMonth from "@/components/stats/ActivitiesPerMonth";
+import ActivitiesPerType from "@/components/stats/ActivitiesPerType";
 
 interface StatisticsState {
   activitiesCount: number | undefined;
@@ -47,8 +29,6 @@ export default function DashboardPage() {
   });
   const [top5Instructors, setTop5Instructors] = useState<Instructor[]>([]);
 
-  const [Types, setTypes] = useState<ActivityType[]>([]);
-  const [activitiesPerMonth, setActivitiesPerMonth] = useState([]);
   useEffect(() => {
     const fetchStatistics = async () => {
       try {
@@ -83,45 +63,6 @@ export default function DashboardPage() {
       }
     };
     fetchTop5Instructors();
-  }, []);
-
-  useEffect(() => {
-    const fetchActivityPerType = async () => {
-      try {
-        const response = await axios.get<
-          undefined,
-          { data: { data: { types: ActivityType[] } }; status: number }
-        >("/api/v1/statistics/activity-per-type");
-        if (response.status === 200) {
-          setTypes(
-            response.data.data.types.map((type, index) => ({
-              ...type,
-              fill: `hsl(var(--chart-${index + 1}))`,
-            }))
-          );
-        }
-      } catch (error) {
-        console.error("error", error);
-      }
-    };
-    fetchActivityPerType();
-  }, []);
-
-  useEffect(() => {
-    const fetchActivitiesPerMonth = async () => {
-      try {
-        const response = await axios.get(
-          "/api/v1/statistics/activity-per-month"
-        );
-        console.log("data from activity per month", response.data);
-        if (response.status === 200) {
-          setActivitiesPerMonth(response.data.data.activitiesPerMonth);
-        }
-      } catch (error) {
-        console.error("Error fetching activities per month:", error);
-      }
-    };
-    fetchActivitiesPerMonth();
   }, []);
 
   return (
@@ -227,67 +168,9 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>الأنشطة لكل نوع</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer
-              config={{
-                activities: {
-                  label: "الأنشطة التدريبية",
-                  color: "hsl(var(--chart-1))",
-                },
-              }}
-              className="w-full"
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart data={Types}>
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Pie
-                    dataKey="activities"
-                    nameKey="name"
-                    data={Types}
-                    legendType="plainline"
-                    label
-                    labelLine={false}
-                  />
-                  <ChartLegend />
-                </PieChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>الأنشطة في كل شهر</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer
-              config={{
-                activities: {
-                  label: "الأنشطة التدريبية",
-                  color: "hsl(var(--chart-1))",
-                },
-              }}
-              className="w-full"
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={activitiesPerMonth}>
-                  <XAxis dataKey="month" name="month" />
-                  <YAxis dataKey={"activities"} name="activities" />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="activities" fill="var(--color-activities)" />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-          <CardFooter>
-            <CardDescription className="text-xs text-gray-400 dark:text-gray-600">
-              هذا البيانات مبنية على أساس تاريخ بداية كل نشاط
-            </CardDescription>
-          </CardFooter>
-        </Card>
+        <ActivitiesPerType />
+
+        <ActivitiesPerMonth />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
