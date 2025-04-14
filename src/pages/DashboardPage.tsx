@@ -1,17 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { BookOpen, Users, User2, Building, Files } from "lucide-react";
+import { BookOpen, Users, User2, Building, RotateCcw } from "lucide-react";
 
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Instructor } from "@/types";
 import ActivityTypesCard from "@/components/ActivityTypesCard";
 import { Helmet } from "react-helmet";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 import ActivitiesPerMonth from "@/components/stats/ActivitiesPerMonth";
 import ActivitiesPerType from "@/components/stats/ActivitiesPerType";
+import YearSelect from "@/components/ui/YearSelect";
 
 interface StatisticsState {
   activitiesCount: number | undefined;
@@ -21,6 +21,7 @@ interface StatisticsState {
 }
 
 export default function DashboardPage() {
+  const [year, setYear] = useState<number | undefined>(undefined);
   const [statistics, setStatistics] = useState<StatisticsState>({
     activitiesCount: undefined,
     organizationsCount: undefined,
@@ -32,7 +33,8 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchStatistics = async () => {
       try {
-        const response = await axios.get("/api/v1/statistics");
+        const yearQuery = year ? `?year=${year}` : "";
+        const response = await axios.get(`/api/v1/statistics${yearQuery}`);
         if (response.status === 200) {
           const data = response.data.data;
           setStatistics(() => ({
@@ -47,14 +49,16 @@ export default function DashboardPage() {
       }
     };
     fetchStatistics();
-  }, []);
+  }, [year]);
 
   useEffect(() => {
     const fetchTop5Instructors = async () => {
       try {
+        const yearQuery = year ? `?year=${year}` : "";
         const response = await axios.get(
-          "/api/v1/statistics/top-5-instructors"
+          `/api/v1/statistics/top-5-instructors${yearQuery}`
         );
+        console.log(response);
         if (response.status === 200) {
           setTop5Instructors(response.data.data.instructors);
         }
@@ -63,7 +67,7 @@ export default function DashboardPage() {
       }
     };
     fetchTop5Instructors();
-  }, []);
+  }, [year]);
 
   return (
     <div className="container mx-auto p-8">
@@ -73,12 +77,18 @@ export default function DashboardPage() {
       </Helmet>
       <div className="flex justify-between mb-8 items-center">
         <h1 className="text-3xl font-bold">لوحة الإحصائيات</h1>
-        <Link to={"/reports"}>
-          <Button variant={"link"}>
-            <span>إنشاء التقارير</span>
-            <Files />
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          {year && (
+            <Button
+              onClick={() => setYear(undefined)}
+              variant="outline"
+              size="icon"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </Button>
+          )}
+          <YearSelect year={year} setYear={setYear} />
+        </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card>
@@ -195,7 +205,9 @@ export default function DashboardPage() {
                     </p>
                     <p className="text-sm text-muted-foreground">
                       التقييم:{" "}
-                      {parseFloat(instructor.avgRating + "").toFixed(2)}
+                      {instructor.avgRating
+                        ? parseFloat(instructor.avgRating + "").toFixed(2)
+                        : "لا يوجد تقييمات"}
                     </p>
                   </div>
                   <div className="ms-auto font-medium">#{index + 1}</div>

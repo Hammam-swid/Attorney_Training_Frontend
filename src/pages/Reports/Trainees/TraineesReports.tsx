@@ -15,20 +15,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
 import { Trainee } from "@/types";
 import { SelectContent } from "@radix-ui/react-select";
 import axios from "axios";
-import { Check, ChevronDown, CircleCheck, Download } from "lucide-react";
-import { useLayoutEffect, useState } from "react";
+import {
+  Check,
+  ChevronDown,
+  CircleCheck,
+  Download,
+  Loader2,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { utils, writeFile as writeExcelFile } from "xlsx";
+import TraineesTable from "./TraineesTable";
+import DatePicker from "@/components/ui/DatePicker";
+import { format } from "date-fns";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type Field = {
   label: string;
@@ -57,17 +60,53 @@ export default function TraineesReports() {
   const [fields, setFields] = useState<string[]>(allFields.map((f) => f.value));
   const [type, setType] = useState<string>("all");
   const [payGrade, setPayGrade] = useState<string>("all");
-  useLayoutEffect(() => {
+  const [loading, setLoading] = useState<boolean>(false);
+  // ------------------------------------------------------------------
+  const [isDate, setIsDate] = useState<boolean>(false);
+
+  const [dateFilter, setDateFilter] = useState<{
+    startDate: Date | undefined;
+    endDate: Date | undefined;
+  }>({
+    startDate: new Date(
+      `${
+        new Date().getMonth() >= 8
+          ? new Date().getFullYear()
+          : new Date().getFullYear() - 1
+      }-09-01`
+    ),
+    endDate: new Date(
+      `${
+        new Date().getMonth() >= 8
+          ? new Date().getFullYear() + 1
+          : new Date().getFullYear()
+      }-06-30`
+    ),
+  });
+  // ------------------------------------------------------------------
+  useEffect(() => {
     const fetchTrainees = async () => {
       try {
-        const res = await axios.get("/api/v1/reports/trainees");
+        setLoading(true);
+        const startDate = dateFilter.startDate;
+        const endDate = dateFilter.endDate;
+        const dateQuery =
+          isDate && startDate && endDate
+            ? `?startDate=${format(startDate, "yyyy-MM-dd")}&endDate=${format(
+                endDate,
+                "yyyy-MM-dd"
+              )}`
+            : "";
+        const res = await axios.get(`/api/v1/reports/trainees${dateQuery}`);
         setTrainees(res.data.data.trainees);
       } catch (error) {
         console.log(error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchTrainees();
-  }, []);
+  }, [dateFilter, isDate]);
 
   const handleExport = () => {
     const data = trainees.map((trainee) => {
@@ -152,47 +191,55 @@ export default function TraineesReports() {
             <PayGradeFilter payGrade={payGrade} setPayGrade={setPayGrade} />
           )}
         </div>
+        <div className="flex items-center gap-3">
+          <label htmlFor="date-filter">تصفية حسب التاريخ:</label>
+          <Checkbox
+            id="date-filter"
+            checked={isDate}
+            onCheckedChange={(checked: boolean) => {
+              setIsDate(checked);
+            }}
+          />
+          {isDate && (
+            <>
+              <div>
+                <label>من:</label>
+                <DatePicker
+                  date={dateFilter.startDate as Date}
+                  setDate={(date: Date) =>
+                    setDateFilter({ ...dateFilter, startDate: date })
+                  }
+                />
+              </div>
+              <div>
+                <label>إلى:</label>
+                <DatePicker
+                  date={dateFilter.endDate as Date}
+                  setDate={(date: Date) =>
+                    setDateFilter({ ...dateFilter, endDate: date })
+                  }
+                />
+              </div>
+            </>
+          )}
+        </div>
 
         <Button onClick={handleExport}>
           <span>تصدير</span>
           <Download />
         </Button>
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="text-right">ت.</TableHead>
-            {allFields
-              .filter((f) => fields.includes(f.value))
-              .map((field) => (
-                <TableHead className="text-center" key={field.value}>
-                  {field.label}
-                </TableHead>
-              ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {trainees
-            ?.filter((t) => (type === "all" ? true : t.type === type))
-            .filter((t) =>
-              payGrade === "all" ? true : t.payGrade === payGrade
-            )
-            ?.map((trainee, index) => (
-              <TableRow key={trainee.id}>
-                <TableCell>{index + 1}</TableCell>
-                {allFields
-                  .filter((f) => fields.includes(f.value))
-                  .map((field) => (
-                    <TableCell className="text-center" key={field.value}>
-                      {trainee[field.value as keyof Trainee] ?? (
-                        <span className="text-gray-500">//</span>
-                      )}
-                    </TableCell>
-                  ))}
-              </TableRow>
-            ))}
-        </TableBody>
-      </Table>
+      {loading ? (
+        <Loader2 className="animate-spin" />
+      ) : (
+        <TraineesTable
+          trainees={trainees}
+          fields={fields}
+          type={type}
+          payGrade={payGrade}
+          allFields={allFields}
+        />
+      )}
     </div>
   );
 }

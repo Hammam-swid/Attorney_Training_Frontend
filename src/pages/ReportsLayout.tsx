@@ -22,7 +22,7 @@ export default function ReportsLayout() {
       <nav className="mb-8">
         <ul className="flex gap-4 py-3 items-center px-6 outline outline-1 outline-secondary shadow-md rounded-full">
           {links.map((link) => (
-            <li className="w-full shadow-sm">
+            <li key={link.to} className="w-full shadow-sm">
               <NavLink
                 className={({ isActive }) =>
                   `p-2 rounded-md text-lg flex items-center justify-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors hover:scale-105 ${
