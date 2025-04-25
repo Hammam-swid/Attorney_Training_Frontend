@@ -32,6 +32,7 @@ import InstructorActivityDialog from "@/components/InstructorActivityDialog";
 import { Helmet } from "react-helmet";
 import ActivityActions from "@/components/ActivityActions";
 import RatingActivity from "@/components/RatingActivity";
+import { format } from "date-fns";
 
 interface SureModalType {
   title: string;
@@ -373,18 +374,10 @@ export default function ActivitiesPage() {
                   <TableCell>{activity.status}</TableCell>
                   <TableCell>{activity.hours}</TableCell>
                   <TableCell>
-                    {activity.startDate.toLocaleString(undefined, {
-                      day: "2-digit",
-                      year: "numeric",
-                      month: "2-digit",
-                    })}
+                    {format(activity.startDate, "dd-MM-yyyy")}
                   </TableCell>
                   <TableCell>
-                    {activity.endDate.toLocaleString(undefined, {
-                      day: "2-digit",
-                      year: "numeric",
-                      month: "2-digit",
-                    })}
+                    {format(activity.endDate, "dd-MM-yyyy")}
                   </TableCell>
                   <TableCell>{activity.location}</TableCell>
                   <TableCell>

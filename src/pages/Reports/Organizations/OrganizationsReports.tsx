@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import DatePicker from "@/components/ui/DatePicker";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Organization } from "@/types";
 import axios from "axios";
+import { format } from "date-fns";
 import { Check, ChevronDown, CircleCheck, Download } from "lucide-react";
 import { useLayoutEffect, useState } from "react";
 import { utils, writeFile as writeExcelFile } from "xlsx";
@@ -36,17 +39,50 @@ const allFields: Field[] = [
 export default function OrganizationsReports() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [fields, setFields] = useState<string[]>(allFields.map((f) => f.value));
+
+  const [isDate, setIsDate] = useState<boolean>(false);
+  const [dateFilter, setDateFilter] = useState<{
+    startDate: Date | undefined;
+    endDate: Date | undefined;
+  }>({
+    startDate: new Date(
+      `${
+        new Date().getMonth() >= 8
+          ? new Date().getFullYear()
+          : new Date().getFullYear() - 1
+      }-09-01`
+    ),
+    endDate: new Date(
+      `${
+        new Date().getMonth() >= 8
+          ? new Date().getFullYear() + 1
+          : new Date().getFullYear()
+      }-06-30`
+    ),
+  });
+
   useLayoutEffect(() => {
     const fetchOrganizations = async () => {
       try {
-        const res = await axios.get("/api/v1/reports/organizations");
+        const startDate = dateFilter.startDate;
+        const endDate = dateFilter.endDate;
+        const dateQuery =
+          isDate && startDate && endDate
+            ? `?startDate=${format(startDate, "yyyy-MM-dd")}&endDate=${format(
+                endDate,
+                "yyyy-MM-dd"
+              )}`
+            : "";
+        const res = await axios.get(
+          `/api/v1/reports/organizations${dateQuery}`
+        );
         setOrganizations(res.data.data.organizations);
       } catch (error) {
         console.log(error);
       }
     };
     fetchOrganizations();
-  }, []);
+  }, [isDate, dateFilter]);
 
   const handleExport = () => {
     const data = organizations.map((org) => {
@@ -117,6 +153,38 @@ export default function OrganizationsReports() {
               <ul className="flex flex-col gap-2"></ul>
             </DropdownMenuContent>
           </DropdownMenu>
+        </div>
+        <div className="flex items-center gap-3">
+          <label htmlFor="date-filter">تصفية حسب التاريخ:</label>
+          <Checkbox
+            id="date-filter"
+            checked={isDate}
+            onCheckedChange={(checked: boolean) => {
+              setIsDate(checked);
+            }}
+          />
+          {isDate && (
+            <>
+              <div>
+                <label>من:</label>
+                <DatePicker
+                  date={dateFilter.startDate as Date}
+                  setDate={(date: Date) =>
+                    setDateFilter({ ...dateFilter, startDate: date })
+                  }
+                />
+              </div>
+              <div>
+                <label>إلى:</label>
+                <DatePicker
+                  date={dateFilter.endDate as Date}
+                  setDate={(date: Date) =>
+                    setDateFilter({ ...dateFilter, endDate: date })
+                  }
+                />
+              </div>
+            </>
+          )}
         </div>
         <Button onClick={handleExport}>
           <span>تصدير</span>

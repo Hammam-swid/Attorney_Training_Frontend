@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import DatePicker from "@/components/ui/DatePicker";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Instructor } from "@/types";
 import axios from "axios";
+import { format } from "date-fns";
 import { Check, ChevronDown, CircleCheck, Download } from "lucide-react";
 import { useLayoutEffect, useState } from "react";
 import { utils, writeFile as writeExcelFile } from "xlsx";
@@ -45,18 +48,59 @@ export default function InstructorsReports() {
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [fields, setFields] = useState<string[]>(allFields.map((f) => f.value));
 
+  const [isDate, setIsDate] = useState<boolean>(false);
+
+  const [dateFilter, setDateFilter] = useState<{
+    startDate: Date | undefined;
+    endDate: Date | undefined;
+  }>({
+    startDate: new Date(
+      `${
+        new Date().getMonth() >= 8
+          ? new Date().getFullYear()
+          : new Date().getFullYear() - 1
+      }-09-01`
+    ),
+    endDate: new Date(
+      `${
+        new Date().getMonth() >= 8
+          ? new Date().getFullYear() + 1
+          : new Date().getFullYear()
+      }-06-30`
+    ),
+  });
+
   useLayoutEffect(() => {
     const fetchInstructors = async () => {
       try {
-        const res = await axios.get("/api/v1/reports/instructors");
-        setInstructors(res.data.data.instructors);
+        const startDate = dateFilter.startDate;
+        const endDate = dateFilter.endDate;
+        const dateQuery =
+          isDate && startDate && endDate
+            ? `?startDate=${format(startDate, "yyyy-MM-dd")}&endDate=${format(
+                endDate,
+                "yyyy-MM-dd"
+              )}`
+            : "";
+        const res = await axios.get(`/api/v1/reports/instructors${dateQuery}`);
+        console.log(res);
+        setInstructors(
+          res.data.data.instructors.map((instructor: Instructor) => {
+            return {
+              ...instructor,
+              // hours: res.data.data.summary?.totalHours,
+              // activityCount: res.data.data.summary?.totalActivities,
+            };
+          })
+        );
+        console.log(res.data.data);
         console.log(res.data.data.instructors);
       } catch (error) {
         console.log(error);
       }
     };
     fetchInstructors();
-  }, []);
+  }, [isDate, dateFilter]);
 
   const handleExport = () => {
     const data = instructors.map((instructor) => {
@@ -146,6 +190,38 @@ export default function InstructorsReports() {
               </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
+        </div>
+        <div className="flex items-center gap-3">
+          <label htmlFor="date-filter">تصفية حسب التاريخ:</label>
+          <Checkbox
+            id="date-filter"
+            checked={isDate}
+            onCheckedChange={(checked: boolean) => {
+              setIsDate(checked);
+            }}
+          />
+          {isDate && (
+            <>
+              <div>
+                <label>من:</label>
+                <DatePicker
+                  date={dateFilter.startDate as Date}
+                  setDate={(date: Date) =>
+                    setDateFilter({ ...dateFilter, startDate: date })
+                  }
+                />
+              </div>
+              <div>
+                <label>إلى:</label>
+                <DatePicker
+                  date={dateFilter.endDate as Date}
+                  setDate={(date: Date) =>
+                    setDateFilter({ ...dateFilter, endDate: date })
+                  }
+                />
+              </div>
+            </>
+          )}
         </div>
         <Button onClick={handleExport}>
           <span>تصدير</span>
