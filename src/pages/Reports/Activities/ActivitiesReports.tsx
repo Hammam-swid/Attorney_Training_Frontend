@@ -136,8 +136,8 @@ export default function ActivitiesReports() {
         dateFilter.startDate && dateFilter.endDate
           ? `تقرير-الأنشطة-التدريبية-من-${format(
               dateFilter.startDate,
-              "yyy-MM-dd"
-            )}-إلى-${format(dateFilter.endDate, "yyyy-MM-dd")}`
+              "dd--MM-yyyy"
+            )}-إلى-${format(dateFilter.endDate, "dd--MM-yyyy")}`
           : "تقرير-الأنشطة-التدريبية",
       ],
     ];
@@ -186,12 +186,12 @@ export default function ActivitiesReports() {
             break;
           case "startDate":
             data["تاريخ البداية"] = activity.startDate
-              ? new Date(activity.startDate).toLocaleDateString()
+              ? format(new Date(activity.startDate), "dd-MM-yyyy")
               : "//";
             break;
           case "endDate":
             data["تاريخ النهاية"] = activity.endDate
-              ? new Date(activity.endDate).toLocaleDateString()
+              ? format(new Date(activity.endDate), "dd-MM-yyyy")
               : "//";
             break;
           case "rating":
@@ -238,7 +238,7 @@ export default function ActivitiesReports() {
       workbook,
       `تقرير-الأنشطة-التدريبية${
         dateFilter.startDate && dateFilter.endDate
-          ? `-من-${format(dateFilter.startDate, "yyy-MM-dd")}-إلى-${format(
+          ? `-من-${format(dateFilter.startDate, "yyyy-MM-dd")}-إلى-${format(
               dateFilter.endDate,
               "yyyy-MM-dd"
             )}`
