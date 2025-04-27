@@ -408,6 +408,7 @@ export default function ActivitiesPage() {
                   <TableCell>{activity.executor.name}</TableCell>
                   <TableCell className="flex items-center justify-center">
                     <ActivityActions
+                      activityId={activity.id}
                       handleDelete={() => handleDelete(activity)}
                       handleEdit={() => handleEdit(activity)}
                       handleInstructors={() =>

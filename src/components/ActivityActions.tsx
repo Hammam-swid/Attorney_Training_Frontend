@@ -14,6 +14,7 @@ import {
 } from "./ui/dropdown-menu";
 import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
 import { Button } from "./ui/button";
+import { Link } from "react-router-dom";
 
 interface ActivityActionsProps {
   handleEdit: () => void;
@@ -21,6 +22,7 @@ interface ActivityActionsProps {
   handleInstructors: () => void;
   handleTrainees: () => void;
   handleRating: () => void;
+  activityId: number | `${number}`;
 }
 
 export default function ActivityActions({
@@ -28,6 +30,7 @@ export default function ActivityActions({
   handleEdit,
   handleInstructors,
   handleTrainees,
+  activityId,
   handleRating,
 }: ActivityActionsProps) {
   return (
@@ -47,9 +50,11 @@ export default function ActivityActions({
             <span> قائمة المدربين </span>
             <Users2 className="w-4 h-4" />
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleTrainees}>
-            <span> قائمة المتدربين </span>
-            <Users className="w-4 h-4" />
+          <DropdownMenuItem asChild>
+            <Link to={`/activities/${activityId}/trainees`}>
+              <span> قائمة المتدربين </span>
+              <Users className="w-4 h-4" />
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleRating}>
             <span>تقييم النشاط</span>
