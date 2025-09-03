@@ -97,7 +97,7 @@ export default function ActivityTraineesPage() {
           />
         )}
         <h1 className="text-2xl font-bold text-right mb-4">
-          قائم المتدربين الخاصة بــ{activity?.title}
+          قائمة المتدربين الخاصة بــ{activity?.title}
         </h1>
         <div className="flex gap-2 items-center justify-between mb-4">
           <Input
