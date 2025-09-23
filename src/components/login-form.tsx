@@ -45,7 +45,6 @@ export function LoginForm({
           setTimeout(() => {
             navigate("/");
           }, 1000);
-          navigate("/");
         }
       } catch (error) {
         console.log(error);

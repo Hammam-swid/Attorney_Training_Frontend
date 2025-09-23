@@ -30,7 +30,9 @@ export default function AuthProvider({
           await axios.post("/api/v1/users/logout");
           dispatch(logout());
           navigate("/login");
-          toast.error("تمت صلاحية الجلسة، الرجاء محاولة تسجيل الدخول مرة أخرى");
+          toast.error(
+            "انتهت صلاحية الجلسة، الرجاء محاولة تسجيل الدخول مرة أخرى"
+          );
         }
       }
     };
@@ -53,14 +55,11 @@ export default function AuthProvider({
     const refreshInterceptors = axios.interceptors.response.use(
       (response) => response,
       async (error) => {
-        console.log(error.response.status);
         const originalRequest = error.config;
-        console.log(error.response);
         if (error.response.status === 401 && !originalRequest._retry) {
           try {
             const res = await axios.post("/api/v1/users/refresh-access-token");
             if (res.status == 200) {
-              console.log("refreshing token");
               dispatch(setToken(res.data.data.token));
               dispatch(setUser(res.data.data.user));
               originalRequest._retry = true;
