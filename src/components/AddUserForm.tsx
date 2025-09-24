@@ -12,7 +12,7 @@ import { Eye, EyeOff, Loader2, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import * as Yup from "yup";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import toast from "react-hot-toast";
 
 const roles = [
@@ -64,10 +64,9 @@ export default function AddUserForm() {
           toast.success("تم إضافة المستخدم بنجاح");
         }
       } catch (error) {
-        console.log(error);
-        toast.error(
-          error?.response?.data?.message || "حدث خطأ أثناء إضافة المستخدم"
-        );
+        const message =
+          error instanceof AxiosError ? error?.response?.data?.message : null;
+        toast.error(message || "حدث خطأ أثناء إضافة المستخدم");
       }
     },
   });

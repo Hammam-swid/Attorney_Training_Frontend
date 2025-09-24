@@ -29,7 +29,6 @@ export default function ActivityActions({
   handleDelete,
   handleEdit,
   handleInstructors,
-  handleTrainees,
   activityId,
   handleRating,
 }: ActivityActionsProps) {

@@ -14,7 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "./ui/button";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import toast from "react-hot-toast";
 
 interface Props {
@@ -83,7 +83,9 @@ export default function EditTypeModal({ type, onClose, onEdit }: Props) {
           onEdit(res.data.data.type as ActivityType);
         }
       } catch (error) {
-        toast.error(error?.response?.data?.message || "حدث خطأ ما");
+        const message =
+          error instanceof AxiosError ? error.response?.data?.message : null;
+        toast.error(message || "حدث خطأ ما");
       }
     },
   });

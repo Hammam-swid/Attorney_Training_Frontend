@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "./ui/button";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import toast from "react-hot-toast";
 import { ActivityType } from "@/types";
 
@@ -86,8 +86,9 @@ export default function AddTypeModal({ onClose, onAdd }: Props) {
           onAdd(res.data.data.type as ActivityType);
         }
       } catch (error) {
-        console.log(error);
-        toast.error(error?.response?.data?.message || "حدث خطأ ما");
+        const message =
+          error instanceof AxiosError ? error?.response?.data?.message : null;
+        toast.error(message || "حدث خطأ ما");
       }
     },
   });

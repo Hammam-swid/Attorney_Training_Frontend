@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/table";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
 
 interface TraineesTableProps {
   trainees: Trainee[];

@@ -12,7 +12,7 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Loader2, Mail, Phone, User } from "lucide-react";
 import { Button } from "./ui/button";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import toast from "react-hot-toast";
 
 export default function ProfileForm() {
@@ -41,9 +41,12 @@ export default function ProfileForm() {
         }
       } catch (error) {
         console.log(error);
-        toast.error(
-          error?.response?.data?.message || "حدث خطأ أثناء تحديث الملف الشخصي"
-        );
+        const message =
+          error instanceof AxiosError
+            ? error.response?.data?.message ||
+              "حدث خطأ أثناء تحديث الملف الشخصي"
+            : "حدث خطأ أثناء تحديث الملف الشخصي";
+        toast.error(message);
       }
     },
   });

@@ -37,7 +37,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Avatar, AvatarFallback } from "./ui/avatar";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setActivityTypes } from "@/store/uiSlice";
 import { logout } from "@/store/authSlice";
@@ -251,7 +251,9 @@ export default function AppSidebar() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-start text-sm leading-tight">
-                    <span className="truncate font-semibold">{user?.fullName}</span>
+                    <span className="truncate font-semibold">
+                      {user?.fullName}
+                    </span>
                     <span className="truncate text-xs">{user?.email}</span>
                   </div>
                   <ChevronsUpDown className="ml-auto size-4" />
@@ -265,7 +267,7 @@ export default function AppSidebar() {
                 <DropdownMenuLabel className="p-0 font-normal">
                   <div className="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
                     <Avatar className="h-8 w-8 rounded-lg">
-                        <AvatarFallback className="rounded-lg">
+                      <AvatarFallback className="rounded-lg">
                         {user?.fullName
                           .split(" ")
                           .map((word) => word[0])
