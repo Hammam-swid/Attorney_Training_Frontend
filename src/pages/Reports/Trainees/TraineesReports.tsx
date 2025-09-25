@@ -18,7 +18,6 @@ import {
 
 import { Trainee } from "@/types";
 import { SelectContent } from "@radix-ui/react-select";
-import axios from "axios";
 import {
   Check,
   ChevronDown,

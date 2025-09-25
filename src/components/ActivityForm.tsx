@@ -10,7 +10,6 @@ import {
   SelectValue,
 } from "./ui/select";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { Button } from "./ui/button";
 import { CalendarIcon, LoaderCircle, PlusCircle, Save, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";

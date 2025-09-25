@@ -1,11 +1,3 @@
-import { logout, setToken, setUser } from "@/store/authSlice";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import axios, { AxiosError } from "axios";
-import { useLayoutEffect } from "react";
-import toast from "react-hot-toast";
-import { useNavigate } from "react-router";
-import api from "@/lib/api";
-
 // export function useAuth() {}
 
 export default function AuthProvider({
@@ -13,10 +5,6 @@ export default function AuthProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const token = useAppSelector((state) => state.auth.token);
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
-
   // useLayoutEffect(() => {
   //   const refreshToken = async () => {
   //     try {

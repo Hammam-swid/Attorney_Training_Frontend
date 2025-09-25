@@ -9,7 +9,6 @@ import {
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { useEffect, useState } from "react";
 import { Trainee } from "@/types";
-import axios from "axios";
 import { Button } from "./ui/button";
 import { Check, Pencil, Trash, UserPlus, X } from "lucide-react";
 import { Input } from "./ui/input";

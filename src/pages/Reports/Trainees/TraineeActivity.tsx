@@ -21,7 +21,6 @@ import { Activity } from "@/types";
 import { useLayoutEffect, useState } from "react";
 import { utils, writeFile as writeExcelFile } from "xlsx";
 import toast from "react-hot-toast";
-import axios from "axios";
 import api from "@/lib/api";
 
 const allFields = [

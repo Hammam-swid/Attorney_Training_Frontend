@@ -6,7 +6,7 @@ import Icon from "./ui/Icon";
 import dynamicIconImports from "lucide-react/dynamicIconImports";
 import { Button } from "./ui/button";
 import { CircleAlert, Pencil, PlusCircle, Trash } from "lucide-react";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import SureModal from "./SureModal";
 import EditTypeModal from "./EditTypeModal";
 import AddTypeModal from "./AddTypeModal";

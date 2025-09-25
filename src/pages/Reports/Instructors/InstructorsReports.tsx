@@ -17,8 +17,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import api from "@/lib/api";
 import { Instructor } from "@/types";
-import axios from "axios";
 import { format } from "date-fns";
 import { Check, ChevronDown, CircleCheck, Download } from "lucide-react";
 import { useLayoutEffect, useState } from "react";
