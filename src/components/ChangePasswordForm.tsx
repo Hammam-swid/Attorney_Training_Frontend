@@ -12,10 +12,11 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import { Eye, EyeOff, Loader2, Lock } from "lucide-react";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import toast from "react-hot-toast";
 import { useAppDispatch } from "@/store/hooks";
 import { setAlert } from "@/store/alertSlice";
+import api from "@/lib/api";
 
 export default function ChangePasswordForm() {
   const [showOldPassword, setShowOldPassword] = useState(false);
@@ -43,7 +44,7 @@ export default function ChangePasswordForm() {
     }),
     onSubmit: async (values) => {
       try {
-        const res = await axios.patch("/api/v1/users/change-password", values);
+        const res = await api.patch("/api/v1/users/change-password", values);
         if (res.status === 200) {
           formik.resetForm();
           dispatch(setAlert(false));

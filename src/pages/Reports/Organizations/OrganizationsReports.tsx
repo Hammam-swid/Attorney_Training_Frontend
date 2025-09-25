@@ -17,8 +17,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import api from "@/lib/api";
 import { Organization } from "@/types";
-import axios from "axios";
 import { format } from "date-fns";
 import { Check, ChevronDown, CircleCheck, Download } from "lucide-react";
 import { useLayoutEffect, useState } from "react";
@@ -73,9 +73,7 @@ export default function OrganizationsReports() {
                 "yyyy-MM-dd"
               )}`
             : "";
-        const res = await axios.get(
-          `/api/v1/reports/organizations${dateQuery}`
-        );
+        const res = await api.get(`/api/v1/reports/organizations${dateQuery}`);
         setOrganizations(res.data.data.organizations);
       } catch (error) {
         console.log(error);

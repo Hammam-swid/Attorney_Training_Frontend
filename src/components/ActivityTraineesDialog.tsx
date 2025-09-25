@@ -15,6 +15,7 @@ import { Check, Pencil, Trash, UserPlus, X } from "lucide-react";
 import { Input } from "./ui/input";
 import { MultiSelect } from "react-multi-select-component";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
 
 interface TraineeDialogProps {
   activityId: number;
@@ -42,7 +43,7 @@ export default function ActivityTraineesDialog({
 
   useEffect(() => {
     const fetchingAllTrainees = async () => {
-      const { data } = await axios.get<
+      const { data } = await api.get<
         unknown,
         { data: { data: { trainees: Trainee[] } } }
       >(`/api/v1/trainees/activity/${activityId}`);
@@ -59,7 +60,7 @@ export default function ActivityTraineesDialog({
 
   useEffect(() => {
     const fetchingTrainees = async () => {
-      const { data } = await axios.get(
+      const { data } = await api.get(
         `/api/v1/training-activities/${activityId}/trainee`
       );
       setTrainees(
@@ -77,7 +78,7 @@ export default function ActivityTraineesDialog({
   const addTrainees = async () => {
     try {
       const traineesIds = selectedTrainees.map((trainee) => trainee.value);
-      const res = await axios.post(
+      const res = await api.post(
         `/api/v1/training-activities/${activityId}/trainee`,
         {
           traineesIds,
@@ -98,7 +99,7 @@ export default function ActivityTraineesDialog({
 
   const deleteTrainee = async (trainee: Trainee) => {
     try {
-      const res = await axios.delete(
+      const res = await api.delete(
         `/api/v1/training-activities/${activityId}/trainee`,
         { data: { traineeId: trainee?.id } }
       );
@@ -115,7 +116,7 @@ export default function ActivityTraineesDialog({
 
   const rateTrainee = async (trainee: Trainee, rating: number) => {
     try {
-      const res = await axios.post(
+      const res = await api.post(
         `/api/v1/training-activities/${activityId}/trainee/rate`,
         { traineeId: trainee?.id, rating: rating }
       );

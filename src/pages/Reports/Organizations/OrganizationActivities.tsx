@@ -23,8 +23,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import api from "@/lib/api";
 import { Activity } from "@/types";
-import axios from "axios";
 import { Check, ChevronDown, CircleCheck, Download } from "lucide-react";
 import { useLayoutEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -54,7 +54,7 @@ export default function OrganizationActivities() {
 
   useLayoutEffect(() => {
     const fetchActivities = async () => {
-      const res = await axios.get(
+      const res = await api.get(
         `/api/v1/reports/organizations/activities${
           search ? `?search=${search}` : ""
         }${type && type !== "all" ? `&type=${type}` : ""}`

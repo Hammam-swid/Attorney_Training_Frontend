@@ -32,6 +32,7 @@ import TraineesTable from "./TraineesTable";
 import DatePicker from "@/components/ui/DatePicker";
 import { format } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
+import api from "@/lib/api";
 
 type Field = {
   label: string;
@@ -97,7 +98,7 @@ export default function TraineesReports() {
                 "yyyy-MM-dd"
               )}`
             : "";
-        const res = await axios.get(`/api/v1/reports/trainees${dateQuery}`);
+        const res = await api.get(`/api/v1/reports/trainees${dateQuery}`);
         setTrainees(res.data.data.trainees);
       } catch (error) {
         console.log(error);

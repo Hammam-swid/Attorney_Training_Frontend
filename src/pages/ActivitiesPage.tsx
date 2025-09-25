@@ -21,7 +21,7 @@ import { PlusCircle } from "lucide-react";
 import { ReactElement, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 // import jsLingua from "jslingua";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { Activity, ActivityType } from "@/types";
 import SureModal from "@/components/SureModal";
 import { toast } from "react-hot-toast";
@@ -33,6 +33,7 @@ import { Helmet } from "react-helmet";
 import ActivityActions from "@/components/ActivityActions";
 import RatingActivity from "@/components/RatingActivity";
 import { format } from "date-fns";
+import api from "@/lib/api";
 
 interface SureModalType {
   title: string;
@@ -95,7 +96,7 @@ export default function ActivitiesPage() {
   useEffect(() => {
     const getType = async () => {
       try {
-        const res = await axios.get(`/api/v1/activity-types/${typeId}`);
+        const res = await api.get(`/api/v1/activity-types/${typeId}`);
         if (res.status === 200) {
           setActivityType(res.data.data.type);
         }
@@ -110,7 +111,7 @@ export default function ActivitiesPage() {
   useEffect(() => {
     const getActivities = async () => {
       try {
-        const res = await axios.get(
+        const res = await api.get(
           `/api/v1/training-activities/type/${typeId}?page=${page}&search=${search}`
         );
         // console.log(res.data.data.activities);
@@ -157,7 +158,7 @@ export default function ActivitiesPage() {
   };
   const deleteActivity = async (id: number) => {
     try {
-      const res = await axios.delete(`/api/v1/training-activities/${id}`);
+      const res = await api.delete(`/api/v1/training-activities/${id}`);
       if (res.status === 204) {
         setActivities((prev) => prev.filter((activity) => activity.id !== id));
         toast.success("تم حذف النشاط بنجاح");
@@ -193,7 +194,7 @@ export default function ActivitiesPage() {
         }),
       onSubmit: async (values, helpers) => {
         try {
-          const res = await axios.patch(
+          const res = await api.patch(
             `/api/v1/training-activities/${activity.id}`,
             values
           );
@@ -269,7 +270,7 @@ export default function ActivitiesPage() {
       onSubmit: async (values, helpers) => {
         console.log(values);
         try {
-          const res = await axios.post("/api/v1/training-activities", values);
+          const res = await api.post("/api/v1/training-activities", values);
           if (res.status === 201) {
             toast.success("تمت إضافة نشاط تدريبي بنجاح");
             helpers.resetForm();

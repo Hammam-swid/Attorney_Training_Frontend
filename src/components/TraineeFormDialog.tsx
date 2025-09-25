@@ -13,7 +13,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { AlertCircle, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "@/lib/api";
 
 interface FormDialogProps {
   title: string;
@@ -79,7 +79,7 @@ const FormDialog: React.FC<FormDialogProps> = ({
 
   useEffect(() => {
     const checkName = async () => {
-      const res = await axios.get(
+      const res = await api.get(
         `/api/v1/trainees/check?search=${formik.values.name}`
       );
       if (res.status === 200) {

@@ -22,6 +22,7 @@ import { useLayoutEffect, useState } from "react";
 import { utils, writeFile as writeExcelFile } from "xlsx";
 import toast from "react-hot-toast";
 import axios from "axios";
+import api from "@/lib/api";
 
 const allFields = [
   { label: "العنوان", value: "title" },
@@ -48,7 +49,7 @@ export default function TraineeActivity() {
   useLayoutEffect(() => {
     const fetchTrainees = async () => {
       try {
-        const response = await axios.get(
+        const response = await api.get(
           `/api/v1/reports/trainees/training-activities${
             search ? `?search=${search}` : ""
           }`

@@ -16,8 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import api from "@/lib/api";
 import { Trainee } from "@/types";
-import axios from "axios";
 import { Check, ChevronDown, CircleCheck, Download } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -39,7 +39,7 @@ export default function OneActivity() {
   const [fields, setFields] = useState<string[]>(allFields.map((f) => f.value));
   useEffect(() => {
     const fetchTrainees = async () => {
-      const res = await axios.get(
+      const res = await api.get(
         `/api/v1/reports/training-activities/trainees${
           search ? `?activityName=${search}` : ""
         }`

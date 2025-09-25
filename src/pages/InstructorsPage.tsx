@@ -10,12 +10,12 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import axios from "axios";
 import { toast } from "react-hot-toast";
 import FormDialog from "../components/InstructorsFormDialog";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
 import { Pencil, Trash } from "lucide-react";
 import { Instructor, Organization } from "@/types";
+import api from "@/lib/api";
 
 export default function TrainerPage() {
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
@@ -41,8 +41,8 @@ export default function TrainerPage() {
 
         console.log(`/api/v1/instructors${pageParam}${searchParam}`);
         const [trainersRes, orgsRes] = await Promise.all([
-          axios.get(`/api/v1/instructors${pageParam}${searchParam}`),
-          axios.get("/api/v1/organizations"),
+          api.get(`/api/v1/instructors${pageParam}${searchParam}`),
+          api.get("/api/v1/organizations"),
         ]);
 
         setTrainers(trainersRes.data.data.instructors);
@@ -59,7 +59,7 @@ export default function TrainerPage() {
   const handleDeleteConfirm = async () => {
     if (!trainerToDelete) return;
     try {
-      await axios.delete(`/api/v1/instructors/${trainerToDelete.id}`);
+      await api.delete(`/api/v1/instructors/${trainerToDelete.id}`);
       setTrainers(
         trainers.filter((trainer) => trainer.id !== trainerToDelete.id)
       );
@@ -73,7 +73,7 @@ export default function TrainerPage() {
   };
   const handleAddTrainer = async (newTrainer: Instructor) => {
     try {
-      const res = await axios.post("/api/v1/instructors", {
+      const res = await api.post("/api/v1/instructors", {
         name: newTrainer.name,
         phone: newTrainer.phone,
         organization: newTrainer.organization,
@@ -89,14 +89,11 @@ export default function TrainerPage() {
   const handleEditTrainer = async (updatedTrainer: Instructor) => {
     try {
       console.log(updatedTrainer);
-      const res = await axios.patch(
-        `/api/v1/instructors/${updatedTrainer.id}`,
-        {
-          name: updatedTrainer.name,
-          phone: updatedTrainer.phone,
-          organization: updatedTrainer.organization,
-        }
-      );
+      const res = await api.patch(`/api/v1/instructors/${updatedTrainer.id}`, {
+        name: updatedTrainer.name,
+        phone: updatedTrainer.phone,
+        organization: updatedTrainer.organization,
+      });
       setTrainers(
         trainers.map((trainer) =>
           trainer.id === updatedTrainer.id ? res.data.data.instructor : trainer

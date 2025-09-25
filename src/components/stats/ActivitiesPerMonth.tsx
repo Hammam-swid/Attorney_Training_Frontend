@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/chart";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis } from "recharts";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "@/lib/api";
 
 export default function ActivitiesPerMonth() {
   const [activitiesPerMonth, setActivitiesPerMonth] = useState([]);
@@ -29,7 +29,7 @@ export default function ActivitiesPerMonth() {
   useEffect(() => {
     const fetchActivitiesPerMonth = async () => {
       try {
-        const response = await axios.get(
+        const response = await api.get(
           `/api/v1/statistics/activity-per-month?year=${year}`
         );
         console.log("data from activity per month", response.data);

@@ -9,9 +9,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import api from "@/lib/api";
 import { Activity, Trainee } from "@/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { Check, Pencil, Trash, X } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -24,7 +24,7 @@ interface TraineeForActivity {
 }
 
 const getTrainees = async (id: string) => {
-  const res = await axios.get<{
+  const res = await api.get<{
     data: { activity: Activity; traineesForActivity: TraineeForActivity[] };
   }>(`/api/v1/training-activities/${id}/trainee`);
   return res.data.data;
@@ -52,7 +52,7 @@ export default function ActivityTraineesPage() {
 
   const deleteTrainee = async (trainee: Trainee) => {
     try {
-      const res = await axios.delete(
+      const res = await api.delete(
         `/api/v1/training-activities/${activityId}/trainee`,
         { data: { traineeId: trainee?.id } }
       );
@@ -70,7 +70,7 @@ export default function ActivityTraineesPage() {
 
   const rateTrainee = async (trainee: Trainee, rating: number) => {
     try {
-      const res = await axios.post(
+      const res = await api.post(
         `/api/v1/training-activities/${activityId}/trainee/rate`,
         { traineeId: trainee?.id, rating: rating }
       );

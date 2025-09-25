@@ -13,6 +13,7 @@ import AddTypeModal from "./AddTypeModal";
 import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { addType, removeType, updateType } from "@/store/uiSlice";
+import api from "@/lib/api";
 
 type IconName = keyof typeof dynamicIconImports;
 
@@ -26,7 +27,7 @@ export default function ActivityTypesCard() {
   // useEffect(() => {
   //   const fetchActivityTypes = async () => {
   //     try {
-  //       const { data } = await axios.get("/api/v1/activity-types");
+  //       const { data } = await api.get("/api/v1/activity-types");
   //       setActivityTypes(data?.data?.types);
   //     } catch (error) {
   //       console.log(error);
@@ -37,7 +38,7 @@ export default function ActivityTypesCard() {
 
   async function deleteType(type: ActivityType) {
     try {
-      const res = await axios.delete(`/api/v1/activity-types/${type.id}`);
+      const res = await api.delete(`/api/v1/activity-types/${type.id}`);
       if (res.status === 204) {
         dispatch(removeType(type));
         toast.success("تم حذف النوع بنجاح");

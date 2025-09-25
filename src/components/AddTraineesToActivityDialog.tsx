@@ -1,6 +1,5 @@
 import { Trainee } from "@/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { useState } from "react";
 import { Input } from "./ui/input";
 import { Card } from "./ui/card";
@@ -16,6 +15,7 @@ import { Checkbox } from "./ui/checkbox";
 import { Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
 
 interface Props {
   activityId: string;
@@ -25,7 +25,7 @@ interface Props {
 
 const getTrainees = async (search: string, page: number) => {
   const searchQuery = search ? `&search=${search}` : "";
-  const res = await axios.get<{
+  const res = await api.get<{
     data: { trainees: Trainee[] };
   }>(`/api/v1/trainees?page=${page}&limit=10${searchQuery}`);
   console.log(res);
@@ -163,7 +163,7 @@ const useAddTraineesDialog = (activityId: string) => {
   const addTrainees = async () => {
     try {
       const traineesIds = selectedTrainees.map((trainee) => trainee.id);
-      const res = await axios.post(
+      const res = await api.post(
         `/api/v1/training-activities/${activityId}/trainee`,
         {
           traineesIds,

@@ -12,8 +12,9 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Loader2, Mail, Phone, User } from "lucide-react";
 import { Button } from "./ui/button";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
 
 export default function ProfileForm() {
   const user = useAppSelector((state) => state.auth.user);
@@ -34,7 +35,7 @@ export default function ProfileForm() {
     }),
     onSubmit: async (values) => {
       try {
-        const res = await axios.patch("/api/v1/users/update-me", values);
+        const res = await api.patch("/api/v1/users/update-me", values);
         console.log(res);
         if (res.status === 200) {
           toast.success("تم تحديث الملف الشخصي بنجاح");

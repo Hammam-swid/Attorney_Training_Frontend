@@ -30,9 +30,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import api from "@/lib/api";
 import { useAppSelector } from "@/store/hooks";
 import { Activity } from "@/types";
-import axios from "axios";
 import { format } from "date-fns";
 import {
   CalendarIcon,
@@ -104,7 +104,7 @@ export default function ActivitiesReports() {
   useLayoutEffect(() => {
     const fetchActivities = async () => {
       try {
-        const res = await axios.get(
+        const res = await api.get(
           `/api/v1/reports/training-activities?fields=${fields.join(
             ","
           )}&startDate=${

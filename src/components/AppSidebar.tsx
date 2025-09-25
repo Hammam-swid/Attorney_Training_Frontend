@@ -24,7 +24,6 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 // import { createLucideIcon } from "lucide-react";
-import axios from "axios";
 import Icon from "./ui/Icon";
 import { ActivityType } from "@/types";
 import dynamicIconImports from "lucide-react/dynamicIconImports";
@@ -42,6 +41,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setActivityTypes } from "@/store/uiSlice";
 import { logout } from "@/store/authSlice";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
 
 interface NavLink {
   label: string;
@@ -66,7 +66,7 @@ export default function AppSidebar() {
   useEffect(() => {
     const getActionLinks = async () => {
       try {
-        const res = await axios.get<{ data: { types: ActivityType[] } }>(
+        const res = await api.get<{ data: { types: ActivityType[] } }>(
           "/api/v1/activity-types"
         );
         // console.log(res?.data.data.types);
@@ -102,7 +102,7 @@ export default function AppSidebar() {
 
   const logoutHandle = async () => {
     try {
-      const res = await axios.post("/api/v1/users/logout");
+      const res = await api.post("/api/v1/users/logout");
       if (res.status === 200) {
         toast.success("تم تسجيل الخروج بنجاح");
         setTimeout(() => {

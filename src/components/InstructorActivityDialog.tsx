@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
 import { Instructor } from "@/types";
-import axios from "axios";
 import {
   Table,
   TableBody,
@@ -15,6 +14,7 @@ import { Check, Edit, Plus, Trash, X } from "lucide-react";
 import { Input } from "./ui/input";
 import { MultiSelect } from "react-multi-select-component";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
 
 interface InstructorActivityDialogProps {
   activityId: number;
@@ -41,7 +41,7 @@ export default function InstructorActivityDialog({
 
   useEffect(() => {
     const fetchInstructors = async () => {
-      const { data } = await axios.get<
+      const { data } = await api.get<
         unknown,
         { data: { data: { instructors: Instructor[] } } }
       >(`/api/v1/instructors/all`);
@@ -63,7 +63,7 @@ export default function InstructorActivityDialog({
 
   useEffect(() => {
     const fetchInstructors = async () => {
-      const { data } = await axios.get<
+      const { data } = await api.get<
         unknown,
         { data: { data: { instructors: Instructor[] } } }
       >(`/api/v1/training-activities/${activityId}/instructor`);
@@ -75,7 +75,7 @@ export default function InstructorActivityDialog({
 
   const addInstructor = async () => {
     try {
-      const { data } = await axios.post(
+      const { data } = await api.post(
         `/api/v1/training-activities/${activityId}/instructor`,
         {
           instructorIds: selectedInstructors.map(
@@ -97,7 +97,7 @@ export default function InstructorActivityDialog({
   };
 
   const deleteInstructor = async (instructor: Instructor) => {
-    const { data } = await axios.delete(
+    const { data } = await api.delete(
       `/api/v1/training-activities/${activityId}/instructor`,
       { data: { instructorId: instructor.id } }
     );
@@ -109,7 +109,7 @@ export default function InstructorActivityDialog({
 
   const rateInstructor = async (instructor: Instructor, rating: number) => {
     try {
-      const res = await axios.patch(
+      const res = await api.patch(
         `/api/v1/training-activities/${activityId}/instructor/rate`,
         {
           instructorId: instructor.id,

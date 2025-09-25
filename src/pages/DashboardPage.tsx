@@ -3,7 +3,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookOpen, Users, User2, Building, RotateCcw } from "lucide-react";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { Instructor } from "@/types";
 import ActivityTypesCard from "@/components/ActivityTypesCard";
 import { Helmet } from "react-helmet";
@@ -12,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import ActivitiesPerMonth from "@/components/stats/ActivitiesPerMonth";
 import ActivitiesPerType from "@/components/stats/ActivitiesPerType";
 import YearSelect from "@/components/ui/YearSelect";
+import api from "@/lib/api";
 
 interface StatisticsState {
   activitiesCount: number | undefined;
@@ -34,7 +34,7 @@ export default function DashboardPage() {
     const fetchStatistics = async () => {
       try {
         const yearQuery = year ? `?year=${year}` : "";
-        const response = await axios.get(`/api/v1/statistics${yearQuery}`);
+        const response = await api.get(`/api/v1/statistics${yearQuery}`);
         if (response.status === 200) {
           const data = response.data.data;
           setStatistics(() => ({
@@ -55,7 +55,7 @@ export default function DashboardPage() {
     const fetchTop5Instructors = async () => {
       try {
         const yearQuery = year ? `?year=${year}` : "";
-        const response = await axios.get(
+        const response = await api.get(
           `/api/v1/statistics/top-5-instructors${yearQuery}`
         );
         console.log(response);

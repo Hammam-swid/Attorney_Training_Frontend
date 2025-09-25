@@ -5,12 +5,13 @@ import { Label } from "@/components/ui/label";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { LoaderCircle } from "lucide-react";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import { useAppDispatch } from "@/store/hooks";
 import { setToken, setUser } from "@/store/authSlice";
 import { useNavigate } from "react-router";
 import { setAlert } from "@/store/alertSlice";
+import api from "@/lib/api";
 
 export function LoginForm({
   className,
@@ -33,7 +34,7 @@ export function LoginForm({
     }),
     onSubmit: async (values) => {
       try {
-        const { data } = await axios.post("/api/v1/users/login", values);
+        const { data } = await api.post("/api/v1/users/login", values);
         console.log(data);
         if (data.data.token) {
           toast.success("تم تسجيل الدخول بنجاح");

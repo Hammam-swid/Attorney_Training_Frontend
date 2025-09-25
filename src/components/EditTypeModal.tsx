@@ -14,8 +14,9 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "./ui/button";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
 
 interface Props {
   type: ActivityType;
@@ -72,7 +73,7 @@ export default function EditTypeModal({ type, onClose, onEdit }: Props) {
     },
     onSubmit: async (values) => {
       try {
-        const res = await axios.patch(
+        const res = await api.patch(
           `/api/v1/activity-types/${type.id}`,
           values
         );

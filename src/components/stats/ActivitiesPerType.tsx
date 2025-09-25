@@ -1,5 +1,4 @@
 import { ActivityType } from "@/types";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import {
@@ -18,6 +17,7 @@ import {
 } from "../ui/select";
 import { RotateCcw } from "lucide-react";
 import { Button } from "../ui/button";
+import api from "@/lib/api";
 
 export default function ActivitiesPerType() {
   const [Types, setTypes] = useState<ActivityType[]>([]);
@@ -26,7 +26,7 @@ export default function ActivitiesPerType() {
     const fetchActivityPerType = async () => {
       try {
         const yearQuery = year ? `?year=${year}` : "";
-        const response = await axios.get<
+        const response = await api.get<
           undefined,
           { data: { data: { types: ActivityType[] } }; status: number }
         >(`/api/v1/statistics/activity-per-type${yearQuery}`);

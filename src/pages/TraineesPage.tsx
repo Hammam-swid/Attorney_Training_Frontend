@@ -10,12 +10,12 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import axios from "axios";
 import { toast } from "react-hot-toast";
 import FormDialog from "../components/TraineeFormDialog";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
 import { Pencil, Trash } from "lucide-react";
 import { Trainee } from "@/types";
+import api from "@/lib/api";
 
 export default function TraineesPage() {
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
@@ -39,9 +39,7 @@ export default function TraineesPage() {
 
         const pageParam = `?page=${page}&limit=${limit}`;
 
-        const res = await axios.get(
-          `/api/v1/trainees${pageParam}${searchParam}`
-        );
+        const res = await api.get(`/api/v1/trainees${pageParam}${searchParam}`);
         setTrainees(res.data.data.trainees);
         setAllTraineesCount(res.data.data.count);
       } catch (error) {
@@ -55,7 +53,7 @@ export default function TraineesPage() {
   const handleDeleteConfirm = async () => {
     if (!traineeToDelete) return;
     try {
-      await axios.delete(`/api/v1/trainees/${traineeToDelete.id}`);
+      await api.delete(`/api/v1/trainees/${traineeToDelete.id}`);
       setTrainees(
         trainees.filter((trainee) => trainee.id !== traineeToDelete.id)
       );
@@ -70,7 +68,7 @@ export default function TraineesPage() {
 
   const handleAddTrainee = async (newTrainee: Trainee) => {
     try {
-      const res = await axios.post("/api/v1/trainees", {
+      const res = await api.post("/api/v1/trainees", {
         ...newTrainee,
         payGrade: newTrainee.payGrade ? newTrainee.payGrade : null,
       });
@@ -84,7 +82,7 @@ export default function TraineesPage() {
 
   const handleEditTrainee = async (updatedTrainee: Trainee) => {
     try {
-      const res = await axios.patch(
+      const res = await api.patch(
         `/api/v1/trainees/${updatedTrainee.id}`,
         updatedTrainee
       );

@@ -13,9 +13,10 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "./ui/button";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import toast from "react-hot-toast";
 import { ActivityType } from "@/types";
+import api from "@/lib/api";
 
 interface Props {
   onClose: () => void;
@@ -79,7 +80,7 @@ export default function AddTypeModal({ onClose, onAdd }: Props) {
     },
     onSubmit: async (values) => {
       try {
-        const res = await axios.post("/api/v1/activity-types", values);
+        const res = await api.post("/api/v1/activity-types", values);
         if (res.status === 201) {
           closeModal();
           toast.success("تم إضافة النوع بنجاح");

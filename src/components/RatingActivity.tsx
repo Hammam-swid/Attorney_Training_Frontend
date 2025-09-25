@@ -5,8 +5,8 @@ import { useFormik } from "formik";
 import { Button } from "./ui/button";
 import { Check } from "lucide-react";
 import * as Yup from "yup";
-import axios from "axios";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
 
 interface RatingActivityProps {
   activity: Activity;
@@ -32,7 +32,7 @@ function RatingActivity({
     }),
     onSubmit: async (values) => {
       try {
-        const res = await axios.post(
+        const res = await api.post(
           `/api/v1/training-activities/${activity.id}/rate`,
           {
             rating: values.rating,

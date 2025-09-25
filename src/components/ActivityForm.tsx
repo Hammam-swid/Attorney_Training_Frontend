@@ -20,6 +20,7 @@ import { Calendar } from "./ui/calendar";
 import AddOrganizationForm from "./AddOrganizationForm";
 import * as Yup from "yup";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
 
 interface FormValues {
   title: string;
@@ -63,7 +64,7 @@ export default function ActivityForm({
   useEffect(() => {
     const getOrganizations = async () => {
       try {
-        const res = await axios.get("/api/v1/organizations/all");
+        const res = await api.get("/api/v1/organizations/all");
         if (res.status === 200) {
           setOrganizations(res.data.data.organizations);
         }
@@ -86,7 +87,7 @@ export default function ActivityForm({
     helpers: FormikHelpers<{ name: string }>
   ) => {
     try {
-      const res = await axios.post("/api/v1/organizations", values);
+      const res = await api.post("/api/v1/organizations", values);
       if (res.status === 201) {
         setOrganizations([...organizations, res.data.data.organization]);
         setOrganizationForm({

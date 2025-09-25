@@ -82,7 +82,7 @@ export default function InstructorsReports() {
                 "yyyy-MM-dd"
               )}`
             : "";
-        const res = await axios.get(`/api/v1/reports/instructors${dateQuery}`);
+        const res = await api.get(`/api/v1/reports/instructors${dateQuery}`);
         console.log(res);
         setInstructors(
           res.data.data.instructors.map((instructor: Instructor) => {

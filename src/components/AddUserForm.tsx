@@ -12,8 +12,9 @@ import { Eye, EyeOff, Loader2, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import * as Yup from "yup";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
 
 const roles = [
   { value: "admin", label: "مدير" },
@@ -58,7 +59,7 @@ export default function AddUserForm() {
     }),
     onSubmit: async (values) => {
       try {
-        const res = await axios.post("/api/v1/users/register", values);
+        const res = await api.post("/api/v1/users/register", values);
         if (res.status === 201) {
           formik.resetForm();
           toast.success("تم إضافة المستخدم بنجاح");

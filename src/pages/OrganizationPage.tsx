@@ -10,8 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import api from "@/lib/api";
 import { Organization } from "@/types";
-import axios from "axios";
 import { FormikHelpers } from "formik";
 import { Pencil, PlusCircle, Trash } from "lucide-react";
 import { ReactElement, useEffect, useState } from "react";
@@ -71,7 +71,7 @@ export default function OrganizationPage() {
         },
         onSubmit: async (values, helpers) => {
           try {
-            const res = await axios.post("/api/v1/organizations", values);
+            const res = await api.post("/api/v1/organizations", values);
             if (res.status === 201) {
               setOrganizations([...organizations, res.data.data.organization]);
               setOrganizationForm({
@@ -106,7 +106,7 @@ export default function OrganizationPage() {
         },
         onSubmit: async (values, helpers) => {
           try {
-            const res = await axios.patch(
+            const res = await api.patch(
               `/api/v1/organizations/${org?.id}`,
               values
             );
@@ -141,7 +141,7 @@ export default function OrganizationPage() {
   useEffect(() => {
     const getOrganizations = async () => {
       try {
-        const res = await axios.get(
+        const res = await api.get(
           `/api/v1/organizations?page=${page}&search=${search}`
         );
         if (res.status === 200) {
@@ -268,7 +268,7 @@ export default function OrganizationPage() {
                         show: true,
                         onConfirm: async () => {
                           try {
-                            const res = await axios.delete(
+                            const res = await api.delete(
                               `/api/v1/organizations/${organization.id}`
                             );
                             toast.success("تم حذف الجهة بنجاح");
