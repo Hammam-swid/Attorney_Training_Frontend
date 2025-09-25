@@ -109,7 +109,7 @@ export default function OneActivity() {
       `تقرير-المتدربين-للنشاط-${search}`
     );
 
-    writeFile(workbook, `تقرير-المتدربين-للنشاط-${search}.xlsx`);
+    writeFile(workbook, `تقرير-المتدربين-للنشاط.xlsx`);
   };
 
   return (
