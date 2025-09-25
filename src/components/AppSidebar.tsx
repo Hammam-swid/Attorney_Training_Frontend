@@ -118,7 +118,7 @@ export default function AppSidebar() {
   return (
     <Sidebar side="right" collapsible="icon">
       {open && (
-        <SidebarHeader className="font-bold">إدارة المتدربين</SidebarHeader>
+        <SidebarHeader className="font-bold">إدارة التدريب</SidebarHeader>
       )}
       <SidebarContent>
         <SidebarGroup>

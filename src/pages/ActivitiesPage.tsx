@@ -300,7 +300,7 @@ export default function ActivitiesPage() {
   return (
     <div className="container mx-auto py-10">
       <Helmet>
-        <title>إدارة المتدربين | {activityType?.name || ""}</title>
+        <title>إدارة التدريب | {activityType?.name || ""}</title>
         <meta
           name="description"
           content={`إدارة كل الأنشطة التدريبية من نوع ${activityType?.name}`}

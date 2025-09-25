@@ -72,8 +72,8 @@ export default function DashboardPage() {
   return (
     <div className="container mx-auto p-8">
       <Helmet>
-        <title>إدارة المتدربين | الصفحة الرئيسية</title>
-        <meta name="description" content={`لوحة الإحصائيات لإدارة المتدربين`} />
+        <title>إدارة التدريب | الصفحة الرئيسية</title>
+        <meta name="description" content={`لوحة الإحصائيات لإدارة التدريب`} />
       </Helmet>
       <div className="flex justify-between mb-8 items-center">
         <h1 className="text-3xl font-bold">لوحة الإحصائيات</h1>

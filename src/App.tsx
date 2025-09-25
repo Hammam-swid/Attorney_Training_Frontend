@@ -45,29 +45,13 @@ const routes = createRoutesFromElements(
     />
     <Route
       path="/"
-      // loader={async () => {
-      //   const { user } = store.getState().auth;
-      //   if (!user) return null;
-      //   try {
-      //     const res = await api.post("/api/v1/users/refresh-access-token");
-      //     if (res.status == 200) {
-      //       store.dispatch(setToken(res.data.data.token));
-      //       store.dispatch(setUser(res.data.data.user));
-      //     }
-      //     return null;
-      //   } catch (error) {
-      //     console.log(error);
-      //     if (error instanceof AxiosError && error?.response?.status === 403) {
-      //       await api.post("/api/v1/users/logout");
-      //       store.dispatch(logout());
-      //       toast.error(
-      //         "تمت صلاحية الجلسة، الرجاء محاولة تسجيل الدخول مرة أخرى"
-      //       );
-      //       return redirect("/login");
-      //     }
-      //   }
-      //   return null;
-      // }}
+      loader={() => {
+        const auth = store.getState().auth;
+        if (!auth.token) {
+          return redirect("/login");
+        }
+        return null;
+      }}
       element={<MainLayout />}
       errorElement={<ErrorPage />}
     >

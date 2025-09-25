@@ -168,7 +168,7 @@ export default function OrganizationPage() {
   return (
     <div className="container mx-auto py-10">
       <Helmet>
-        <title>إدارة المتدربين | الجهات المختصة</title>
+        <title>إدارة التدريب | الجهات المختصة</title>
         <meta
           name="description"
           content={`إدارة كل الجهات المختصة الخاصة بالمركز`}

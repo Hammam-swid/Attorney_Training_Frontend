@@ -13,7 +13,7 @@ export default function ReportsLayout() {
   return (
     <div className="container mx-auto py-10">
       <Helmet>
-        <title>إدارة المتدربين | التقارير</title>
+        <title>إدارة التدريب | التقارير</title>
         <meta
           name="description"
           content="إنشاء التقارير الخاصة بالأنشطة التدريبية"
