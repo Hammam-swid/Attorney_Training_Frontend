@@ -4,75 +4,91 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 10%;
-    --card: 0 0% 95%;
-    --card-foreground: 0 0% 5%;
-    --popover: 0 0% 95%;
-    --popover-foreground: 0 0% 5%;
-    --primary: 0 85% 50%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 90%;
-    --secondary-foreground: 0 0% 10%;
-    --muted: 0 0% 85%;
-    --muted-foreground: 0 0% 20%;
-    --accent: 0 85% 50%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 75% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 80%;
-    --input: 0 0% 90%;
-    --ring: 0 85% 50%;
-    --radius: 0.5rem;
-    --chart-1: 0 85% 55%; /* أحمر */
-    --chart-2: 210 80% 50%; /* أزرق */
-    --chart-3: 120 75% 25%; /* أخضر */
-    --chart-4: 280 70% 55%; /* بنفسجي */
-    --chart-5: 40 65% 50%; /* برتقالي */
+    --foreground: 230 20% 10%;
+    --card: 0 0% 98%;
+    --card-foreground: 230 15% 10%;
+    --popover: 0 0% 98%;
+    --popover-foreground: 230 15% 10%;
 
+    /* اللون الأساسي: أزرق ملكي */
+    --primary: 225 70% 35%; /* #1E3A8A */
+    --primary-foreground: 0 0% 100%;
+
+    /* الذهبي المستخدم في الشعار */
+    --accent: 45 65% 50%; /* #D4AF37 */
+    --accent-foreground: 0 0% 10%;
+
+    --secondary: 45 25% 92%; /* خلفية فاتحة مائلة للذهبي */
+    --secondary-foreground: 45 30% 20%;
+
+    --muted: 45 15% 85%;
+    --muted-foreground: 45 20% 30%;
+
+    --destructive: 0 72% 51%; /* أحمر قوي #DC2626 */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 45 10% 80%;
+    --input: 45 10% 90%;
+    --ring: 225 70% 35%;
+
+    --radius: 0.5rem;
+
+    --chart-1: 225 70% 35%; /* أزرق */
+    --chart-2: 45 65% 50%; /* ذهبي */
+    --chart-3: 120 30% 35%; /* أخضر داكن */
+    --chart-4: 280 50% 45%; /* بنفسجي متوسط */
+    --chart-5: 10 70% 50%; /* أحمر مائل للبرتقالي */
+
+    /* الألوان الخاصة بالـ Sidebar */
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 10%;
-    --sidebar-primary: 0 85% 50%;
+    --sidebar-foreground: 230 20% 10%;
+    --sidebar-primary: 225 70% 35%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 85% 50%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 80%;
-    --sidebar-ring: 0 85% 50%;
+    --sidebar-accent: 45 65% 50%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 45 10% 80%;
+    --sidebar-ring: 225 70% 35%;
   }
 
   .dark {
-    --background: 0 0% 5%;
+    --background: 230 15% 7%;
     --foreground: 0 0% 90%;
-    --card: 0 0% 10%;
+    --card: 230 15% 10%;
     --card-foreground: 0 0% 90%;
-    --popover: 0 0% 10%;
+    --popover: 230 15% 10%;
     --popover-foreground: 0 0% 90%;
-    --primary: 0 85% 50%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 85%;
-    --muted: 0 0% 20%;
-    --muted-foreground: 0 0% 75%;
-    --accent: 0 85% 50%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 75% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 0 85% 50%;
-    --chart-1: 0 85% 55%; /* أحمر */
-    --chart-2: 210 80% 50%; /* أزرق */
-    --chart-3: 120 75% 25%; /* أخضر */
-    --chart-4: 280 70% 55%; /* بنفسجي */
-    --chart-5: 40 65% 50%;
 
-    --sidebar-background: 0 0% 5%;
+    --primary: 225 70% 55%; /* نفس الأزرق لكن أفتح شوي */
+    --primary-foreground: 0 0% 100%;
+
+    --accent: 45 70% 55%; /* ذهبي لامع */
+    --accent-foreground: 0 0% 10%;
+
+    --secondary: 230 15% 15%;
+    --secondary-foreground: 0 0% 85%;
+    --muted: 230 15% 20%;
+    --muted-foreground: 0 0% 75%;
+    --destructive: 0 85% 60%; /* أحمر لامع #EF4444 */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 230 15% 20%;
+    --input: 230 15% 20%;
+    --ring: 45 70% 55%;
+
+    --chart-1: 225 70% 55%; /* أزرق */
+    --chart-2: 45 70% 55%; /* ذهبي */
+    --chart-3: 120 30% 40%; /* أخضر غامق */
+    --chart-4: 280 50% 50%; /* بنفسجي */
+    --chart-5: 10 70% 50%; /* أحمر */
+
+    --sidebar-background: 230 15% 7%;
     --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 0 85% 50%;
+    --sidebar-primary: 225 70% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 85% 50%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 0 85% 50%;
+    --sidebar-accent: 45 70% 55%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 230 15% 15%;
+    --sidebar-ring: 45 70% 55%;
   }
 }
 @layer base {

@@ -21,10 +21,11 @@ export default function DatePicker({ date, setDate }: DatePickerProps) {
         <Calendar
           mode="single"
           selected={date}
-          onSelect={(dateValue) => {
-            setDate(dateValue as Date);
+          defaultMonth={date}
+          captionLayout="dropdown"
+          onSelect={(date) => {
+            setDate(date as Date);
           }}
-          initialFocus
         />
       </PopoverContent>
     </Popover>

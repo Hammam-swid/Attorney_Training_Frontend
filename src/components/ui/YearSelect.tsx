@@ -11,6 +11,11 @@ interface YearSelectProps {
   setYear: (year: number) => void;
 }
 export default function YearSelect({ year, setYear }: YearSelectProps) {
+  const years = [];
+  const start = new Date().getFullYear() + 3;
+  for (let i = start; i >= 2020; i--) {
+    years.push(i);
+  }
   return (
     <Select
       dir="rtl"
@@ -21,9 +26,9 @@ export default function YearSelect({ year, setYear }: YearSelectProps) {
         <SelectValue placeholder="اختر السنة" />
       </SelectTrigger>
       <SelectContent>
-        {Array.from({ length: 10 }, (_, i: number) => (
-          <SelectItem key={i} value={`${new Date().getFullYear() - i}`}>
-            {new Date().getFullYear() - i}
+        {years.map((i: number) => (
+          <SelectItem key={i} value={`${i}`}>
+            {i}
           </SelectItem>
         ))}
       </SelectContent>

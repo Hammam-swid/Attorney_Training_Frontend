@@ -21,11 +21,11 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-      <div className="relative hidden bg-muted lg:block">
+      <div className="relative hidden bg-primary lg:block">
         <img
-          src="/small-logo.svg"
+          src="/center-logo.png"
           alt="logo image"
-          className="absolute p-16 2xl:p-60 inset-0 h-full w-full dark:brightness-[0.7]"
+          className="absolute p-16 2xl:p-60 inset-0 h-full w-full dark:brightness-[0.7] object-cover"
         />
       </div>
     </div>
