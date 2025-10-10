@@ -1,3 +1,4 @@
+import InstructorsCombobox from "@/components/InstructorsCombobox";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -7,7 +8,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -42,7 +42,10 @@ const allFields = [
 
 export default function InstructorActivities() {
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [search, setSearch] = useState<string>("");
+  const [selectedInstructor, setSelectedInstructor] = useState<{
+    label: string;
+    value: string;
+  }>({ label: "", value: "" });
   const [fields, setFields] = useState<string[]>(allFields.map((f) => f.value));
 
   useLayoutEffect(() => {
@@ -50,7 +53,9 @@ export default function InstructorActivities() {
       try {
         const res = await api.get(
           `/api/v1/reports/instructors/training-activities${
-            search ? `?search=${search}` : ""
+            selectedInstructor.value
+              ? `?search=${selectedInstructor.value}`
+              : ""
           }`
         );
         if (res.status === 200) {
@@ -62,7 +67,8 @@ export default function InstructorActivities() {
     };
 
     fetchActivities();
-  }, [search]);
+  }, [selectedInstructor.value]);
+
   const handleExport = () => {
     if (activities.length === 0) {
       toast.error("لا يوجد بيانات لتصديرها");
@@ -71,7 +77,9 @@ export default function InstructorActivities() {
     const workbook = utils.book_new();
 
     // Add title row
-    const titleRow = [[`تقرير-الأنشطة-التدريبية-الخاصة-بالمدرب-${search}`]];
+    const titleRow = [
+      [`تقرير-الأنشطة-التدريبية-الخاصة-بالمدرب-${selectedInstructor.label}`],
+    ];
     const worksheet = utils.aoa_to_sheet(titleRow);
 
     // Merge cells for title based on selected fields length
@@ -173,19 +181,14 @@ export default function InstructorActivities() {
     worksheet["!dir"] = "rtl";
 
     utils.book_append_sheet(workbook, worksheet, "Activities");
-    writeExcelFile(
-      workbook,
-      `تقرير-الأنشطة-التدريبية-الخاصة-بالمدرب-${search}.xlsx`
-    );
+    writeExcelFile(workbook, `تقرير-الأنشطة-التدريبية-الخاصة-بالمدرب.xlsx`);
   };
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <Input
-          className="w-[250px]"
-          placeholder="اكتب اسم المدرب"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+        <InstructorsCombobox
+          instructor={selectedInstructor}
+          setInstructor={setSelectedInstructor}
         />
 
         <div className="flex items-center gap-2">
@@ -302,8 +305,10 @@ export default function InstructorActivities() {
                         // :
                         field.value === "instructorRatings"
                         ? activity.instructors
-                            ?.filter((instructor) =>
-                              new RegExp(search).test(instructor.name)
+                            ?.filter(
+                              (instructor) =>
+                                instructor.id.toString() ==
+                                selectedInstructor.value
                             )
                             ?.map((instructor) => instructor.rating)
                             ?.join(", ") || (

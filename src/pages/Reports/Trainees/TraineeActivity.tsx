@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +21,7 @@ import { useLayoutEffect, useState } from "react";
 import { utils, writeFile as writeExcelFile } from "xlsx";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
+import TraineesCombobox from "@/components/TraineesCombobox";
 
 const allFields = [
   { label: "العنوان", value: "title" },
@@ -40,9 +40,17 @@ const allFields = [
   { label: "تقييم المتدرب", value: "traineeRating" },
 ];
 
+interface Item {
+  label: string;
+  value: string;
+}
+
 export default function TraineeActivity() {
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [search, setSearch] = useState<string>("");
+  const [selectedTrainee, setSelectedTrainee] = useState<Item>({
+    label: "",
+    value: "",
+  });
   const [fields, setFields] = useState<string[]>(allFields.map((f) => f.value));
 
   useLayoutEffect(() => {
@@ -50,7 +58,7 @@ export default function TraineeActivity() {
       try {
         const response = await api.get(
           `/api/v1/reports/trainees/training-activities${
-            search ? `?search=${search}` : ""
+            selectedTrainee.value ? `?search=${selectedTrainee.value}` : ""
           }`
         );
         const data = response.data;
@@ -60,7 +68,7 @@ export default function TraineeActivity() {
       }
     };
     fetchTrainees();
-  }, [search]);
+  }, [selectedTrainee.value]);
   const handleExport = () => {
     if (activities.length === 0) {
       toast.error("لا يوجد بيانات لتصديرها");
@@ -69,7 +77,9 @@ export default function TraineeActivity() {
     const workbook = utils.book_new();
 
     // Add title row
-    const titleRow = [[`تقرير-الأنشطة-التدريبية-الخاصة-بالمتدرب-${search}`]];
+    const titleRow = [
+      [`تقرير-الأنشطة-التدريبية-الخاصة-بالمتدرب-${selectedTrainee.label}`],
+    ];
     const worksheet = utils.aoa_to_sheet(titleRow);
 
     // Merge cells for title based on selected fields length
@@ -135,8 +145,8 @@ export default function TraineeActivity() {
           case "traineeRating":
             data["تقييم المتدرب"] =
               activity?.activityTrainees
-                ?.filter((at) =>
-                  new RegExp(search as string).test(at?.trainee?.name)
+                ?.filter(
+                  (at) => at?.trainee?.id.toString() === selectedTrainee.value
                 )
                 .map((at) => at.rating)
                 .join("") || "//";
@@ -172,19 +182,14 @@ export default function TraineeActivity() {
     worksheet["!dir"] = "rtl";
 
     utils.book_append_sheet(workbook, worksheet, "Activities");
-    writeExcelFile(
-      workbook,
-      `تقرير-الأنشطة-التدريبية-الخاصة-بالمتدرب-${search}.xlsx`
-    );
+    writeExcelFile(workbook, `تقرير-الأنشطة-التدريبية-الخاصة-بالمتدرب.xlsx`);
   };
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <Input
-          placeholder="ابحث عن متدرب"
-          className="w-[250px]"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+        <TraineesCombobox
+          trainee={selectedTrainee}
+          setTrainee={setSelectedTrainee}
         />
         <div className="flex items-center gap-2">
           <Button
@@ -310,10 +315,10 @@ export default function TraineeActivity() {
                         //   )
                         field.value === "traineeRating"
                         ? activity?.activityTrainees
-                            ?.filter((at) =>
-                              new RegExp(search as string).test(
-                                at?.trainee?.name
-                              )
+                            ?.filter(
+                              (at) =>
+                                at?.trainee?.id.toString() ===
+                                selectedTrainee.value
                             )
                             .map((at) => at.rating)
                             .join("") || (

@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { redirect } from "react-router";
 
 const api = axios.create({
-  baseURL: "http://localhost:3000", //"https://attorney-training-api.com.ly",
+  baseURL: "https://attorney-training-api.com.ly",
 });
 
 api.interceptors.request.use((config) => {
