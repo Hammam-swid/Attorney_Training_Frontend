@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, RotateCcw } from "lucide-react";
 import { ReactElement, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 // import jsLingua from "jslingua";
@@ -34,6 +34,8 @@ import ActivityActions from "@/components/ActivityActions";
 import RatingActivity from "@/components/RatingActivity";
 import { format } from "date-fns";
 import api from "@/lib/api";
+import YearSelect from "@/components/ui/YearSelect";
+import DatePicker from "@/components/ui/DatePicker";
 
 interface SureModalType {
   title: string;
@@ -106,13 +108,31 @@ export default function ActivitiesPage() {
     };
     getType();
   }, [typeId]);
+  const [dateType, setDateType] = useState<"year" | "date">("year");
+  const [year, setYear] = useState<number>();
+  const [date, setDate] = useState<{
+    startDate: Date | undefined;
+    endDate: Date | undefined;
+  }>({
+    startDate: undefined,
+    endDate: undefined,
+  });
 
   // console.log(activities);
   useEffect(() => {
     const getActivities = async () => {
       try {
         const res = await api.get(
-          `/api/v1/training-activities/type/${typeId}?page=${page}&search=${search}`
+          `/api/v1/training-activities/type/${typeId}?page=${page}&search=${search}${
+            year
+              ? `&year=${year}`
+              : date.startDate && date.endDate
+              ? `&startDate=${format(
+                  date.startDate,
+                  "yyyy-MM-dd"
+                )}&endDate=${format(date.endDate, "yyyy-MM-dd")}`
+              : ""
+          }`
         );
         // console.log(res.data.data.activities);
         if (res.status === 200) {
@@ -141,7 +161,7 @@ export default function ActivitiesPage() {
     };
     getActivities();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [typeId, search, page]);
+  }, [typeId, search, page, year, date.startDate, date.endDate]);
 
   const [status, setStatus] = useState("الكل");
   // console.log(type);
@@ -315,27 +335,80 @@ export default function ActivitiesPage() {
           <PlusCircle />
         </Button>
       </div>
-      <div className="flex items-center justify-between mb-4 mt-4">
+      <div className="flex items-center justify-between gap-3 mb-4 mt-4">
         <Input
           className="w-96"
           placeholder="بحث"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <Select dir="rtl" value={status} onValueChange={setStatus}>
-          <SelectTrigger className="w-64">
-            <SelectValue placeholder="الحالة" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>الحالة</SelectLabel>
-              <SelectItem value="الكل">الكل</SelectItem>
-              <SelectItem value="نشطة">نشطة</SelectItem>
-              <SelectItem value="مكتملة">مكتملة</SelectItem>
-              <SelectItem value="قيد التجهيز">قيد التجهيز</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+        <div className="flex gap-3 items-center">
+          <Select
+            dir="rtl"
+            value={dateType}
+            onValueChange={(v: "year" | "date") => {
+              setDateType(v);
+              setYear(undefined);
+              setDate({
+                startDate: undefined,
+                endDate: undefined,
+              });
+            }}
+          >
+            <SelectTrigger className="w-fit">
+              <SelectValue placeholder={"اختر نوع الفلترة"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>نوع الفلترة</SelectLabel>
+                <SelectItem value="year">فلترة بالسنة</SelectItem>
+                <SelectItem value="date">فلترة بالتاريخ</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <div className="flex items-center gap-1">
+            {year && (
+              <Button
+                onClick={() => setYear(undefined)}
+                variant="outline"
+                size="icon"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </Button>
+            )}
+            {dateType === "year" ? (
+              <YearSelect setYear={setYear} year={year} />
+            ) : (
+              <div className="flex gap-2 items-center">
+                <DatePicker
+                  date={date.startDate}
+                  setDate={(d) =>
+                    setDate((prev) => ({ ...prev, startDate: d }))
+                  }
+                />
+                <DatePicker
+                  date={date.endDate}
+                  setDate={(d) => setDate((prev) => ({ ...prev, endDate: d }))}
+                  title="تاريخ النهاية"
+                />
+              </div>
+            )}
+          </div>
+          <Select dir="rtl" value={status} onValueChange={setStatus}>
+            <SelectTrigger className="w-64">
+              <SelectValue placeholder="الحالة" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>الحالة</SelectLabel>
+                <SelectItem value="الكل">الكل</SelectItem>
+                <SelectItem value="نشطة">نشطة</SelectItem>
+                <SelectItem value="مكتملة">مكتملة</SelectItem>
+                <SelectItem value="قيد التجهيز">قيد التجهيز</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <div>
         <p className="text-end font-bold">

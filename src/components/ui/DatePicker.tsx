@@ -5,16 +5,17 @@ import { Calendar } from "./calendar";
 import { format } from "date-fns";
 
 interface DatePickerProps {
-  date: Date;
+  date?: Date;
   setDate: (date: Date) => void;
+  title?: string;
 }
-export default function DatePicker({ date, setDate }: DatePickerProps) {
+export default function DatePicker({ date, setDate, title }: DatePickerProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline">
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, "yyyy-MM-dd") : "تاريخ البداية"}
+          {date ? format(date, "yyyy-MM-dd") : title || "تاريخ البداية"}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">

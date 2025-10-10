@@ -20,6 +20,7 @@ import AddOrganizationForm from "./AddOrganizationForm";
 import * as Yup from "yup";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
+import DatePicker from "./ui/DatePicker";
 
 interface FormValues {
   title: string;
@@ -194,7 +195,7 @@ export default function ActivityForm({
           {/* تاريخ البدء */}
           <Label htmlFor="startDate">تاريخ البدء</Label>
           <div>
-            <Popover>
+            {/* <Popover>
               <PopoverTrigger asChild>
                 <Button
                   id="startDate"
@@ -226,7 +227,11 @@ export default function ActivityForm({
                   initialFocus
                 />
               </PopoverContent>
-            </Popover>
+            </Popover> */}
+            <DatePicker
+              date={formik.values.startDate}
+              setDate={(date) => formik.setFieldValue("startDate", date)}
+            />
             {formik.touched.startDate && formik.errors.startDate && (
               <p className="text-sm text-destructive">
                 {formik.errors.startDate as string}
@@ -237,40 +242,11 @@ export default function ActivityForm({
           {/* تاريخ الانتهاء */}
           <Label htmlFor="endDate">تاريخ الانتهاء</Label>
           <div>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  id="endDate"
-                  variant={"outline"}
-                  className={cn(
-                    "justify-start text-start",
-                    !formik.values.endDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formik.values.endDate ? (
-                    format(formik.values.endDate, "dd/MM/yyyy")
-                  ) : (
-                    <span>اختر تاريخ الانتهاء</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  id="endDate"
-                  mode="single"
-                  onDayBlur={() => formik.setFieldTouched("endDate", true)}
-                  modifiersStyles={{
-                    today: { backgroundColor: "var(--background)" },
-                  }}
-                  selected={formik.values.endDate}
-                  onSelect={(date) => {
-                    formik.setFieldValue("endDate", date);
-                  }}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <DatePicker
+              date={formik.values.endDate}
+              setDate={(date) => formik.setFieldValue("endDate", date)}
+            />
+
             {formik.touched.endDate && formik.errors.endDate && (
               <p className="text-sm text-destructive">
                 {formik.errors.endDate as string}
