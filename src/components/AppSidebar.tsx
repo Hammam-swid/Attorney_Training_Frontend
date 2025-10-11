@@ -89,7 +89,10 @@ export default function AppSidebar() {
 
   const peopleLinks = [
     { label: "المدربون", to: "/instructors", icon: Users2 },
-    { label: "المتدربون", to: "/trainees", icon: Users },
+    { label: "أعضاء النيابة", to: "/trainees?type=attorney", icon: Users },
+    { label: "الضباط", to: "/trainees?type=officer", icon: Users },
+    { label: "الموظفون", to: "/trainees?type=employee", icon: Users },
+    { label: "آخرون", to: "/trainees?type=other", icon: Users },
   ];
 
   const organizationLinks = [
@@ -115,6 +118,8 @@ export default function AppSidebar() {
       toast.error("حدث خطأ أثناء تسجيل الخروج");
     }
   };
+  console.log("the pathname", pathname + search);
+  console.log("the link", peopleLinks[1].to);
   return (
     <Sidebar side="right" collapsible="icon">
       {open && (

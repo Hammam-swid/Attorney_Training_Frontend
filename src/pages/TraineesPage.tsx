@@ -16,6 +16,14 @@ import DeleteConfirmModal from "../components/DeleteConfirmModal";
 import { Pencil, Trash } from "lucide-react";
 import { Trainee } from "@/types";
 import api from "@/lib/api";
+import { useSearchParams } from "react-router-dom";
+
+const arTypes = {
+  attorney: "عضو نيابة",
+  officer: "ضابط",
+  employee: "موظف",
+  other: "أخرى",
+};
 
 export default function TraineesPage() {
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
@@ -25,6 +33,8 @@ export default function TraineesPage() {
   const [currentTrainee, setCurrentTrainee] = useState<Trainee | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
   const [traineeToDelete, setTraineeToDelete] = useState<Trainee | null>(null);
+  const [searchParams] = useSearchParams();
+  const type = searchParams.get("type") || "attorney";
 
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [page, setPage] = useState<number>(1);
@@ -39,7 +49,11 @@ export default function TraineesPage() {
 
         const pageParam = `?page=${page}&limit=${limit}`;
 
-        const res = await api.get(`/api/v1/trainees${pageParam}${searchParam}`);
+        const res = await api.get(
+          `/api/v1/trainees${pageParam}${searchParam}${`&type=${
+            arTypes[type as keyof typeof arTypes] ?? "عضو نيابة"
+          }`}`
+        );
         setTrainees(res.data.data.trainees);
         setAllTraineesCount(res.data.data.count);
       } catch (error) {
@@ -48,7 +62,7 @@ export default function TraineesPage() {
     };
 
     fetchData();
-  }, [searchQuery, page]);
+  }, [searchQuery, page, type]);
 
   const handleDeleteConfirm = async () => {
     if (!traineeToDelete) return;
@@ -82,10 +96,10 @@ export default function TraineesPage() {
 
   const handleEditTrainee = async (updatedTrainee: Trainee) => {
     try {
-      const res = await api.patch(
-        `/api/v1/trainees/${updatedTrainee.id}`,
-        updatedTrainee
-      );
+      const res = await api.patch(`/api/v1/trainees/${updatedTrainee.id}`, {
+        ...updatedTrainee,
+        payGrade: updatedTrainee.payGrade ? updatedTrainee.payGrade : null,
+      });
       console.log(res.data.data.trainee);
       setTrainees((prev) =>
         prev.map((trainee) =>

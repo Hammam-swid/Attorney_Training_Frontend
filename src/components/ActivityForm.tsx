@@ -11,16 +11,13 @@ import {
 } from "./ui/select";
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
-import { CalendarIcon, LoaderCircle, PlusCircle, Save, X } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { Calendar } from "./ui/calendar";
+import { LoaderCircle, PlusCircle, Save, X } from "lucide-react";
 import AddOrganizationForm from "./AddOrganizationForm";
 import * as Yup from "yup";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
 import DatePicker from "./ui/DatePicker";
+import { useAppSelector } from "@/store/hooks";
 
 interface FormValues {
   title: string;
@@ -61,6 +58,7 @@ export default function ActivityForm({
   activityTypeId,
 }: props) {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const activityTypes = useAppSelector((state) => state.ui.activityTypes);
   useEffect(() => {
     const getOrganizations = async () => {
       try {
@@ -338,6 +336,26 @@ export default function ActivityForm({
                 {formik.errors.executorId as string}
               </p>
             )}
+          </div>
+          <label>نوع النشاط</label>
+          <div>
+            <Select
+              value={formik.values.activityTypeId + ""}
+              onValueChange={(value) => {
+                formik.setFieldValue("activityTypeId", +value);
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="اختر نوع النشاط" />
+              </SelectTrigger>
+              <SelectContent>
+                {activityTypes.map((type) => (
+                  <SelectItem key={type.id} value={type.id.toString()}>
+                    {type.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex flex-row-reverse gap-2">
             <Button disabled={formik.isSubmitting} type="submit">
