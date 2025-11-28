@@ -17,7 +17,6 @@ import {
 import {
   Building,
   ChevronsUpDown,
-  Dot,
   Files,
   Home,
   LogOut,
@@ -29,7 +28,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 // import { createLucideIcon } from "lucide-react";
 import Icon from "./ui/Icon";
-import { ActivityType } from "@/types";
+import { ActivityType, TraineeType } from "@/types";
 import dynamicIconImports from "lucide-react/dynamicIconImports";
 import {
   DropdownMenu,
@@ -52,6 +51,7 @@ import {
   CollapsibleTrigger,
 } from "./ui/collapsible";
 import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "./ui/skeleton";
 
 interface NavLink {
   label: string;
@@ -97,11 +97,13 @@ export default function AppSidebar() {
     },
   ];
 
-  const { data } = useQuery({
+  const { data: traineesTypes, isLoading: isTraineeLoading } = useQuery({
     queryKey: ["trainee-types"],
     queryFn: async () => {
-      const res = await api.get("/api/v1/trainee-types");
-      return res.data;
+      const res = await api.get<{ data: { traineeTypes: TraineeType[] } }>(
+        "/api/v1/trainee-types"
+      );
+      return res.data.data.traineeTypes;
     },
   });
 
@@ -194,31 +196,6 @@ export default function AppSidebar() {
           <SidebarGroupLabel>الموارد البشرية</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <Collapsible defaultOpen className="group/collapsible">
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton>
-                      <Users />
-                      المتدربين
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      <SidebarMenuSubItem>
-                        <SidebarMenuSubButton>
-                          أعضاء النيابة
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                      <SidebarMenuSubItem>
-                        <SidebarMenuSubButton>الضباط</SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                      <SidebarMenuSubItem>
-                        <SidebarMenuSubButton>الموظفون</SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </SidebarMenuItem>
-              </Collapsible>
               {peopleLinks.map((link) => (
                 <SidebarMenuItem key={link.label}>
                   <SidebarMenuButton
@@ -234,6 +211,43 @@ export default function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              <Collapsible defaultOpen className="group/collapsible">
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton isActive={pathname === "/trainees"}>
+                      <Users />
+                      المتدربين
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {isTraineeLoading
+                        ? Array.from({ length: 3 }).map((_, index) => (
+                            <SidebarMenuSubItem key={index}>
+                              <SidebarMenuSubButton>
+                                <Skeleton className="h-4 w-full" />
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))
+                        : traineesTypes?.map((type) => (
+                            <SidebarMenuSubItem key={type.id}>
+                              <SidebarMenuSubButton
+                                asChild
+                                isActive={
+                                  pathname + search ===
+                                  `/trainees?type=${type.id}`
+                                }
+                              >
+                                <Link to={`/trainees?type=${type.id}`}>
+                                  {type.name}
+                                </Link>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

@@ -75,6 +75,12 @@ export interface Trainee {
   activityCount: number;
 }
 
+export interface TraineeType {
+  id: number;
+  name: string;
+  traineesCount?: number;
+}
+
 export interface ActivityTrainee {
   id: number;
   trainee: Trainee;
