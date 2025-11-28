@@ -9,11 +9,15 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
   Building,
   ChevronsUpDown,
+  Dot,
   Files,
   Home,
   LogOut,
@@ -42,6 +46,12 @@ import { setActivityTypes } from "@/store/uiSlice";
 import { logout } from "@/store/authSlice";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "./ui/collapsible";
+import { useQuery } from "@tanstack/react-query";
 
 interface NavLink {
   label: string;
@@ -86,6 +96,14 @@ export default function AppSidebar() {
       icon: Home,
     },
   ];
+
+  const { data } = useQuery({
+    queryKey: ["trainee-types"],
+    queryFn: async () => {
+      const res = await api.get("/api/v1/trainee-types");
+      return res.data;
+    },
+  });
 
   const peopleLinks = [
     { label: "المدربون", to: "/instructors", icon: Users2 },
@@ -176,6 +194,31 @@ export default function AppSidebar() {
           <SidebarGroupLabel>الموارد البشرية</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
+              <Collapsible defaultOpen className="group/collapsible">
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton>
+                      <Users />
+                      المتدربين
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton>
+                          أعضاء النيابة
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton>الضباط</SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton>الموظفون</SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
               {peopleLinks.map((link) => (
                 <SidebarMenuItem key={link.label}>
                   <SidebarMenuButton

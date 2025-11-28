@@ -23,6 +23,8 @@ export default function DatePicker({ date, setDate, title }: DatePickerProps) {
           mode="single"
           selected={date}
           defaultMonth={date}
+          toYear={new Date().getFullYear() + 5}
+          fromYear={2020}
           captionLayout="dropdown"
           onSelect={(date) => {
             setDate(date as Date);

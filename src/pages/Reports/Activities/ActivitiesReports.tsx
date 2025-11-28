@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import DatePicker from "@/components/ui/DatePicker";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,11 +9,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -34,13 +29,7 @@ import api from "@/lib/api";
 import { useAppSelector } from "@/store/hooks";
 import { Activity } from "@/types";
 import { format } from "date-fns";
-import {
-  CalendarIcon,
-  Check,
-  ChevronDown,
-  CircleCheck,
-  Download,
-} from "lucide-react";
+import { Check, ChevronDown, CircleCheck, Download } from "lucide-react";
 import { useLayoutEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { utils, writeFile as writeExcelFile } from "xlsx";
@@ -321,53 +310,27 @@ export default function ActivitiesReports() {
         </Select>
         <div className="flex items-center gap-2">
           <Label>من: </Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline">
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateFilter.startDate
-                  ? format(dateFilter.startDate, "yyyy-MM-dd")
-                  : "تاريخ البداية"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={dateFilter.startDate}
-                onSelect={(date) => {
-                  setDateFilter({
-                    ...dateFilter,
-                    startDate: date,
-                  });
-                }}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+          <DatePicker
+            title="من"
+            date={dateFilter.startDate}
+            setDate={(date) => {
+              setDateFilter({
+                ...dateFilter,
+                startDate: date,
+              });
+            }}
+          />
           <Label>إلى: </Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline">
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateFilter.endDate
-                  ? format(dateFilter.endDate, "yyyy-MM-dd")
-                  : "تاريخ النهاية"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={dateFilter.endDate}
-                onSelect={(date) => {
-                  setDateFilter({
-                    ...dateFilter,
-                    endDate: date,
-                  });
-                }}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+          <DatePicker
+            title="إلى"
+            date={dateFilter.endDate}
+            setDate={(date) => {
+              setDateFilter({
+                ...dateFilter,
+                endDate: date,
+              });
+            }}
+          />
         </div>
         <Button onClick={handleExport}>
           <span>تصدير</span>
