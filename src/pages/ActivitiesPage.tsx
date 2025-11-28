@@ -36,6 +36,9 @@ import { format } from "date-fns";
 import api from "@/lib/api";
 import YearSelect from "@/components/ui/YearSelect";
 import DatePicker from "@/components/ui/DatePicker";
+import { useQuery } from "@tanstack/react-query";
+import { ActivityService } from "@/services/activity-services";
+import TableSkeleton from "@/components/TableSkeleton";
 
 interface SureModalType {
   title: string;
@@ -166,6 +169,27 @@ export default function ActivitiesPage() {
   const [status, setStatus] = useState("الكل");
   // console.log(type);
 
+  const { data, isLoading } = useQuery({
+    queryKey: [
+      "activities",
+      { typeId },
+      { page },
+      { status },
+      { search },
+      { year },
+      { ...date },
+    ],
+    queryFn: () =>
+      ActivityService.getActivities(
+        typeId ?? 0,
+        page,
+        search,
+        status,
+        year,
+        date.startDate && format(date.startDate, "yyyy-MM-dd"),
+        date.endDate && format(date.endDate, "yyyy-MM-dd")
+      ),
+  });
   const handlePage = (type: string) => {
     if (type === "prev") {
       setPage((prev) => prev - 1);
@@ -437,65 +461,69 @@ export default function ActivitiesPage() {
             </TableRow>
           </TableHeader>
           <TableBody dir="rtl">
-            {activities
-              .filter(
-                (activity) => status === "الكل" || status === activity.status
-              )
-              .map((activity) => (
-                <TableRow dir="rtl" key={activity.id}>
-                  <TableCell>{activity.id}</TableCell>
-                  <TableCell dir="rtl">{activity.title}</TableCell>
-                  <TableCell>{activity.status}</TableCell>
-                  <TableCell>{activity.hours}</TableCell>
-                  <TableCell>
-                    {format(activity.startDate, "dd-MM-yyyy")}
-                  </TableCell>
-                  <TableCell>
-                    {format(activity.endDate, "dd-MM-yyyy")}
-                  </TableCell>
-                  <TableCell>{activity.location}</TableCell>
-                  <TableCell>
-                    {activity.instructors
-                      ?.map((instructor) => instructor.name)
-                      .join("، ") || (
-                      <span className="text-muted">لا يوجد مدربين</span>
-                    )}
-                  </TableCell>
-                  {activityType?.isHaveRating && (
+            {isLoading ? (
+              <TableSkeleton columns={13} />
+            ) : (
+              data?.activities
+                .filter(
+                  (activity) => status === "الكل" || status === activity.status
+                )
+                .map((activity) => (
+                  <TableRow dir="rtl" key={activity.id}>
+                    <TableCell>{activity.id}</TableCell>
+                    <TableCell dir="rtl">{activity.title}</TableCell>
+                    <TableCell>{activity.status}</TableCell>
+                    <TableCell>{activity.hours}</TableCell>
+                    <TableCell>
+                      {format(activity.startDate, "dd-MM-yyyy")}
+                    </TableCell>
+                    <TableCell>
+                      {format(activity.endDate, "dd-MM-yyyy")}
+                    </TableCell>
+                    <TableCell>{activity.location}</TableCell>
                     <TableCell>
                       {activity.instructors
-                        ?.map((i) => i.rating)
-                        .map((i) => (!i ? "//" : i))
-                        ?.join("، ") || (
-                        <span className="text-muted">لا يوجد تقييم</span>
+                        ?.map((instructor) => instructor.name)
+                        .join("، ") || (
+                        <span className="text-muted">لا يوجد مدربين</span>
                       )}
                     </TableCell>
-                  )}
-                  <TableCell>
-                    {!activity.traineesCount ? (
-                      <span className="text-gray-400">لا يوجد متدربين</span>
-                    ) : (
-                      activity.traineesCount
+                    {activityType?.isHaveRating && (
+                      <TableCell>
+                        {activity.instructors
+                          ?.map((i) => i.rating)
+                          .map((i) => (!i ? "//" : i))
+                          ?.join("، ") || (
+                          <span className="text-muted">لا يوجد تقييم</span>
+                        )}
+                      </TableCell>
                     )}
-                  </TableCell>
-                  <TableCell>{activity.host.name}</TableCell>
-                  <TableCell>{activity.executor.name}</TableCell>
-                  <TableCell className="flex items-center justify-center">
-                    <ActivityActions
-                      activityId={activity.id}
-                      handleDelete={() => handleDelete(activity)}
-                      handleEdit={() => handleEdit(activity)}
-                      handleInstructors={() =>
-                        setSelectedActivityForInstructor(activity)
-                      }
-                      handleTrainees={() =>
-                        setSelectedActivityForTrainee(activity)
-                      }
-                      handleRating={() => handleRating(activity)}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
+                    <TableCell>
+                      {!activity.traineesCount ? (
+                        <span className="text-gray-400">لا يوجد متدربين</span>
+                      ) : (
+                        activity.traineesCount
+                      )}
+                    </TableCell>
+                    <TableCell>{activity.host.name}</TableCell>
+                    <TableCell>{activity.executor.name}</TableCell>
+                    <TableCell className="flex items-center justify-center">
+                      <ActivityActions
+                        activityId={activity.id}
+                        handleDelete={() => handleDelete(activity)}
+                        handleEdit={() => handleEdit(activity)}
+                        handleInstructors={() =>
+                          setSelectedActivityForInstructor(activity)
+                        }
+                        handleTrainees={() =>
+                          setSelectedActivityForTrainee(activity)
+                        }
+                        handleRating={() => handleRating(activity)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+            )}
           </TableBody>
         </Table>
         <SureModal
