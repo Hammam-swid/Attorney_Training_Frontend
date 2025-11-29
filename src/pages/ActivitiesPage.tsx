@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table";
 import { PlusCircle, RotateCcw } from "lucide-react";
 import { ReactElement, useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 // import jsLingua from "jslingua";
 import { AxiosError } from "axios";
 import { Activity, ActivityType } from "@/types";
@@ -39,6 +39,8 @@ import DatePicker from "@/components/ui/DatePicker";
 import { useQuery } from "@tanstack/react-query";
 import { ActivityService } from "@/services/activity-services";
 import TableSkeleton from "@/components/TableSkeleton";
+import Pagination from "@/components/ui/pagination";
+import { getDifferenceDays } from "@/lib/getDifferenceDays";
 
 interface SureModalType {
   title: string;
@@ -190,13 +192,7 @@ export default function ActivitiesPage() {
         date.endDate && format(date.endDate, "yyyy-MM-dd")
       ),
   });
-  const handlePage = (type: string) => {
-    if (type === "prev") {
-      setPage((prev) => prev - 1);
-    } else if (type === "next") {
-      setPage((prev) => prev + 1);
-    }
-  };
+
   const handleRating = (activity: Activity) => {
     setSelectedActivityForRating(activity);
   };
@@ -441,22 +437,16 @@ export default function ActivitiesPage() {
         <Table dir="rtl">
           <TableHeader>
             <TableRow className="*:text-right">
-              <TableHead>معرف النشاط</TableHead>
-              <TableHead>العنوان</TableHead>
+              <TableHead>ID</TableHead>
+              <TableHead>عنوان النشاط</TableHead>
               <TableHead>الحالة</TableHead>
               <TableHead>عدد الساعات</TableHead>
-              <TableHead>تاريخ البداية</TableHead>
-              <TableHead>تاريخ النهاية</TableHead>
-              <TableHead>مكان الانعقاد</TableHead>
+              <TableHead>عدد الأيام</TableHead>
               <TableHead>
                 {activityType?.instructorName || "المدرب/المدربون"}
               </TableHead>
-              {activityType?.isHaveRating && (
-                <TableHead>تقييم المدرب/المدربين</TableHead>
-              )}
               <TableHead>عدد المتدربين</TableHead>
-              <TableHead>الجهة المنظمة</TableHead>
-              <TableHead>الجهة المنفذة</TableHead>
+
               <TableHead>الإجراءات</TableHead>
             </TableRow>
           </TableHeader>
@@ -474,13 +464,14 @@ export default function ActivitiesPage() {
                     <TableCell dir="rtl">{activity.title}</TableCell>
                     <TableCell>{activity.status}</TableCell>
                     <TableCell>{activity.hours}</TableCell>
+
                     <TableCell>
-                      {format(activity.startDate, "dd-MM-yyyy")}
+                      {getDifferenceDays(
+                        new Date(activity.endDate),
+                        new Date(activity.startDate)
+                      )}{" "}
+                      <span className="text-gray-500">يوم / أيام</span>
                     </TableCell>
-                    <TableCell>
-                      {format(activity.endDate, "dd-MM-yyyy")}
-                    </TableCell>
-                    <TableCell>{activity.location}</TableCell>
                     <TableCell>
                       {activity.instructors
                         ?.map((instructor) => instructor.name)
@@ -488,16 +479,6 @@ export default function ActivitiesPage() {
                         <span className="text-muted">لا يوجد مدربين</span>
                       )}
                     </TableCell>
-                    {activityType?.isHaveRating && (
-                      <TableCell>
-                        {activity.instructors
-                          ?.map((i) => i.rating)
-                          .map((i) => (!i ? "//" : i))
-                          ?.join("، ") || (
-                          <span className="text-muted">لا يوجد تقييم</span>
-                        )}
-                      </TableCell>
-                    )}
                     <TableCell>
                       {!activity.traineesCount ? (
                         <span className="text-gray-400">لا يوجد متدربين</span>
@@ -505,9 +486,8 @@ export default function ActivitiesPage() {
                         activity.traineesCount
                       )}
                     </TableCell>
-                    <TableCell>{activity.host.name}</TableCell>
-                    <TableCell>{activity.executor.name}</TableCell>
-                    <TableCell className="flex items-center justify-center">
+
+                    <TableCell className="flex items-center justify-center gap-2">
                       <ActivityActions
                         activityId={activity.id}
                         handleDelete={() => handleDelete(activity)}
@@ -520,6 +500,9 @@ export default function ActivitiesPage() {
                         }
                         handleRating={() => handleRating(activity)}
                       />
+                      <Button asChild size="sm">
+                        <Link to={`/activities/${activity.id}`}>التفاصيل</Link>
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
@@ -579,7 +562,7 @@ export default function ActivitiesPage() {
           />
         )}
 
-        <div className="flex items-center justify-center mt-4 gap-2">
+        {/* <div className="flex items-center justify-center mt-4 gap-2">
           <Button
             onClick={() => handlePage("prev")}
             disabled={page <= 1}
@@ -594,7 +577,12 @@ export default function ActivitiesPage() {
           >
             التالي
           </Button>
-        </div>
+        </div> */}
+        <Pagination
+          page={page}
+          setPage={setPage}
+          lastPage={Math.ceil(activityCount / 10)}
+        />
       </div>
     </div>
   );

@@ -30,10 +30,7 @@ import TraineeActivity from "./pages/Reports/Trainees/TraineeActivity";
 import ErrorPage from "./pages/ErrorPage";
 import { store } from "./store";
 import ActivityTraineesPage from "./pages/ActivityTraineesPage";
-// import axios, { AxiosError } from "axios";
-// import { logout, setToken, setUser } from "./store/authSlice";
-// import toast from "react-hot-toast";
-// import { setAlert } from "./store/alertSlice";
+import ActivityDetailsPage from "./pages/ActivityDetailsPage";
 
 const routes = createRoutesFromElements(
   <>
@@ -59,6 +56,11 @@ const routes = createRoutesFromElements(
       <Route
         path="activities"
         element={<ActivitiesPage />}
+        errorElement={<ErrorPage />}
+      />
+      <Route
+        path="activities/:activityId"
+        element={<ActivityDetailsPage />}
         errorElement={<ErrorPage />}
       />
       <Route
