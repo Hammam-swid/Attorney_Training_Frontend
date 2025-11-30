@@ -31,6 +31,8 @@ import ErrorPage from "./pages/ErrorPage";
 import { store } from "./store";
 import ActivityTraineesPage from "./pages/ActivityTraineesPage";
 import ActivityDetailsPage from "./pages/ActivityDetailsPage";
+import UsersPage from "./pages/UsersPage";
+import SettingsPage from "./pages/SettingsPage";
 
 const routes = createRoutesFromElements(
   <>
@@ -86,6 +88,16 @@ const routes = createRoutesFromElements(
       <Route
         path="account"
         element={<AccountPage />}
+        errorElement={<ErrorPage />}
+      />
+      <Route
+        path="users"
+        element={<UsersPage />}
+        errorElement={<ErrorPage />}
+      />
+      <Route
+        path="settings"
+        element={<SettingsPage />}
         errorElement={<ErrorPage />}
       />
       <Route path="reports" element={<ReportsLayout />}>

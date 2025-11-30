@@ -20,6 +20,7 @@ import {
   Files,
   Home,
   LogOut,
+  Settings,
   User,
   Users,
   Users2,
@@ -58,6 +59,19 @@ interface NavLink {
   to: string;
   iconName?: string;
 }
+
+const managementLinks = [
+  {
+    to: "/users",
+    label: "المستخدمين",
+    icon: Users2,
+  },
+  {
+    to: "/settings",
+    label: "الإعدادات",
+    icon: Settings,
+  },
+];
 
 type IconName = keyof typeof dynamicIconImports;
 
@@ -290,6 +304,27 @@ export default function AppSidebar() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        {/* مجموع إدارة النظام */}
+        <SidebarGroup>
+          <SidebarGroupLabel>إدارة النظام</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {managementLinks.map((link) => (
+                <SidebarMenuItem key={link.to}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={(pathname + search).includes(link.to)}
+                  >
+                    <Link to={link.to}>
+                      <link.icon />
+                      <span>{link.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

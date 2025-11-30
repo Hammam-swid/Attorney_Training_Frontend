@@ -94,5 +94,14 @@ export interface User {
   email: string;
   phone: string;
   isLoggedIn: boolean;
+  isActive: boolean;
   role: "admin" | "instructor" | "trainee" | "moderator";
+}
+
+export interface PaginatedData<T> {
+  status: string;
+  data: T[];
+  currentPage: number;
+  lastPage: number;
+  totalCount: number;
 }

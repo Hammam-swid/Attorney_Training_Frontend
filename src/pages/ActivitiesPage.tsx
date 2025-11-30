@@ -338,7 +338,7 @@ export default function ActivitiesPage() {
     );
   };
   return (
-    <div className="container mx-auto py-10">
+    <div className="container pe-4 mx-auto py-10">
       <Helmet>
         <title>إدارة التدريب | {activityType?.name || ""}</title>
         <meta
@@ -453,59 +453,64 @@ export default function ActivitiesPage() {
           <TableBody dir="rtl">
             {isLoading ? (
               <TableSkeleton columns={13} />
+            ) : data && data?.activities.length > 0 ? (
+              data?.activities.map((activity) => (
+                <TableRow dir="rtl" key={activity.id}>
+                  <TableCell>{activity.id}</TableCell>
+                  <TableCell dir="rtl">{activity.title}</TableCell>
+                  <TableCell>{activity.status}</TableCell>
+                  <TableCell>{activity.hours}</TableCell>
+
+                  <TableCell>
+                    {getDifferenceDays(
+                      new Date(activity.endDate),
+                      new Date(activity.startDate)
+                    )}{" "}
+                    <span className="text-gray-500">يوم / أيام</span>
+                  </TableCell>
+                  <TableCell>
+                    {activity.instructors
+                      ?.map((instructor) => instructor.name)
+                      .join("، ") || (
+                      <span className="text-muted">لا يوجد مدربين</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {!activity.traineesCount ? (
+                      <span className="text-gray-400">لا يوجد متدربين</span>
+                    ) : (
+                      activity.traineesCount
+                    )}
+                  </TableCell>
+
+                  <TableCell className="flex items-center justify-center gap-2">
+                    <ActivityActions
+                      activityId={activity.id}
+                      handleDelete={() => handleDelete(activity)}
+                      handleEdit={() => handleEdit(activity)}
+                      handleInstructors={() =>
+                        setSelectedActivityForInstructor(activity)
+                      }
+                      handleTrainees={() =>
+                        setSelectedActivityForTrainee(activity)
+                      }
+                      handleRating={() => handleRating(activity)}
+                    />
+                    <Button asChild size="sm">
+                      <Link to={`/activities/${activity.id}`}>التفاصيل</Link>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
             ) : (
-              data?.activities
-                .filter(
-                  (activity) => status === "الكل" || status === activity.status
-                )
-                .map((activity) => (
-                  <TableRow dir="rtl" key={activity.id}>
-                    <TableCell>{activity.id}</TableCell>
-                    <TableCell dir="rtl">{activity.title}</TableCell>
-                    <TableCell>{activity.status}</TableCell>
-                    <TableCell>{activity.hours}</TableCell>
-
-                    <TableCell>
-                      {getDifferenceDays(
-                        new Date(activity.endDate),
-                        new Date(activity.startDate)
-                      )}{" "}
-                      <span className="text-gray-500">يوم / أيام</span>
-                    </TableCell>
-                    <TableCell>
-                      {activity.instructors
-                        ?.map((instructor) => instructor.name)
-                        .join("، ") || (
-                        <span className="text-muted">لا يوجد مدربين</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {!activity.traineesCount ? (
-                        <span className="text-gray-400">لا يوجد متدربين</span>
-                      ) : (
-                        activity.traineesCount
-                      )}
-                    </TableCell>
-
-                    <TableCell className="flex items-center justify-center gap-2">
-                      <ActivityActions
-                        activityId={activity.id}
-                        handleDelete={() => handleDelete(activity)}
-                        handleEdit={() => handleEdit(activity)}
-                        handleInstructors={() =>
-                          setSelectedActivityForInstructor(activity)
-                        }
-                        handleTrainees={() =>
-                          setSelectedActivityForTrainee(activity)
-                        }
-                        handleRating={() => handleRating(activity)}
-                      />
-                      <Button asChild size="sm">
-                        <Link to={`/activities/${activity.id}`}>التفاصيل</Link>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
+              <TableRow className="hover:bg-inherit">
+                <TableCell
+                  colSpan={8}
+                  className="text-center text-muted-foreground"
+                >
+                  لا يوجد أنشطة تدريبية
+                </TableCell>
+              </TableRow>
             )}
           </TableBody>
         </Table>
@@ -581,7 +586,7 @@ export default function ActivitiesPage() {
         <Pagination
           page={page}
           setPage={setPage}
-          lastPage={Math.ceil(activityCount / 10)}
+          lastPage={Math.ceil(activityCount / 10) || 1}
         />
       </div>
     </div>

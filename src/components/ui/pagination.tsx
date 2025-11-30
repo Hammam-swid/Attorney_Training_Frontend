@@ -39,7 +39,7 @@ export default function Pagination({
           )
         )}
         <Button
-          disabled={page === lastPage}
+          disabled={page >= lastPage}
           onClick={() => setPage(page + 1)}
           variant={"ghost"}
           size={"icon"}
