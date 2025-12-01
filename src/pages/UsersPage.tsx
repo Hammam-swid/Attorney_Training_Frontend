@@ -1,4 +1,5 @@
 import TableSkeleton from "@/components/TableSkeleton";
+import ToggleUserStatus from "@/components/ToggleUserStatus";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Pagination from "@/components/ui/pagination";
@@ -95,9 +96,11 @@ export default function UsersPage() {
                     <Button size={"icon"} variant={"outline"}>
                       <Pencil />
                     </Button>
-                    <Button size={"icon"} variant={"destructive"}>
-                      <Ban />
-                    </Button>
+                    <ToggleUserStatus user={user}>
+                      <Button size={"icon"} variant={"destructive"}>
+                        <Ban />
+                      </Button>
+                    </ToggleUserStatus>
                   </div>
                 </TableCell>
               </TableRow>
