@@ -1,0 +1,20 @@
+import api from "@/lib/api";
+import { Instructor, Statistics } from "@/types";
+
+export class DashboardService {
+  static async getStatistics(year?: number) {
+    const yearQuery = year ? `?year=${year}` : "";
+    const res = await api.get<{ data: Statistics }>(
+      `/api/v1/statistics${yearQuery}`
+    );
+    return res.data.data;
+  }
+
+  static async getTop5Instructors(year?: number) {
+    const yearQuery = year ? `?year=${year}` : "";
+    const res = await api.get<{ data: { instructors: Instructor[] } }>(
+      `/api/v1/statistics/top-5-instructors${yearQuery}`
+    );
+    return res.data.data.instructors;
+  }
+}

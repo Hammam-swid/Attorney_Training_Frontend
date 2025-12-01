@@ -2,8 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookOpen, Users, User2, Building, RotateCcw } from "lucide-react";
 
-import { useEffect, useState } from "react";
-import { Instructor } from "@/types";
+import { useState } from "react";
 import ActivityTypesCard from "@/components/ActivityTypesCard";
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
@@ -11,63 +10,23 @@ import { Button } from "@/components/ui/button";
 import ActivitiesPerMonth from "@/components/stats/ActivitiesPerMonth";
 import ActivitiesPerType from "@/components/stats/ActivitiesPerType";
 import YearSelect from "@/components/ui/YearSelect";
-import api from "@/lib/api";
 
-interface StatisticsState {
-  activitiesCount: number | undefined;
-  organizationsCount: number | undefined;
-  instructorsCount: number | undefined;
-  traineesCount: number | undefined;
-}
+import { useQuery } from "@tanstack/react-query";
+import { DashboardService } from "@/services/dashboard.service";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
   const [year, setYear] = useState<number | undefined>(undefined);
-  const [statistics, setStatistics] = useState<StatisticsState>({
-    activitiesCount: undefined,
-    organizationsCount: undefined,
-    instructorsCount: undefined,
-    traineesCount: undefined,
+
+  const { data: statistics, isLoading: isStatisticsLoading } = useQuery({
+    queryKey: ["statistics", { year }],
+    queryFn: () => DashboardService.getStatistics(year),
   });
-  const [top5Instructors, setTop5Instructors] = useState<Instructor[]>([]);
 
-  useEffect(() => {
-    const fetchStatistics = async () => {
-      try {
-        const yearQuery = year ? `?year=${year}` : "";
-        const response = await api.get(`/api/v1/statistics${yearQuery}`);
-        if (response.status === 200) {
-          const data = response.data.data;
-          setStatistics(() => ({
-            instructorsCount: data.instructorsCount,
-            traineesCount: data.traineesCount,
-            activitiesCount: data.activitiesCount,
-            organizationsCount: data.organizationsCount,
-          }));
-        }
-      } catch (error) {
-        console.error("Error fetching statistics:", error);
-      }
-    };
-    fetchStatistics();
-  }, [year]);
-
-  useEffect(() => {
-    const fetchTop5Instructors = async () => {
-      try {
-        const yearQuery = year ? `?year=${year}` : "";
-        const response = await api.get(
-          `/api/v1/statistics/top-5-instructors${yearQuery}`
-        );
-        console.log(response);
-        if (response.status === 200) {
-          setTop5Instructors(response.data.data.instructors);
-        }
-      } catch (error) {
-        console.error("Error fetching top 5 instructors:", error);
-      }
-    };
-    fetchTop5Instructors();
-  }, [year]);
+  const { data: instructors } = useQuery({
+    queryKey: ["top-5-instructors", { year }],
+    queryFn: () => DashboardService.getTop5Instructors(year),
+  });
 
   return (
     <div className="container mx-auto p-8">
@@ -100,14 +59,13 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {statistics.activitiesCount ? (
+              {isStatisticsLoading ? (
+                <Skeleton className="h-5 rounded-full w-1/2 mt-1" />
+              ) : statistics?.activitiesCount &&
+                statistics?.activitiesCount > 0 ? (
                 <span>{statistics.activitiesCount}</span>
-              ) : statistics.activitiesCount === 0 ? (
-                <span className="text-muted text-sm">
-                  لا يوجد أنشطة مسجلة في النظام
-                </span>
               ) : (
-                <span className="animate-pulse h-7 rounded-md bg-muted block mt-1" />
+                <span className="text-muted text-sm">لا يوجد نتائج</span>
               )}
             </div>
           </CardContent>
@@ -121,14 +79,12 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {statistics.traineesCount ? (
+              {isStatisticsLoading ? (
+                <Skeleton className="h-5 rounded-full w-1/2 mt-1" />
+              ) : statistics?.traineesCount && statistics?.traineesCount > 0 ? (
                 <span>{statistics.traineesCount}</span>
-              ) : statistics.traineesCount === 0 ? (
-                <span className="text-muted text-sm">
-                  لا يوجد متدربين مسجلين في النظام
-                </span>
               ) : (
-                <span className="animate-pulse h-7 rounded-md bg-muted block mt-1" />
+                <span className="text-muted text-sm">لا يوجد نتائج</span>
               )}
             </div>
           </CardContent>
@@ -142,14 +98,13 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {statistics.instructorsCount ? (
+              {isStatisticsLoading ? (
+                <Skeleton className="h-5 rounded-full w-1/2 mt-1" />
+              ) : statistics?.instructorsCount &&
+                statistics?.instructorsCount > 0 ? (
                 <span>{statistics.instructorsCount}</span>
-              ) : statistics.instructorsCount === 0 ? (
-                <span className="text-muted text-sm">
-                  لا يوجد مدربين مسجلين في النظام
-                </span>
               ) : (
-                <span className="animate-pulse h-7 rounded-md bg-muted block mt-1" />
+                <span className="text-muted text-sm">لا يوجد نتائج</span>
               )}
             </div>
           </CardContent>
@@ -163,14 +118,13 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {statistics.organizationsCount ? (
+              {isStatisticsLoading ? (
+                <Skeleton className="h-5 rounded-full w-1/2 mt-1" />
+              ) : statistics?.organizationsCount &&
+                statistics?.organizationsCount > 0 ? (
                 <span>{statistics.organizationsCount}</span>
-              ) : statistics.organizationsCount === 0 ? (
-                <span className="text-muted text-sm">
-                  لا يوجد جهات مسجلة في النظام
-                </span>
               ) : (
-                <span className="animate-pulse h-7 rounded-md bg-muted block mt-1" />
+                <span className="text-muted text-sm">لا يوجد نتائج</span>
               )}
             </div>
           </CardContent>
@@ -190,7 +144,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-8">
-              {top5Instructors.map((instructor, index) => (
+              {instructors?.map((instructor, index) => (
                 <div key={index} className="flex items-center">
                   <Avatar className="h-9 w-9">
                     <AvatarImage
