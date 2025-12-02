@@ -17,4 +17,11 @@ export class UsersService {
     );
     return res.data;
   }
+
+  static async toggleUserStatus(userId: number, isActive: boolean) {
+    const res = await api.patch(`/api/v1/users/${userId}/toggle-active`, {
+      isActive,
+    });
+    return res.data;
+  }
 }
