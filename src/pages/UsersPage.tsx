@@ -29,7 +29,7 @@ import {
   setUsersStatus,
 } from "@/store/usersSlice";
 import { useQuery } from "@tanstack/react-query";
-import { Ban, Pencil, UserPlus } from "lucide-react";
+import { Ban, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 
@@ -116,9 +116,9 @@ export default function UsersPage() {
                 <TableCell>{user.role}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Button size={"icon"} variant={"outline"}>
+                    {/* <Button size={"icon"} variant={"outline"}>
                       <Pencil />
-                    </Button>
+                    </Button> */}
                     <ToggleUserStatus user={user}>
                       <Button size={"icon"} variant={"destructive"}>
                         <Ban />

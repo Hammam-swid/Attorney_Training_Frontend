@@ -1,4 +1,4 @@
-import { Activity, Organization } from "@/types";
+import { Activity } from "@/types";
 import { FormikHelpers, useFormik } from "formik";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
@@ -9,15 +9,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { LoaderCircle, PlusCircle, Save, X } from "lucide-react";
-import AddOrganizationForm from "./AddOrganizationForm";
+import OrganizationForm from "./OrganizationForm";
 import * as Yup from "yup";
-import toast from "react-hot-toast";
-import api from "@/lib/api";
+
 import DatePicker from "./ui/DatePicker";
 import { useAppSelector } from "@/store/hooks";
+import { useQuery } from "@tanstack/react-query";
+import { OrganizationService } from "@/services/organization.service";
 
 interface FormValues {
   title: string;
@@ -39,17 +39,6 @@ interface props {
   activityTypeId: number;
 }
 
-interface OrganizationFormArgs {
-  title: string;
-  show: boolean;
-  orgName?: string;
-  hideForm: () => void;
-  onSubmit: (
-    values: { name: string },
-    helpers: FormikHelpers<{ name: string }>
-  ) => void;
-}
-
 export default function ActivityForm({
   hideForm,
   title,
@@ -57,51 +46,12 @@ export default function ActivityForm({
   activity,
   activityTypeId,
 }: props) {
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const activityTypes = useAppSelector((state) => state.ui.activityTypes);
-  useEffect(() => {
-    const getOrganizations = async () => {
-      try {
-        const res = await api.get("/api/v1/organizations/all");
-        if (res.status === 200) {
-          setOrganizations(res.data.data.organizations);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    getOrganizations();
-  }, []);
+  const { data: organizations } = useQuery({
+    queryKey: ["all-organizations"],
+    queryFn: OrganizationService.getAllOrganization,
+  });
 
-  const [organizationForm, setOrganizationForm] =
-    useState<OrganizationFormArgs>({
-      title: "إضافة منظمة",
-      show: false,
-      hideForm: () => {},
-      onSubmit: () => {},
-    });
-  const addNewOrganization = async (
-    values: { name: string },
-    helpers: FormikHelpers<{ name: string }>
-  ) => {
-    try {
-      const res = await api.post("/api/v1/organizations", values);
-      if (res.status === 201) {
-        setOrganizations([...organizations, res.data.data.organization]);
-        setOrganizationForm({
-          title: "",
-          show: false,
-          hideForm: () => {},
-          onSubmit: () => {},
-        });
-        helpers.resetForm();
-        toast.success("تمت الإضافة بنجاح");
-      }
-    } catch (error) {
-      console.log(error);
-    }
-    console.log(values);
-  };
   const formik = useFormik({
     initialValues: {
       title: activity?.title || "",
@@ -267,7 +217,7 @@ export default function ActivityForm({
                 <SelectContent
                   onBlur={() => formik.setFieldTouched("hostId", true)}
                 >
-                  {organizations.map((organization) => (
+                  {organizations?.map((organization) => (
                     <SelectItem
                       key={organization.id}
                       value={organization.id.toString()}
@@ -277,27 +227,12 @@ export default function ActivityForm({
                   ))}
                 </SelectContent>
               </Select>
-              <Button
-                onClick={() =>
-                  setOrganizationForm({
-                    title: "إضافة جهة جديدة",
-                    show: true,
-                    onSubmit: addNewOrganization,
-                    hideForm: () => {
-                      setOrganizationForm({
-                        title: "إضافة جهة جديدة",
-                        show: false,
-                        onSubmit: () => {},
-                        hideForm: () => {},
-                      });
-                    },
-                  })
-                }
-                type="button"
-              >
-                <span>إضافة</span>
-                <PlusCircle />
-              </Button>
+              <OrganizationForm type="add" title="إضافة جهة جديدة">
+                <Button type="button">
+                  <span>إضافة</span>
+                  <PlusCircle />
+                </Button>
+              </OrganizationForm>
             </div>
             {formik.touched.hostId && formik.errors.hostId && (
               <p className="text-sm text-destructive">
@@ -321,7 +256,7 @@ export default function ActivityForm({
                 dir="rtl"
                 onBlur={() => formik.setFieldTouched("executorId", true)}
               >
-                {organizations.map((organization) => (
+                {organizations?.map((organization) => (
                   <SelectItem
                     key={organization.id}
                     value={organization.id.toString()}
@@ -379,12 +314,6 @@ export default function ActivityForm({
             </Button>
           </div>
         </form>
-        <AddOrganizationForm
-          hideForm={organizationForm.hideForm}
-          show={organizationForm.show}
-          title="إضافة جهة جديدة"
-          onSubmit={organizationForm.onSubmit}
-        />
       </div>
     </div>
   );
