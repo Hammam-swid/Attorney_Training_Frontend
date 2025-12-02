@@ -42,7 +42,7 @@ export default function TrainerPage() {
         console.log(`/api/v1/instructors${pageParam}${searchParam}`);
         const [trainersRes, orgsRes] = await Promise.all([
           api.get(`/api/v1/instructors${pageParam}${searchParam}`),
-          api.get("/api/v1/organizations"),
+          api.get("/api/v1/organizations/all"),
         ]);
 
         setTrainers(trainersRes.data.data.instructors);

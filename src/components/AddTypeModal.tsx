@@ -1,5 +1,4 @@
 import { useFormik } from "formik";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import {
@@ -13,14 +12,20 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "./ui/button";
-import { AxiosError } from "axios";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ActivityTypeService } from "@/services/actvitiy-type.service";
+import { useState } from "react";
 import toast from "react-hot-toast";
-import { ActivityType } from "@/types";
-import api from "@/lib/api";
 
 interface Props {
-  onClose: () => void;
-  onAdd: (newType: ActivityType) => void;
+  children: React.ReactNode;
 }
 
 const icons = [
@@ -69,7 +74,114 @@ interface FormValues {
   traineeName: string;
 }
 
-export default function AddTypeModal({ onClose, onAdd }: Props) {
+export default function AddTypeModal({ children }: Props) {
+  const { formik, isPending, open, setOpen } = useTypeForm();
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="text-center">إضافة نوع نشاط جديد</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
+          <Label htmlFor="name">الاسم</Label>
+          <Input
+            id="name"
+            name="name"
+            placeholder="أدخل اسم نوع النشاط التدريبي"
+            value={formik.values.name}
+            onChange={formik.handleChange}
+          />
+
+          <Label htmlFor="iconName">مسمى المدرب</Label>
+          <Input
+            id="instructorName"
+            name="instructorName"
+            placeholder="المدرب/المدربون"
+            value={formik.values.instructorName}
+            onChange={formik.handleChange}
+          />
+          <Label htmlFor="iconName">مسمى المتدرب</Label>
+          <Input
+            id="traineeName"
+            name="traineeName"
+            placeholder="المتدرب/المتدربون"
+            value={formik.values.traineeName}
+            onChange={formik.handleChange}
+          />
+          <Label htmlFor="isHaveRating">هل يمكن تقييم المدرب</Label>
+          <div className="flex items-center gap-2">
+            {yesOrNo.map((choice, index) => (
+              <span
+                key={index}
+                className={`px-6 py-1 rounded-full text-primary-foreground cursor-pointer ${
+                  formik.values.isHaveRating === choice.value
+                    ? "bg-primary font-bold"
+                    : "bg-primary/50"
+                }`}
+                onClick={() =>
+                  formik.setFieldValue("isHaveRating", choice.value)
+                }
+              >
+                {choice.label}
+              </span>
+            ))}
+          </div>
+          <Label htmlFor="iconName">أيقونة النوع</Label>
+          <div className="flex flex-wrap gap-2">
+            {icons.map((icon, index) => (
+              <div
+                key={index}
+                className="flex flex-col items-center cursor-pointer"
+                onClick={() => formik.setFieldValue("iconName", icon.name)}
+              >
+                <span
+                  className={`rounded-md p-2 ${
+                    formik.values.iconName === icon.name
+                      ? "bg-primary text-primary-foreground"
+                      : "text-gray-500"
+                  }`}
+                >
+                  <icon.Icon />
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-row-reverse gap-2 mt-6">
+            <Button disabled={isPending} type="submit">
+              <span>حفظ</span>
+              <Save />
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="hover:text-destructive"
+              variant={"outline"}
+            >
+              <span>إلغاء</span>
+              <X />
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+const useTypeForm = () => {
+  const [open, setOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationKey: ["add-activity-type"],
+    mutationFn: ActivityTypeService.createActivityType,
+    onSuccess: () => {
+      toast.success("تم إضافة النوع بنجاح");
+      setOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["activity-types"] });
+    },
+  });
   const formik = useFormik<FormValues>({
     initialValues: {
       name: "",
@@ -79,125 +191,20 @@ export default function AddTypeModal({ onClose, onAdd }: Props) {
       traineeName: "",
     },
     onSubmit: async (values) => {
-      try {
-        const res = await api.post("/api/v1/activity-types", values);
-        if (res.status === 201) {
-          closeModal();
-          toast.success("تم إضافة النوع بنجاح");
-          onAdd(res.data.data.type as ActivityType);
-        }
-      } catch (error) {
-        const message =
-          error instanceof AxiosError ? error?.response?.data?.message : null;
-        toast.error(message || "حدث خطأ ما");
-      }
+      await mutateAsync(values);
+      // try {
+      //   const res = await api.post("/api/v1/activity-types", values);
+      //   if (res.status === 201) {
+      //     closeModal();
+      //     toast.success("تم إضافة النوع بنجاح");
+      //   }
+      // } catch (error) {
+      //   const message =
+      //     error instanceof AxiosError ? error?.response?.data?.message : null;
+      //   toast.error(message || "حدث خطأ ما");
+      // }
     },
   });
-  const closeModal = () => {
-    onClose();
-    formik.resetForm();
-  };
-  return (
-    <div
-      id="add-type-modal-overlay"
-      onClick={(
-        e: React.MouseEvent<HTMLDivElement, MouseEvent> & {
-          target: HTMLDivElement;
-        }
-      ) => e.target.id === "add-type-modal-overlay" && closeModal()}
-      className="fixed inset-0 bg-black bg-opacity-50 h-screen w-screen flex items-center justify-center z-50"
-    >
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-center">إضافة نوع نشاط جديد</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form
-            onSubmit={formik.handleSubmit}
-            className="flex flex-col gap-4 w-96"
-          >
-            <Label htmlFor="name">الاسم</Label>
-            <Input
-              id="name"
-              name="name"
-              placeholder="أدخل اسم نوع النشاط التدريبي"
-              value={formik.values.name}
-              onChange={formik.handleChange}
-            />
 
-            <Label htmlFor="iconName">مسمى المدرب</Label>
-            <Input
-              id="instructorName"
-              name="instructorName"
-              placeholder="المدرب/المدربون"
-              value={formik.values.instructorName}
-              onChange={formik.handleChange}
-            />
-            <Label htmlFor="iconName">مسمى المتدرب</Label>
-            <Input
-              id="traineeName"
-              name="traineeName"
-              placeholder="المتدرب/المتدربون"
-              value={formik.values.traineeName}
-              onChange={formik.handleChange}
-            />
-            <Label htmlFor="isHaveRating">هل يمكن تقييم المدرب</Label>
-            <div className="flex items-center gap-2">
-              {yesOrNo.map((choice, index) => (
-                <span
-                  key={index}
-                  className={`px-6 py-1 rounded-full text-primary-foreground cursor-pointer ${
-                    formik.values.isHaveRating === choice.value
-                      ? "bg-primary font-bold"
-                      : "bg-primary/50"
-                  }`}
-                  onClick={() =>
-                    formik.setFieldValue("isHaveRating", choice.value)
-                  }
-                >
-                  {choice.label}
-                </span>
-              ))}
-            </div>
-            <Label htmlFor="iconName">أيقونة النوع</Label>
-            <div className="flex flex-wrap gap-2">
-              {icons.map((icon, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col items-center cursor-pointer"
-                  onClick={() => formik.setFieldValue("iconName", icon.name)}
-                >
-                  <span
-                    className={`rounded-md p-2 ${
-                      formik.values.iconName === icon.name
-                        ? "bg-primary text-primary-foreground"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    <icon.Icon />
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex flex-row-reverse gap-2 mt-6">
-              <Button type="submit">
-                <span>حفظ</span>
-                <Save />
-              </Button>
-              <Button
-                type="button"
-                onClick={() => closeModal()}
-                className="hover:text-destructive"
-                variant={"outline"}
-              >
-                <span>إلغاء</span>
-                <X />
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
+  return { open, setOpen, formik, isPending };
+};
