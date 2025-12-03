@@ -1,6 +1,7 @@
 import AddUserForm from "@/components/AddUserForm";
 import TableSkeleton from "@/components/TableSkeleton";
 import ToggleUserStatus from "@/components/ToggleUserStatus";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Pagination from "@/components/ui/pagination";
@@ -21,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import { UsersService } from "@/services/users.service";
 import { useAppSelector } from "@/store/hooks";
 import {
@@ -29,7 +31,7 @@ import {
   setUsersStatus,
 } from "@/store/usersSlice";
 import { useQuery } from "@tanstack/react-query";
-import { Ban, UserPlus } from "lucide-react";
+import { Ban, CheckCircle2, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 
@@ -111,7 +113,18 @@ export default function UsersPage() {
                 <TableCell>{user.id}</TableCell>
                 <TableCell>{user.fullName}</TableCell>
                 <TableCell>{user.email}</TableCell>
-                <TableCell>{user.isActive ? "مفعل" : "غير مفعل"}</TableCell>
+                <TableCell>
+                  <Badge
+                    variant={"outline"}
+                    className={cn(
+                      user.isActive
+                        ? "bg-green-600/20 text-green-600"
+                        : "bg-destructive/20 text-destructive"
+                    )}
+                  >
+                    {user.isActive ? "مفعل" : "غير مفعل"}
+                  </Badge>
+                </TableCell>
                 <TableCell>{user.phone ?? "غير موجود"}</TableCell>
                 <TableCell>{user.role}</TableCell>
                 <TableCell>
@@ -120,8 +133,11 @@ export default function UsersPage() {
                       <Pencil />
                     </Button> */}
                     <ToggleUserStatus user={user}>
-                      <Button size={"icon"} variant={"destructive"}>
-                        <Ban />
+                      <Button
+                        size={"icon"}
+                        variant={user.isActive ? "destructive" : "default"}
+                      >
+                        {user.isActive ? <Ban /> : <CheckCircle2 />}
                       </Button>
                     </ToggleUserStatus>
                   </div>
