@@ -11,30 +11,24 @@ import SureModal from "./SureModal";
 import EditTypeModal from "./EditTypeModal";
 import AddTypeModal from "./AddTypeModal";
 import toast from "react-hot-toast";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { addType, removeType, updateType } from "@/store/uiSlice";
+import { useAppDispatch } from "@/store/hooks";
+import { removeType, updateType } from "@/store/uiSlice";
 import api from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { ActivityTypeService } from "@/services/actvitiy-type.service";
 
 type IconName = keyof typeof dynamicIconImports;
 
 export default function ActivityTypesCard() {
-  // const [activityTypes, setActivityTypes] = useState<ActivityType[]>([]);
   const [selectedType, setSelectedType] = useState<ActivityType | null>(null);
-  const [addingType, setAddingType] = useState(false);
 
-  const activityTypes = useAppSelector((state) => state.ui.activityTypes);
+  // const activityTypes = useAppSelector((state) => state.ui.activityTypes);
   const dispatch = useAppDispatch();
-  // useEffect(() => {
-  //   const fetchActivityTypes = async () => {
-  //     try {
-  //       const { data } = await api.get("/api/v1/activity-types");
-  //       setActivityTypes(data?.data?.types);
-  //     } catch (error) {
-  //       console.log(error);
-  //     }
-  //   };
-  //   fetchActivityTypes();
-  // }, []);
+
+  const { data: activityTypes } = useQuery({
+    queryKey: ["activity-types"],
+    queryFn: ActivityTypeService.getActivityTypes,
+  });
 
   async function deleteType(type: ActivityType) {
     try {
@@ -92,7 +86,7 @@ export default function ActivityTypesCard() {
       </CardHeader>
       <CardContent>
         <div className="space-y-8">
-          {activityTypes.map((type, index) => (
+          {activityTypes?.map((type, index) => (
             <div key={index} className="flex items-center">
               <Avatar className="h-9 w-9">
                 <AvatarFallback>
@@ -151,10 +145,12 @@ export default function ActivityTypesCard() {
           ))}
         </div>
         <div className="mt-4 flex justify-end">
-          <Button onClick={() => setAddingType(true)}>
-            <span>إضافة</span>
-            <PlusCircle />
-          </Button>
+          <AddTypeModal>
+            <Button>
+              <span>إضافة</span>
+              <PlusCircle />
+            </Button>
+          </AddTypeModal>
         </div>
       </CardContent>
       {selectedType && (
@@ -163,14 +159,6 @@ export default function ActivityTypesCard() {
           onClose={() => setSelectedType(null)}
           onEdit={(newType: ActivityType) => {
             dispatch(updateType(newType));
-          }}
-        />
-      )}
-      {addingType && (
-        <AddTypeModal
-          onClose={() => setAddingType(false)}
-          onAdd={(newType: ActivityType) => {
-            dispatch(addType(newType));
           }}
         />
       )}

@@ -1,86 +1,42 @@
 import { useFormik } from "formik";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
-import { Eye, EyeOff, Loader2, UserPlus } from "lucide-react";
-import { useState } from "react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { ReactNode, useState } from "react";
 import { Button } from "./ui/button";
 import * as Yup from "yup";
 import { AxiosError } from "axios";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAppSelector } from "@/store/hooks";
 
 const roles = [
   { value: "admin", label: "مدير" },
   { value: "moderator", label: "مشرف" },
 ];
 
-interface FormValues {
-  fullName: string;
-  phone: string;
-  email: string;
-  password: string;
-  role: "admin" | "moderator" | "";
+interface AddUserFormProps {
+  children: ReactNode;
 }
 
-export default function AddUserForm() {
-  const [showPassword, setShowPassword] = useState(false);
-  const formik = useFormik<FormValues>({
-    initialValues: {
-      fullName: "",
-      phone: "",
-      email: "",
-      password: "",
-      role: "",
-    },
-    validationSchema: Yup.object({
-      fullName: Yup.string().required("الاسم الكامل مطلوب"),
-      phone: Yup.string()
-        .required("رقم الهاتف مطلوب")
-        .matches(/^(09)\d{8}$/, "رقم الهاتف غير صالح"),
-      email: Yup.string()
-        .email("البريد الإلكتروني غير صالح")
-        .required("البريد الإلكتروني مطلوب"),
-      password: Yup.string()
-        .required("كلمة المرور مطلوبة")
-        .matches(
-          /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
-          "كلمة المرور يجب أن تحتوي على حرف ورقم وأن تكون على الأقل 8 أحرف"
-        ),
-      role: Yup.string()
-        .required("الدور مطلوب")
-        .matches(/^(admin|moderator)$/, "الدور غير صالح"),
-    }),
-    onSubmit: async (values) => {
-      try {
-        const res = await api.post("/api/v1/users/register", values);
-        if (res.status === 201) {
-          formik.resetForm();
-          toast.success("تم إضافة المستخدم بنجاح");
-        }
-      } catch (error) {
-        const message =
-          error instanceof AxiosError ? error?.response?.data?.message : null;
-        toast.error(message || "حدث خطأ أثناء إضافة المستخدم");
-      }
-    },
-  });
+export default function AddUserForm({ children }: AddUserFormProps) {
+  const { formik, showPassword, setShowPassword, open, setOpen } =
+    useAddUserForm();
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>إضافة مستخدم جديد</span>
-          <UserPlus />
-        </CardTitle>
-        <CardDescription>قم بإضافة مستخدم جديد للنظام</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger>{children}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>إضافة مستخدم</DialogTitle>
+        </DialogHeader>
         <form onSubmit={formik.handleSubmit} className="space-y-6">
           <div className="flex flex-col space-y-2">
             <Label htmlFor="fullName">الاسم الكامل</Label>
@@ -180,7 +136,82 @@ export default function AddUserForm() {
             )}
           </Button>
         </form>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 }
+
+interface FormValues {
+  fullName: string;
+  phone: string;
+  email: string;
+  password: string;
+  role: "admin" | "moderator" | "";
+}
+
+const useAddUserForm = () => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [open, setOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const { page, search, status } = useAppSelector((state) => state.users);
+  const { mutateAsync } = useMutation({
+    mutationKey: ["add-user"],
+    mutationFn: (data: FormValues) => api.post("/api/v1/users/register", data),
+    onSuccess: () => {
+      toast.success("تم إضافة المستخدم بنجاح");
+      formik.resetForm();
+      setOpen(false);
+      queryClient.invalidateQueries({
+        queryKey: ["users", { page }, { search }, { status }],
+      });
+    },
+    onError: (error) => {
+      const message =
+        error instanceof AxiosError ? error?.response?.data?.message : null;
+      toast.error(message || "حدث خطأ أثناء إضافة المستخدم");
+    },
+  });
+  const formik = useFormik<FormValues>({
+    initialValues: {
+      fullName: "",
+      phone: "",
+      email: "",
+      password: "",
+      role: "",
+    },
+    validationSchema: Yup.object({
+      fullName: Yup.string().required("الاسم الكامل مطلوب"),
+      phone: Yup.string()
+        .required("رقم الهاتف مطلوب")
+        .matches(/^(09)\d{8}$/, "رقم الهاتف غير صالح"),
+      email: Yup.string()
+        .email("البريد الإلكتروني غير صالح")
+        .required("البريد الإلكتروني مطلوب"),
+      password: Yup.string()
+        .required("كلمة المرور مطلوبة")
+        .matches(
+          /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
+          "كلمة المرور يجب أن تحتوي على حرف ورقم وأن تكون على الأقل 8 أحرف"
+        ),
+      role: Yup.string()
+        .required("الدور مطلوب")
+        .matches(/^(admin|moderator)$/, "الدور غير صالح"),
+    }),
+    onSubmit: async (values) => {
+      await mutateAsync(values);
+      // try {
+      //   const res = await api.post("/api/v1/users/register", values);
+      //   if (res.status === 201) {
+      //     formik.resetForm();
+      //     toast.success("تم إضافة المستخدم بنجاح");
+      //   }
+      // } catch (error) {
+      // const message =
+      //   error instanceof AxiosError ? error?.response?.data?.message : null;
+      // toast.error(message || "حدث خطأ أثناء إضافة المستخدم");
+      // }
+    },
+  });
+
+  return { formik, showPassword, setShowPassword, open, setOpen };
+};

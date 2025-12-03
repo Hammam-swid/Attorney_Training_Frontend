@@ -5,11 +5,9 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { toggleTheme } from "@/store/themeSlice";
 import ProfileForm from "@/components/ProfileForm";
 import ChangePasswordForm from "@/components/ChangePasswordForm";
-import AddUserForm from "@/components/AddUserForm";
 
 const Account: React.FC = () => {
   const theme = useAppSelector((state) => state.theme);
-  const user = useAppSelector((state) => state.auth.user);
   const dispatch = useAppDispatch();
 
   const handleThemeToggle = () => {
@@ -38,7 +36,7 @@ const Account: React.FC = () => {
 
         <ProfileForm />
         <ChangePasswordForm />
-        {user?.role === "admin" && <AddUserForm />}
+        {/* {user?.role === "admin" && <AddUserForm />} */}
       </div>
     </div>
   );

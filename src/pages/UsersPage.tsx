@@ -1,3 +1,4 @@
+import AddUserForm from "@/components/AddUserForm";
 import TableSkeleton from "@/components/TableSkeleton";
 import ToggleUserStatus from "@/components/ToggleUserStatus";
 import { Button } from "@/components/ui/button";
@@ -21,36 +22,58 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { UsersService } from "@/services/users.service";
+import { useAppSelector } from "@/store/hooks";
+import {
+  setUsersPage,
+  setUsersSearch,
+  setUsersStatus,
+} from "@/store/usersSlice";
 import { useQuery } from "@tanstack/react-query";
-import { Ban, Pencil, UserPlus } from "lucide-react";
-import { useState } from "react";
+import { Ban, UserPlus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 
 export default function UsersPage() {
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const { page, search, status } = useAppSelector((state) => state.users);
+  const dispatch = useDispatch();
+  const [searchText, setSearchText] = useState(search);
   const { data, isLoading } = useQuery({
-    queryKey: ["users", { page }, { search }],
-    queryFn: () => UsersService.getUsers(page, search),
+    queryKey: ["users", { page }, { search }, { status }],
+    queryFn: () => UsersService.getUsers(page, search, status),
   });
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      dispatch(setUsersSearch(searchText));
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [searchText]);
   const lastPage = data?.lastPage ?? 1;
   return (
     <div className="container pe-4 mx-auto py-10">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-3xl font-bold">المستخدمين</h1>
-        <Button className="text-lg">
-          <span>إضافة مستخدم</span>
-          <UserPlus />
-        </Button>
+        <AddUserForm>
+          <Button className="text-lg">
+            <span>إضافة مستخدم</span>
+            <UserPlus />
+          </Button>
+        </AddUserForm>
       </div>
       <div className="flex items-center justify-between gap-3 mb-4 mt-4">
         <Input
           className="w-96"
           placeholder="بحث"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
         />
         <div className="flex gap-3 items-center">
-          <Select dir="rtl">
+          <Select
+            value={status}
+            onValueChange={(value) =>
+              dispatch(setUsersStatus(value as "all" | "inactive" | "active"))
+            }
+            dir="rtl"
+          >
             <SelectTrigger className="w-48">
               <SelectValue placeholder="الحالة" />
             </SelectTrigger>
@@ -93,9 +116,9 @@ export default function UsersPage() {
                 <TableCell>{user.role}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Button size={"icon"} variant={"outline"}>
+                    {/* <Button size={"icon"} variant={"outline"}>
                       <Pencil />
-                    </Button>
+                    </Button> */}
                     <ToggleUserStatus user={user}>
                       <Button size={"icon"} variant={"destructive"}>
                         <Ban />
@@ -117,7 +140,11 @@ export default function UsersPage() {
           )}
         </TableBody>
       </Table>
-      <Pagination page={page} setPage={setPage} lastPage={lastPage} />
+      <Pagination
+        page={page}
+        setPage={(page) => dispatch(setUsersPage(page))}
+        lastPage={lastPage}
+      />
     </div>
   );
 }

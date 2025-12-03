@@ -26,10 +26,9 @@ import {
   Users2,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
 // import { createLucideIcon } from "lucide-react";
 import Icon from "./ui/Icon";
-import { ActivityType, TraineeType } from "@/types";
+import { TraineeType } from "@/types";
 import dynamicIconImports from "lucide-react/dynamicIconImports";
 import {
   DropdownMenu,
@@ -42,7 +41,6 @@ import {
 } from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { setActivityTypes } from "@/store/uiSlice";
 import { logout } from "@/store/authSlice";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
@@ -53,6 +51,7 @@ import {
 } from "./ui/collapsible";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "./ui/skeleton";
+import { ActivityTypeService } from "@/services/actvitiy-type.service";
 
 interface NavLink {
   label: string;
@@ -79,30 +78,19 @@ export default function AppSidebar() {
   const { pathname, search } = useLocation();
   console.log(search);
   const { open } = useSidebar();
-  const ui = useAppSelector((state) => state.ui);
   const user = useAppSelector((state) => state.auth.user);
   const dispatch = useAppDispatch();
-  const actLinks: NavLink[] = ui.activityTypes.map((type) => ({
-    label: type.name,
-    to: `/activities?type=${type.id}`,
-    iconName: type.iconName,
-  }));
-  useEffect(() => {
-    const getActionLinks = async () => {
-      try {
-        const res = await api.get<{ data: { types: ActivityType[] } }>(
-          "/api/v1/activity-types"
-        );
-        // console.log(res?.data.data.types);
-        if (res.status === 200) {
-          dispatch(setActivityTypes(res?.data.data.types));
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    getActionLinks();
-  }, []);
+  const { data: activityTypes } = useQuery({
+    queryKey: ["activity-types"],
+    queryFn: ActivityTypeService.getActivityTypes,
+  });
+  const actLinks: NavLink[] =
+    activityTypes?.map((type) => ({
+      label: type.name,
+      to: `/activities?type=${type.id}`,
+      iconName: type.iconName,
+    })) ?? [];
+
   const links = [
     {
       label: "الرئيسية",

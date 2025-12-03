@@ -105,3 +105,10 @@ export interface PaginatedData<T> {
   lastPage: number;
   totalCount: number;
 }
+
+export interface Statistics {
+  activitiesCount: number;
+  organizationsCount: number;
+  instructorsCount: number;
+  traineesCount: number;
+}
