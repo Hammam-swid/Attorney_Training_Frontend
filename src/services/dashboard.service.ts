@@ -25,4 +25,12 @@ export class DashboardService {
     );
     return res.data.data.types;
   }
+
+  static async getActivitiesPerMonth(year?: number) {
+    const yearQuery = year ? `?year=${year}` : "";
+    const res = await api.get<{ data: { activitiesPerMonth: any[] } }>(
+      `/api/v1/statistics/activity-per-month${yearQuery}`
+    );
+    return res.data.data.activitiesPerMonth;
+  }
 }
