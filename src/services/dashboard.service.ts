@@ -1,6 +1,6 @@
 import api from "@/lib/api";
 import { Instructor, Statistics } from "@/types";
-
+import { ActivityType } from "@/types";
 export class DashboardService {
   static async getStatistics(year?: number) {
     const yearQuery = year ? `?year=${year}` : "";
@@ -16,5 +16,13 @@ export class DashboardService {
       `/api/v1/statistics/top-5-instructors${yearQuery}`
     );
     return res.data.data.instructors;
+  }
+
+  static async getActivitiesPerType(year?: number) {
+    const yearQuery = year ? `?year=${year}` : "";
+    const res = await api.get<{ data: { types: ActivityType[] } }>(
+      `/api/v1/statistics/activity-per-type${yearQuery}`
+    );
+    return res.data.data.types;
   }
 }
