@@ -1,5 +1,5 @@
+import ConfirmModal from "@/components/common/ConfirmModal";
 import OrganizationForm from "@/components/OrganizationForm";
-import SureModal from "@/components/SureModal";
 import TableSkeleton from "@/components/TableSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,39 +12,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import api from "@/lib/api";
 import { OrganizationService } from "@/services/organization.service";
 import { useAppSelector } from "@/store/hooks";
 import {
   setOrganizationPage,
   setOrganizationSearch,
 } from "@/store/organizationsSlice";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 import { Pencil, PlusCircle, Trash } from "lucide-react";
-import { ReactElement, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { toast } from "react-hot-toast";
 import { useDispatch } from "react-redux";
 
-interface SureModalType {
-  title: string;
-  description: ReactElement;
-  show: boolean;
-  onConfirm: () => void;
-  onCancel: () => void;
-}
-
 export default function OrganizationPage() {
   const { page, search } = useAppSelector((state) => state.organizations);
   const [searchText, setSearchText] = useState<string>("");
+  const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const [sureModal, setSureModal] = useState<SureModalType>({
-    title: "",
-    description: <></>,
-    show: false,
-    onConfirm: () => {},
-    onCancel: () => {},
-  });
+
   const { data, isLoading } = useQuery({
     queryKey: ["organization", { page }, { search }],
     queryFn: () => OrganizationService.getOrganization(page, search),
@@ -136,47 +123,30 @@ export default function OrganizationPage() {
                     )}
                   </TableCell>
                   <TableCell className="flex gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        setSureModal({
-                          title: "حذف الجهة",
-                          description: (
-                            <p>
-                              هل أنت متأكد من حذف{" "}
-                              <span className="font-bold">
-                                {organization.name}
-                              </span>
-                              ؟
-                            </p>
-                          ),
-                          show: true,
-                          onConfirm: async () => {
-                            try {
-                              const res = await api.delete(
-                                `/api/v1/organizations/${organization.id}`
-                              );
-                              toast.success("تم حذف الجهة بنجاح");
-                            } catch (error) {
-                              console.log(error);
-                              toast.error("حدث خطأ أثناء حذف الجهة");
-                            }
-                          },
-                          onCancel: () => {
-                            setSureModal({
-                              title: "",
-                              description: <></>,
-                              show: false,
-                              onConfirm: () => {},
-                              onCancel: () => {},
-                            });
-                          },
+                    <ConfirmModal
+                      title={`هل أنت متأكد من حذف "${organization.name}"؟`}
+                      mutationKey={["delete-organization"]}
+                      mutationFn={() =>
+                        OrganizationService.deleteOrganization(organization.id)
+                      }
+                      onSuccess={() => {
+                        queryClient.invalidateQueries({
+                          queryKey: ["organization", { page }, { search }],
                         });
+                        toast.success("تمت العملية بنجاح");
                       }}
-                      variant={"destructive"}
+                      onError={(error) => {
+                        if (error instanceof AxiosError)
+                          toast.error(
+                            error?.response?.data?.message || "حدث خطأ"
+                          );
+                        console.log(error);
+                      }}
                     >
-                      <Trash />
-                    </Button>
+                      <Button size="sm" variant={"destructive"}>
+                        <Trash />
+                      </Button>
+                    </ConfirmModal>
                     <OrganizationForm
                       type="edit"
                       organization={organization}
@@ -192,13 +162,6 @@ export default function OrganizationPage() {
             )}
           </TableBody>
         </Table>
-        <SureModal
-          title={sureModal.title}
-          description={sureModal.description}
-          show={sureModal.show}
-          onConfirm={sureModal.onConfirm}
-          onCancel={sureModal.onCancel}
-        />
 
         {data && (
           <Pagination
