@@ -16,6 +16,12 @@ export class ActivityTypeService {
     );
     return res.data.data.types;
   }
+  static async getActivityType(id: number) {
+    const res = await api.get<{ data: { type: ActivityType } }>(
+      `/api/v1/activity-types/${id}`
+    );
+    return res.data.data.type;
+  }
 
   static async createActivityType(data: AddFormValues) {
     const res = await api.post("/api/v1/activity-types", data);

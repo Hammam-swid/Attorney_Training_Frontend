@@ -246,8 +246,8 @@ const useTraineeForm = ({ type, trainee }: Props) => {
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { page, search } = useAppSelector((state) => state.trainees);
-  const traineeType = searchParams.get("type") || "attorney";
-  const typeId = searchParams.get("typeId") || "";
+  const traineeType = searchParams.get("type");
+  const typeId = searchParams.get("typeId");
   const { mutateAsync, isPending } = useMutation({
     mutationKey:
       type === "add" ? ["add-trainee"] : ["edit-trainee", { id: trainee?.id }],

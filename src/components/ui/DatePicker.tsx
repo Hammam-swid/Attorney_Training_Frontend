@@ -18,7 +18,12 @@ export default function DatePicker({ date, setDate, title }: DatePickerProps) {
           {date ? format(date, "yyyy-MM-dd") : title || "تاريخ البداية"}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent
+        className="w-auto p-0 z-[9999]"
+        align="start"
+        side="bottom"
+        sideOffset={5}
+      >
         <Calendar
           mode="single"
           selected={date}

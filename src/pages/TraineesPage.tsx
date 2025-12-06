@@ -38,7 +38,7 @@ export default function TraineesPage() {
   const type = searchParams.get("type");
   const typeId = searchParams.get("typeId");
 
-  const [searchText, setSearchText] = useState<string>("");
+  const [searchText, setSearchText] = useState<string>(search);
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({

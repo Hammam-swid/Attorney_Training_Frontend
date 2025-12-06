@@ -37,10 +37,24 @@ import api from "@/lib/api";
 import YearSelect from "@/components/ui/YearSelect";
 import DatePicker from "@/components/ui/DatePicker";
 import { useQuery } from "@tanstack/react-query";
-import { ActivityService } from "@/services/activity-services";
+import { ActivityService } from "@/services/activity.service";
 import TableSkeleton from "@/components/TableSkeleton";
 import Pagination from "@/components/ui/pagination";
 import { getDifferenceDays } from "@/lib/getDifferenceDays";
+import { useAppSelector } from "@/store/hooks";
+import { useDispatch } from "react-redux";
+import {
+  setActivitiesDateType,
+  setActivitiesEndDate,
+  setActivitiesPage,
+  setActivitiesSearch,
+  setActivitiesStartDate,
+  setActivitiesStatus,
+  setActivitiesYear,
+} from "@/store/activitiesSlice";
+import { ActivityTypeService } from "@/services/actvitiy-type.service";
+import { Badge } from "@/components/ui/badge";
+import { parseActivityStatusClassName } from "@/lib/parseActivityStatus";
 
 interface SureModalType {
   title: string;
@@ -62,13 +76,14 @@ interface FormValues {
 }
 
 export default function ActivitiesPage() {
+  const { page, search, status, year, date, dateType } = useAppSelector(
+    (state) => state.activities
+  );
+  const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const typeId = searchParams.get("type");
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [page, setPage] = useState<number>(1);
-  const [search, setSearch] = useState<string>("");
-  const [activityType, setActivityType] = useState<ActivityType | null>(null);
-  const [activityCount, setActivityCount] = useState<number>(0);
+  const [, setActivities] = useState<Activity[]>([]);
+  const [searchText, setSearchText] = useState<string>(search);
   const [selectedActivityForTrainee, setSelectedActivityForTrainee] =
     useState<Activity | null>(null);
   const [selectedActivityForInstructor, setSelectedActivityForInstructor] =
@@ -100,75 +115,13 @@ export default function ActivitiesPage() {
     activityTypeId: typeId ? +typeId : 0,
   });
 
-  useEffect(() => {
-    const getType = async () => {
-      try {
-        const res = await api.get(`/api/v1/activity-types/${typeId}`);
-        if (res.status === 200) {
-          setActivityType(res.data.data.type);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    getType();
-  }, [typeId]);
-  const [dateType, setDateType] = useState<"year" | "date">("year");
-  const [year, setYear] = useState<number>();
-  const [date, setDate] = useState<{
-    startDate: Date | undefined;
-    endDate: Date | undefined;
-  }>({
-    startDate: undefined,
-    endDate: undefined,
+  const { data: activityType } = useQuery({
+    queryKey: ["activityType", { typeId }],
+    queryFn: () => ActivityTypeService.getActivityType(Number(typeId) ?? 0),
   });
 
   // console.log(activities);
-  useEffect(() => {
-    const getActivities = async () => {
-      try {
-        const res = await api.get(
-          `/api/v1/training-activities/type/${typeId}?page=${page}&search=${search}${
-            year
-              ? `&year=${year}`
-              : date.startDate && date.endDate
-              ? `&startDate=${format(
-                  date.startDate,
-                  "yyyy-MM-dd"
-                )}&endDate=${format(date.endDate, "yyyy-MM-dd")}`
-              : ""
-          }`
-        );
-        // console.log(res.data.data.activities);
-        if (res.status === 200) {
-          setActivities(
-            res?.data.data.activities.map((activity: Activity) => ({
-              id: activity.id,
-              title: activity.title,
-              status: activity.status,
-              startDate: new Date(activity.startDate),
-              endDate: new Date(activity.endDate),
-              location: activity.location,
-              instructors: activity.instructors,
-              hours: activity.hours,
-              rating: activity.rating,
-              traineesCount: activity.traineesCount,
-              host: activity.host,
-              executor: activity.executor,
-            }))
-          );
-          const count = res?.data?.data?.count;
-          if (count !== activityCount) setActivityCount(count);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    getActivities();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [typeId, search, page, year, date.startDate, date.endDate]);
 
-  const [status, setStatus] = useState("الكل");
   // console.log(type);
 
   const { data, isLoading } = useQuery({
@@ -192,6 +145,13 @@ export default function ActivitiesPage() {
         date.endDate && format(date.endDate, "yyyy-MM-dd")
       ),
   });
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      dispatch(setActivitiesSearch(searchText));
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [searchText]);
 
   const handleRating = (activity: Activity) => {
     setSelectedActivityForRating(activity);
@@ -292,44 +252,6 @@ export default function ActivitiesPage() {
         }),
     });
 
-  const handleAdd = () => {
-    setActivityForm({
-      ...activityForm,
-      show: true,
-      title: "إضافة نشاط جديد",
-      activity: undefined,
-      hideForm: () =>
-        setActivityForm({
-          ...activityForm,
-          show: false,
-          title: "",
-          activity: undefined,
-          onSubmit: () => {},
-          hideForm: () => {},
-        }),
-      onSubmit: async (values, helpers) => {
-        console.log(values);
-        try {
-          const res = await api.post("/api/v1/training-activities", values);
-          if (res.status === 201) {
-            toast.success("تمت إضافة نشاط تدريبي بنجاح");
-            helpers.resetForm();
-            const newActivity = {
-              ...res.data.data.activity,
-              startDate: new Date(res.data.data.activity.startDate),
-              endDate: new Date(res.data.data.activity.endDate),
-            };
-            setActivities((prev) => [newActivity, ...prev]);
-          }
-        } catch (error) {
-          if (error instanceof AxiosError) {
-            toast.error(error?.response?.data.message);
-          } else toast.error("حدث خطأ أثناء عملية الإضافة");
-        }
-      },
-    });
-  };
-
   const updateRating = (activityId: number, rating: number) => {
     setActivities((prev) =>
       prev.map((activity) =>
@@ -350,29 +272,30 @@ export default function ActivitiesPage() {
         <h1 className="text-3xl font-bold">
           {activityType?.name || "الأنشطة التدريبية"}
         </h1>
-        <Button onClick={handleAdd} className="text-lg">
-          <span>إضافة جديد</span>
-          <PlusCircle />
-        </Button>
+        <ActivityForm
+          title="إضافة نشاط جديد"
+          type="add"
+          activityTypeId={Number(typeId) || 1}
+        >
+          <Button className="text-lg">
+            <span>إضافة جديد</span>
+            <PlusCircle />
+          </Button>
+        </ActivityForm>
       </div>
       <div className="flex items-center justify-between gap-3 mb-4 mt-4">
         <Input
           className="w-96"
           placeholder="بحث"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
         />
         <div className="flex gap-3 items-center">
           <Select
             dir="rtl"
             value={dateType}
             onValueChange={(v: "year" | "date") => {
-              setDateType(v);
-              setYear(undefined);
-              setDate({
-                startDate: undefined,
-                endDate: undefined,
-              });
+              dispatch(setActivitiesDateType(v));
             }}
           >
             <SelectTrigger className="w-fit">
@@ -389,7 +312,7 @@ export default function ActivitiesPage() {
           <div className="flex items-center gap-1">
             {year && (
               <Button
-                onClick={() => setYear(undefined)}
+                onClick={() => dispatch(setActivitiesYear(undefined))}
                 variant="outline"
                 size="icon"
               >
@@ -397,24 +320,29 @@ export default function ActivitiesPage() {
               </Button>
             )}
             {dateType === "year" ? (
-              <YearSelect setYear={setYear} year={year} />
+              <YearSelect
+                setYear={(year) => dispatch(setActivitiesYear(year))}
+                year={year}
+              />
             ) : (
               <div className="flex gap-2 items-center">
                 <DatePicker
                   date={date.startDate}
-                  setDate={(d) =>
-                    setDate((prev) => ({ ...prev, startDate: d }))
-                  }
+                  setDate={(d) => dispatch(setActivitiesStartDate(d))}
                 />
                 <DatePicker
                   date={date.endDate}
-                  setDate={(d) => setDate((prev) => ({ ...prev, endDate: d }))}
+                  setDate={(d) => dispatch(setActivitiesEndDate(d))}
                   title="تاريخ النهاية"
                 />
               </div>
             )}
           </div>
-          <Select dir="rtl" value={status} onValueChange={setStatus}>
+          <Select
+            dir="rtl"
+            value={status}
+            onValueChange={(v) => dispatch(setActivitiesStatus(v))}
+          >
             <SelectTrigger className="w-64">
               <SelectValue placeholder="الحالة" />
             </SelectTrigger>
@@ -431,9 +359,6 @@ export default function ActivitiesPage() {
         </div>
       </div>
       <div>
-        <p className="text-end font-bold">
-          {activities.length + (page - 1) * 10} \ {activityCount}
-        </p>
         <Table dir="rtl">
           <TableHeader>
             <TableRow className="*:text-right">
@@ -441,6 +366,7 @@ export default function ActivitiesPage() {
               <TableHead>عنوان النشاط</TableHead>
               <TableHead>الحالة</TableHead>
               <TableHead>عدد الساعات</TableHead>
+              <TableHead>تاريخ البداية</TableHead>
               <TableHead>عدد الأيام</TableHead>
               <TableHead>
                 {activityType?.instructorName || "المدرب/المدربون"}
@@ -453,14 +379,23 @@ export default function ActivitiesPage() {
           <TableBody dir="rtl">
             {isLoading ? (
               <TableSkeleton columns={13} />
-            ) : data && data?.activities.length > 0 ? (
-              data?.activities.map((activity) => (
+            ) : data && data?.data.length > 0 ? (
+              data?.data.map((activity) => (
                 <TableRow dir="rtl" key={activity.id}>
                   <TableCell>{activity.id}</TableCell>
                   <TableCell dir="rtl">{activity.title}</TableCell>
-                  <TableCell>{activity.status}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={"outline"}
+                      className={parseActivityStatusClassName(activity.status)}
+                    >
+                      {activity.status ?? "غير معروف"}
+                    </Badge>
+                  </TableCell>
                   <TableCell>{activity.hours}</TableCell>
-
+                  <TableCell>
+                    {format(new Date(activity.startDate), "yyyy-MM-dd")}
+                  </TableCell>
                   <TableCell>
                     {getDifferenceDays(
                       new Date(activity.endDate),
@@ -483,8 +418,8 @@ export default function ActivitiesPage() {
                     )}
                   </TableCell>
 
-                  <TableCell className="flex items-center justify-center gap-2">
-                    <ActivityActions
+                  <TableCell className="flex items-center gap-2">
+                    {/* <ActivityActions
                       activityId={activity.id}
                       handleDelete={() => handleDelete(activity)}
                       handleEdit={() => handleEdit(activity)}
@@ -495,7 +430,7 @@ export default function ActivitiesPage() {
                         setSelectedActivityForTrainee(activity)
                       }
                       handleRating={() => handleRating(activity)}
-                    />
+                    /> */}
                     <Button asChild size="sm">
                       <Link to={`/activities/${activity.id}`}>التفاصيل</Link>
                     </Button>
@@ -522,7 +457,7 @@ export default function ActivitiesPage() {
           onCancel={sureModal.onCancel}
         />
 
-        {activityForm.show && (
+        {/* {activityForm.show && (
           <ActivityForm
             hideForm={activityForm.hideForm}
             onSubmit={activityForm.onSubmit}
@@ -531,7 +466,7 @@ export default function ActivitiesPage() {
             activityTypeId={typeId ? +typeId : 0}
             activity={activityForm.activity}
           />
-        )}
+        )} */}
         {selectedActivityForRating?.id && (
           <RatingActivity
             updateRating={updateRating}
@@ -546,10 +481,10 @@ export default function ActivitiesPage() {
             activityName={selectedActivityForTrainee.title}
             onClose={() => setSelectedActivityForTrainee(null)}
             refresh={() => {
-              setSearch(" ");
-              setTimeout(() => {
-                setSearch("");
-              }, 1);
+              // setSearch(" ");
+              // setTimeout(() => {
+              //   setSearch("");
+              // }, 1);
             }}
           />
         )}
@@ -559,10 +494,10 @@ export default function ActivitiesPage() {
             activityName={selectedActivityForInstructor.title}
             onClose={() => setSelectedActivityForInstructor(null)}
             refresh={() => {
-              setSearch(" ");
-              setTimeout(() => {
-                setSearch("");
-              }, 1);
+              // setSearch(" ");
+              // setTimeout(() => {
+              //   setSearch("");
+              // }, 1);
             }}
           />
         )}
@@ -583,11 +518,13 @@ export default function ActivitiesPage() {
             التالي
           </Button>
         </div> */}
-        <Pagination
-          page={page}
-          setPage={setPage}
-          lastPage={Math.ceil(activityCount / 10) || 1}
-        />
+        {data && (
+          <Pagination
+            page={page}
+            setPage={(p) => dispatch(setActivitiesPage(p))}
+            lastPage={data?.lastPage}
+          />
+        )}
       </div>
     </div>
   );

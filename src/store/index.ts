@@ -6,6 +6,7 @@ import alertReducer from "./alertSlice";
 import usersReducer from "./usersSlice";
 import organizationsReducer from "./organizationsSlice";
 import traineesReducer from "./traineesSlice";
+import activitiesReducer from "./activitiesSlice";
 
 export const store = configureStore({
   reducer: {
@@ -17,6 +18,7 @@ export const store = configureStore({
     users: usersReducer,
     organizations: organizationsReducer,
     trainees: traineesReducer,
+    activities: activitiesReducer,
   },
 });
 

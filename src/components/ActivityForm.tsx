@@ -1,5 +1,5 @@
 import { Activity } from "@/types";
-import { FormikHelpers, useFormik } from "formik";
+import { useFormik } from "formik";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import {
@@ -15,93 +15,58 @@ import OrganizationForm from "./OrganizationForm";
 import * as Yup from "yup";
 
 import DatePicker from "./ui/DatePicker";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { OrganizationService } from "@/services/organization.service";
 import { ActivityTypeService } from "@/services/actvitiy-type.service";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import { useState } from "react";
+import {
+  ActivityFormValues,
+  ActivityService,
+} from "@/services/activity.service";
 
-interface FormValues {
-  title: string;
-  location: string;
-  hours: number | undefined;
-  startDate: Date;
-  endDate: Date;
-  hostId: number | undefined;
-  executorId: number | undefined;
-  activityTypeId: number;
+interface addActivityProps {
+  type: "add";
+  activity?: never;
 }
 
-interface props {
-  title: string;
-  show: boolean;
-  hideForm: () => void;
-  onSubmit: (values: FormValues, helpers: FormikHelpers<FormValues>) => void;
-  activity?: Activity;
-  activityTypeId: number;
+interface editActivityProps {
+  type: "edit";
+  activity: Activity;
 }
+
+type Props = {
+  children: React.ReactNode;
+  title: string;
+  activityTypeId: number;
+} & (addActivityProps | editActivityProps);
 
 export default function ActivityForm({
-  hideForm,
-  title,
-  onSubmit,
+  type,
   activity,
+  children,
+  title,
   activityTypeId,
-}: props) {
-  const { data: activityTypes } = useQuery({
-    queryKey: ["activity-types"],
-    queryFn: ActivityTypeService.getActivityTypes,
-  });
-  const { data: organizations } = useQuery({
-    queryKey: ["all-organizations"],
-    queryFn: OrganizationService.getAllOrganization,
-  });
-
-  const formik = useFormik({
-    initialValues: {
-      title: activity?.title || "",
-      location: activity?.location || "",
-      hours: activity?.hours || undefined,
-      startDate: activity?.startDate || new Date(),
-      endDate: activity?.endDate || new Date(),
-      hostId: activity?.host.id || undefined,
-      executorId: activity?.executor.id || undefined,
-      activityTypeId: activityTypeId,
-    },
-    validationSchema: Yup.object({
-      title: Yup.string().required("العنوان مطلوب"),
-      location: Yup.string().required("مكان الانعقاد مطلوب"),
-      hours: Yup.number()
-        .required("عدد الساعات مطلوب")
-        .positive("عدد الساعات يجب أن يكون موجب")
-        .min(1, "عدد الساعات يجب أن يكون أكبر من 0")
-        .typeError("عليك أن تدخل أرقاماً فقط"),
-      startDate: Yup.date().required("تاريخ البداية مطلوب"),
-      endDate: Yup.date()
-        .required("تاريخ النهاية مطلوب")
-        .min(
-          Yup.ref("startDate"),
-          "تاريخ النهاية يجب أن يكون بعد تاريخ البداية"
-        ),
-      hostId: Yup.number().required("الجهة المنظمة مطلوبة"),
-      executorId: Yup.number().required("الجهة المنفذة مطلوبة"),
-    }),
-    onSubmit: onSubmit,
-  });
+}: Props) {
+  const { open, setOpen, formik, activityTypes, organizations } =
+    useActivityForm({ activity, activityTypeId, type } as Props);
   return (
-    <div
-      id="activity-form-overlay"
-      onClick={(
-        e: React.MouseEvent<HTMLDivElement, MouseEvent> & {
-          target: HTMLDivElement;
-        }
-      ) => (e.target.id === "activity-form-overlay" ? hideForm() : undefined)}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center rtl z-50"
-    >
-      <div className="bg-background max-h-[80vh] overflow-y-scroll rounded-md p-6">
-        <form
-          onSubmit={formik.handleSubmit}
-          className="flex flex-col gap-4 w-96"
-        >
-          <h3 className="text-lg text-center font-bold mb-4">{title}</h3>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>ادخل معلومات النشاط التدريبي</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
           <Label htmlFor="title">عنوان النشاط</Label>
           <div>
             <Input
@@ -143,66 +108,35 @@ export default function ActivityForm({
               </p>
             )}
           </div>
-          {/* تاريخ البدء */}
-          <Label htmlFor="startDate">تاريخ البدء</Label>
-          <div>
-            {/* <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  id="startDate"
-                  variant={"outline"}
-                  className={cn(
-                    "justify-start text-start",
-                    !formik.values.startDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formik.values.startDate ? (
-                    format(formik.values.startDate, "dd/MM/yyyy")
-                  ) : (
-                    <span>اختر تاريخ البداية</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  onDayBlur={() => formik.setFieldTouched("startDate", true)}
-                  modifiersStyles={{
-                    today: { backgroundColor: "var(--background)" },
-                  }}
-                  selected={formik.values.startDate}
-                  onSelect={(date) => {
-                    formik.setFieldValue("startDate", date);
-                  }}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover> */}
-            <DatePicker
-              date={formik.values.startDate}
-              setDate={(date) => formik.setFieldValue("startDate", date)}
-            />
-            {formik.touched.startDate && formik.errors.startDate && (
-              <p className="text-sm text-destructive">
-                {formik.errors.startDate as string}
-              </p>
-            )}
-          </div>
+          <div className="flex gap-4 items-center">
+            {/* تاريخ البدء */}
+            <Label htmlFor="startDate">تاريخ البدء</Label>
+            <div>
+              <DatePicker
+                date={formik.values.startDate}
+                setDate={(date) => formik.setFieldValue("startDate", date)}
+              />
+              {formik.touched.startDate && formik.errors.startDate && (
+                <p className="text-sm text-destructive">
+                  {formik.errors.startDate as string}
+                </p>
+              )}
+            </div>
 
-          {/* تاريخ الانتهاء */}
-          <Label htmlFor="endDate">تاريخ الانتهاء</Label>
-          <div>
-            <DatePicker
-              date={formik.values.endDate}
-              setDate={(date) => formik.setFieldValue("endDate", date)}
-            />
+            {/* تاريخ الانتهاء */}
+            <Label htmlFor="endDate">تاريخ الانتهاء</Label>
+            <div>
+              <DatePicker
+                date={formik.values.endDate}
+                setDate={(date) => formik.setFieldValue("endDate", date)}
+              />
 
-            {formik.touched.endDate && formik.errors.endDate && (
-              <p className="text-sm text-destructive">
-                {formik.errors.endDate as string}
-              </p>
-            )}
+              {formik.touched.endDate && formik.errors.endDate && (
+                <p className="text-sm text-destructive">
+                  {formik.errors.endDate as string}
+                </p>
+              )}
+            </div>
           </div>
 
           <Label htmlFor="hostId">الجهة المنظمة</Label>
@@ -311,18 +245,77 @@ export default function ActivityForm({
                 <LoaderCircle className="animate-spin" />
               )}
             </Button>
-            <Button
-              className="hover:text-red-500"
-              variant={"outline"}
-              type="button"
-              onClick={hideForm}
-            >
-              <span>إلغاء</span>
-              <X />
-            </Button>
+            <DialogClose>
+              <Button
+                className="hover:text-red-500"
+                variant={"outline"}
+                type="button"
+              >
+                <span>إلغاء</span>
+                <X />
+              </Button>
+            </DialogClose>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
+
+const useActivityForm = ({ activityTypeId, activity, type }: Props) => {
+  const [open, setOpen] = useState(false);
+
+  const { mutateAsync } = useMutation({
+    mutationKey: type === "add" ? ["add-activity"] : ["update-activity"],
+    mutationFn: (values: ActivityFormValues) =>
+      type === "add"
+        ? ActivityService.createActivity(values)
+        : ActivityService.updateActivity(activity.id, values),
+    onSuccess: () => {
+      setOpen(false);
+    },
+  });
+  const { data: activityTypes } = useQuery({
+    queryKey: ["activity-types"],
+    queryFn: ActivityTypeService.getActivityTypes,
+  });
+  const { data: organizations } = useQuery({
+    queryKey: ["all-organizations"],
+    queryFn: OrganizationService.getAllOrganization,
+  });
+
+  const formik = useFormik<ActivityFormValues>({
+    initialValues: {
+      title: type === "edit" ? activity.title : "",
+      location: type === "edit" ? activity.location : "",
+      hours: type === "edit" ? activity.hours : undefined,
+      startDate: type === "edit" ? new Date(activity.startDate) : new Date(),
+      endDate: type === "edit" ? new Date(activity?.endDate) : new Date(),
+      hostId: type === "edit" ? activity.host.id : undefined,
+      executorId: type === "edit" ? activity.executor.id : undefined,
+      activityTypeId: type === "edit" ? activity.type.id : activityTypeId,
+    },
+    validationSchema: Yup.object({
+      title: Yup.string().required("العنوان مطلوب"),
+      location: Yup.string().required("مكان الانعقاد مطلوب"),
+      hours: Yup.number()
+        .required("عدد الساعات مطلوب")
+        .positive("عدد الساعات يجب أن يكون موجب")
+        .min(1, "عدد الساعات يجب أن يكون أكبر من 0")
+        .typeError("عليك أن تدخل أرقاماً فقط"),
+      startDate: Yup.date().required("تاريخ البداية مطلوب"),
+      endDate: Yup.date()
+        .required("تاريخ النهاية مطلوب")
+        .min(
+          Yup.ref("startDate"),
+          "تاريخ النهاية يجب أن يكون بعد تاريخ البداية"
+        ),
+      hostId: Yup.number().required("الجهة المنظمة مطلوبة"),
+      executorId: Yup.number().required("الجهة المنفذة مطلوبة"),
+    }),
+    onSubmit: async (values) => {
+      await mutateAsync(values);
+    },
+  });
+  return { open, setOpen, formik, activityTypes, organizations };
+};

@@ -28,7 +28,7 @@ import { useDispatch } from "react-redux";
 
 export default function OrganizationPage() {
   const { page, search } = useAppSelector((state) => state.organizations);
-  const [searchText, setSearchText] = useState<string>("");
+  const [searchText, setSearchText] = useState<string>(search);
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
 
