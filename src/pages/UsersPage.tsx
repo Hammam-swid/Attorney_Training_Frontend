@@ -46,6 +46,7 @@ export default function UsersPage() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       dispatch(setUsersSearch(searchText));
+      dispatch(setUsersPage(1));
     }, 500);
     return () => clearTimeout(timeout);
   }, [searchText]);

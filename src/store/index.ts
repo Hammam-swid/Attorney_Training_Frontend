@@ -5,6 +5,7 @@ import uiReducer from "./uiSlice";
 import alertReducer from "./alertSlice";
 import usersReducer from "./usersSlice";
 import organizationsReducer from "./organizationsSlice";
+import traineesReducer from "./traineesSlice";
 
 export const store = configureStore({
   reducer: {
@@ -15,6 +16,7 @@ export const store = configureStore({
     alert: alertReducer,
     users: usersReducer,
     organizations: organizationsReducer,
+    trainees: traineesReducer,
   },
 });
 

@@ -237,10 +237,10 @@ export default function AppSidebar() {
                                 asChild
                                 isActive={
                                   pathname + search ===
-                                  `/trainees?type=${type.id}`
+                                  `/trainees?typeId=${type.id}`
                                 }
                               >
-                                <Link to={`/trainees?type=${type.id}`}>
+                                <Link to={`/trainees?typeId=${type.id}`}>
                                   {type.name}
                                 </Link>
                               </SidebarMenuSubButton>

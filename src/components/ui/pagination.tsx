@@ -26,8 +26,16 @@ export default function Pagination({
         >
           <ChevronRight />
         </Button>
-        {Array.from({ length: lastPage }, (_, index) => index + 1).map(
-          (num) => (
+        {Array.from({ length: lastPage }, (_, index) => index + 1)
+          .filter(
+            (num) =>
+              num <= 3 ||
+              num === lastPage ||
+              num === page ||
+              page === num - 1 ||
+              page === num + 1
+          )
+          .map((num) => (
             <Button
               key={num}
               size={"icon"}
@@ -36,8 +44,7 @@ export default function Pagination({
             >
               {num}
             </Button>
-          )
-        )}
+          ))}
         <Button
           disabled={page >= lastPage}
           onClick={() => setPage(page + 1)}

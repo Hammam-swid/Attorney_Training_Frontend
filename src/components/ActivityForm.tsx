@@ -15,9 +15,9 @@ import OrganizationForm from "./OrganizationForm";
 import * as Yup from "yup";
 
 import DatePicker from "./ui/DatePicker";
-import { useAppSelector } from "@/store/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { OrganizationService } from "@/services/organization.service";
+import { ActivityTypeService } from "@/services/actvitiy-type.service";
 
 interface FormValues {
   title: string;
@@ -46,7 +46,10 @@ export default function ActivityForm({
   activity,
   activityTypeId,
 }: props) {
-  const activityTypes = useAppSelector((state) => state.ui.activityTypes);
+  const { data: activityTypes } = useQuery({
+    queryKey: ["activity-types"],
+    queryFn: ActivityTypeService.getActivityTypes,
+  });
   const { data: organizations } = useQuery({
     queryKey: ["all-organizations"],
     queryFn: OrganizationService.getAllOrganization,
@@ -272,26 +275,31 @@ export default function ActivityForm({
               </p>
             )}
           </div>
-          <label>نوع النشاط</label>
-          <div>
-            <Select
-              value={formik.values.activityTypeId + ""}
-              onValueChange={(value) => {
-                formik.setFieldValue("activityTypeId", +value);
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="اختر نوع النشاط" />
-              </SelectTrigger>
-              <SelectContent>
-                {activityTypes.map((type) => (
-                  <SelectItem key={type.id} value={type.id.toString()}>
-                    {type.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {activity && (
+            <div>
+              <label>نوع النشاط</label>
+              <div>
+                <Select
+                  dir="rtl"
+                  value={formik.values.activityTypeId + ""}
+                  onValueChange={(value) => {
+                    formik.setFieldValue("activityTypeId", +value);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر نوع النشاط" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activityTypes?.map((type) => (
+                      <SelectItem key={type.id} value={type.id.toString()}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
           <div className="flex flex-row-reverse gap-2">
             <Button disabled={formik.isSubmitting} type="submit">
               {!formik.isSubmitting ? (

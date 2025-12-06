@@ -8,19 +8,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { Trainee } from "@/types";
+import { Trainee, TraineeType } from "@/types";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { AlertCircle, Save, X } from "lucide-react";
-import { useEffect, useState } from "react";
 import api from "@/lib/api";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  TraineeFormValues,
+  TraineesService,
+} from "@/services/trainees.service";
+import { useAppSelector } from "@/store/hooks";
+import { useSearchParams } from "react-router-dom";
+import { useState } from "react";
+import toast from "react-hot-toast";
 
-interface FormDialogProps {
-  title: string;
-  initialData: Partial<Trainee>;
-  onSubmit: (data: Trainee) => void;
-  onClose: () => void;
+interface AddProps {
+  type: "add";
+  trainee?: never;
 }
+
+interface EditProps {
+  type: "edit";
+  trainee: Trainee;
+}
+
+type Props = {
+  children: React.ReactNode;
+  title: string;
+} & (AddProps | EditProps);
+
 const payGrades = [
   "محامي عام من الفئة أ",
   "محامي عام من الفئة ب",
@@ -35,73 +60,20 @@ const payGrades = [
   "أخرى",
 ];
 
-const FormDialog: React.FC<FormDialogProps> = ({
-  title,
-  initialData,
-  onSubmit,
-  onClose,
-}) => {
-  const [warning, setWarning] = useState(false);
-  const formik = useFormik({
-    initialValues: {
-      id: initialData.id || undefined,
-      name: initialData.name || "",
-      phone: initialData.phone || "",
-      address: initialData.address || "",
-      employer: initialData.employer,
-      type: initialData.type || "",
-      payGrade: initialData.payGrade || "",
-    },
-    validationSchema: Yup.object({
-      name: Yup.string().required("يجب ادخال اسم المتدرب"),
-      phone: Yup.string().matches(
-        /^(\+218|00218|0)?(9[1-5]\d{7})$/,
-        "يجب إدخال الرقم بشكل صحيح"
-      ),
-      address: Yup.string(),
-      employer: Yup.string().required("يجب إدخال جهة العمل"),
-      type: Yup.string().required("يجب إدخال النوع"),
-      payGrade: Yup.string().oneOf(
-        payGrades,
-        "يجب إدخال الدرجة القضائية بشكل صحيح"
-      ),
-    }),
-    onSubmit: (values) => {
-      onSubmit(values as Trainee);
-    },
-  });
-
-  const handleClose = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
-  useEffect(() => {
-    const checkName = async () => {
-      const res = await api.get(
-        `/api/v1/trainees/check?search=${formik.values.name}`
-      );
-      if (res.status === 200) {
-        if (res.data.data.isTrainee) {
-          setWarning(true);
-        } else {
-          setWarning(false);
-        }
-      }
-    };
-    checkName();
-  }, [formik.values.name]);
+const FormDialog: React.FC<Props> = ({ title, children, type, trainee }) => {
+  const { formik, warning, traineesTypes, isPending, open, setOpen, typeId } =
+    useTraineeForm({
+      type,
+      trainee,
+    } as Props);
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center rtl z-50"
-      onClick={handleClose}
-    >
-      <div
-        className="bg-background p-6 rounded-lg w-96"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className="text-2xl font-bold mb-4">{title}</h2>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger>{children}</DialogTrigger>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
         <form onSubmit={formik.handleSubmit}>
           <div className="mb-4">
             <Label htmlFor="name">الاسم</Label>
@@ -117,7 +89,7 @@ const FormDialog: React.FC<FormDialogProps> = ({
                 {formik.errors.name}
               </div>
             )}
-            {warning && formik.values.name !== initialData.name && (
+            {warning && formik.values.name !== trainee?.name && (
               <div className="text-sm text-yellow-500">
                 <AlertCircle className="inline-block me-1 w-4 h-4" />
                 هذا الاسم مستخدم من قبل متدرب آخر
@@ -169,37 +141,40 @@ const FormDialog: React.FC<FormDialogProps> = ({
               </div>
             )}
           </div>
-          <div className="mb-4">
-            <Label htmlFor="type">النوع</Label>
-            <Select
-              value={formik.values.type}
-              onValueChange={(val) => {
-                formik.setFieldValue("type", val);
-                if (val !== "عضو نيابة") {
-                  formik.setFieldValue("payGrade", "");
-                }
-                setTimeout(() => {
-                  formik.setFieldTouched("type", true);
-                }, 100);
-              }}
-            >
-              <SelectTrigger dir="rtl">
-                <SelectValue placeholder="اختر نوع" />
-              </SelectTrigger>
-              <SelectContent dir="rtl">
-                <SelectItem value="موظف">موظف</SelectItem>
-                <SelectItem value="ضابط">ضابط</SelectItem>
-                <SelectItem value="عضو نيابة">عضو نيابة</SelectItem>
-                <SelectItem value="أخرى">أخرى</SelectItem>
-              </SelectContent>
-            </Select>
-            {formik.touched.type && formik.errors.type && (
-              <div className="text-sm text-destructive">
-                {formik.errors.type}
-              </div>
-            )}
-          </div>
-          {formik.values.type === "عضو نيابة" && (
+          {type === "edit" && (
+            <div className="mb-4">
+              <Label htmlFor="type">النوع</Label>
+              <Select
+                value={formik.values.typeId?.toString() ?? ""}
+                onValueChange={(val) => {
+                  formik.setFieldValue("typeId", Number(val));
+                  if (val !== "1") {
+                    formik.setFieldValue("payGrade", "");
+                  }
+                  setTimeout(() => {
+                    formik.setFieldTouched("typeId", true);
+                  }, 100);
+                }}
+              >
+                <SelectTrigger dir="rtl">
+                  <SelectValue placeholder="اختر نوع" />
+                </SelectTrigger>
+                <SelectContent dir="rtl">
+                  {traineesTypes?.map((type) => (
+                    <SelectItem key={type.id} value={type.id.toString()}>
+                      {type.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {formik.touched.typeId && formik.errors.typeId && (
+                <div className="text-sm text-destructive">
+                  {formik.errors.typeId}
+                </div>
+              )}
+            </div>
+          )}
+          {Number(typeId) === 1 && (
             <div className="mb-4">
               <Label htmlFor="type">الدرجة القضائية</Label>
               <Select
@@ -230,19 +205,117 @@ const FormDialog: React.FC<FormDialogProps> = ({
             </div>
           )}
           <div className="flex flex-row-reverse gap-2">
-            <Button type="submit">
+            <Button disabled={isPending} type="submit">
               <span>حفظ</span>
               <Save />
             </Button>
-            <Button type="button" variant="outline" onClick={onClose}>
-              <span>إلغاء</span>
-              <X />
-            </Button>
+            <DialogClose>
+              <Button type="button" variant="outline">
+                <span>إلغاء</span>
+                <X />
+              </Button>
+            </DialogClose>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
+};
+
+const validationSchema = (type: "add" | "edit") =>
+  Yup.object({
+    name: Yup.string().required("يجب ادخال اسم المتدرب"),
+    phone: Yup.string().matches(
+      /^(\+218|00218|0)?(9[1-5]\d{7})$/,
+      "يجب إدخال الرقم بشكل صحيح"
+    ),
+    address: Yup.string(),
+    employer: Yup.string().required("يجب إدخال جهة العمل"),
+    typeId:
+      type === "edit"
+        ? Yup.number().required("يجب إدخال النوع")
+        : Yup.number().optional(),
+    payGrade: Yup.string().oneOf(
+      payGrades,
+      "يجب إدخال الدرجة القضائية بشكل صحيح"
+    ),
+  });
+
+const useTraineeForm = ({ type, trainee }: Props) => {
+  const [open, setOpen] = useState(false);
+  const [searchParams] = useSearchParams();
+  const queryClient = useQueryClient();
+  const { page, search } = useAppSelector((state) => state.trainees);
+  const traineeType = searchParams.get("type") || "attorney";
+  const typeId = searchParams.get("typeId") || "";
+  const { mutateAsync, isPending } = useMutation({
+    mutationKey:
+      type === "add" ? ["add-trainee"] : ["edit-trainee", { id: trainee?.id }],
+    mutationFn: (data: TraineeFormValues) =>
+      type === "add"
+        ? TraineesService.createTrainee({
+            ...data,
+            typeId: data.typeId || Number(typeId),
+            payGrade: Number(typeId) === 1 ? data.payGrade : undefined,
+          })
+        : TraineesService.updateTrainee(trainee.id, {
+            ...data,
+            payGrade: data.typeId === 1 ? data.payGrade : undefined,
+          }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [
+          "trainees",
+          { page },
+          { search },
+          { type: traineeType },
+          { typeId },
+        ],
+      });
+      setOpen(false);
+      toast.success("تم الحفظ بنجاح");
+      formik.resetForm();
+    },
+  });
+  const { data: traineesTypes } = useQuery({
+    queryKey: ["trainee-types"],
+    queryFn: async () => {
+      const res = await api.get<{ data: { traineeTypes: TraineeType[] } }>(
+        "/api/v1/trainee-types"
+      );
+      return res.data.data.traineeTypes;
+    },
+  });
+  const formik = useFormik<TraineeFormValues>({
+    initialValues: {
+      name: trainee?.name || "",
+      phone: trainee?.phone || "",
+      address: trainee?.address || "",
+      employer: trainee?.employer || "",
+      typeId: trainee?.traineeType?.id || undefined,
+      payGrade: trainee?.payGrade || "",
+    },
+    validationSchema: validationSchema(type),
+    onSubmit: async (values) => {
+      await mutateAsync(values);
+    },
+  });
+  console.log(formik.errors);
+
+  const { data: warning } = useQuery({
+    queryKey: ["check-trainee", { name: formik.values.name }],
+    queryFn: () => TraineesService.checkTraineeName(formik.values.name),
+  });
+
+  return {
+    formik,
+    warning,
+    traineesTypes,
+    isPending,
+    open,
+    setOpen,
+    typeId,
+  };
 };
 
 export default FormDialog;

@@ -59,6 +59,7 @@ export interface Trainee {
   address: string;
   employer: string;
   type: "موظف" | "ضابط" | "عضو نيابة" | "أخرى";
+  traineeType: TraineeType;
   payGrade:
     | "محامي عام من الفئة أ"
     | "محامي عام من الفئة ب"

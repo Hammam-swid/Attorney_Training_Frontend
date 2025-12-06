@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -12,11 +12,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "react-hot-toast";
 import FormDialog from "../components/TraineeFormDialog";
-import DeleteConfirmModal from "../components/DeleteConfirmModal";
-import { Pencil, Trash } from "lucide-react";
-import { Trainee } from "@/types";
-import api from "@/lib/api";
+import { Pencil, Trash, UserPlus } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { TraineesService } from "@/services/trainees.service";
+import Pagination from "@/components/ui/pagination";
+import ConfirmModal from "@/components/common/ConfirmModal";
+import { AxiosError } from "axios";
+import TableSkeleton from "@/components/TableSkeleton";
+import { useAppSelector } from "@/store/hooks";
+import { useDispatch } from "react-redux";
+import { setTraineesPage, setTraineesSearch } from "@/store/traineesSlice";
 
 const arTypes = {
   attorney: "عضو نيابة",
@@ -26,117 +32,58 @@ const arTypes = {
 };
 
 export default function TraineesPage() {
-  const [showAddForm, setShowAddForm] = useState<boolean>(false);
-  const [showEditForm, setShowEditForm] = useState<boolean>(false);
-  const [trainees, setTrainees] = useState<Trainee[]>([]);
-  const [AllTraineesCount, setAllTraineesCount] = useState<number>(0);
-  const [currentTrainee, setCurrentTrainee] = useState<Trainee | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
-  const [traineeToDelete, setTraineeToDelete] = useState<Trainee | null>(null);
+  const { search, page } = useAppSelector((state) => state.trainees);
+  const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
-  const type = searchParams.get("type") || "attorney";
+  const type = searchParams.get("type");
+  const typeId = searchParams.get("typeId");
 
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [page, setPage] = useState<number>(1);
-  const limit = 10;
+  const [searchText, setSearchText] = useState<string>("");
+  const queryClient = useQueryClient();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["trainees", { page }, { search }, { type }, { typeId }],
+    queryFn: () =>
+      TraineesService.getTrainees(
+        page,
+        search,
+        arTypes[type as keyof typeof arTypes] || undefined,
+        typeId || undefined
+      ),
+  });
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const searchParam = searchQuery
-          ? `&search=${encodeURIComponent(searchQuery)}`
-          : "";
-
-        const pageParam = `?page=${page}&limit=${limit}`;
-
-        const res = await api.get(
-          `/api/v1/trainees${pageParam}${searchParam}${`&type=${
-            arTypes[type as keyof typeof arTypes] ?? "عضو نيابة"
-          }`}`
-        );
-        setTrainees(res.data.data.trainees);
-        setAllTraineesCount(res.data.data.count);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchData();
-  }, [searchQuery, page, type]);
-
-  const handleDeleteConfirm = async () => {
-    if (!traineeToDelete) return;
-    try {
-      await api.delete(`/api/v1/trainees/${traineeToDelete.id}`);
-      setTrainees(
-        trainees.filter((trainee) => trainee.id !== traineeToDelete.id)
-      );
-      toast.success("تم حذف المتدرب بنجاح");
-    } catch (error) {
-      console.error("Error deleting trainee:", error);
-    } finally {
-      setShowDeleteConfirm(false);
-      setTraineeToDelete(null);
-    }
-  };
-
-  const handleAddTrainee = async (newTrainee: Trainee) => {
-    try {
-      const res = await api.post("/api/v1/trainees", {
-        ...newTrainee,
-        payGrade: newTrainee.payGrade ? newTrainee.payGrade : null,
-      });
-      setTrainees([...trainees, res.data.data.trainee]);
-      toast.success("تم إضافة المتدرب بنجاح");
-      setShowAddForm(false);
-    } catch (error) {
-      console.error("Error adding trainee:", error);
-    }
-  };
-
-  const handleEditTrainee = async (updatedTrainee: Trainee) => {
-    try {
-      const res = await api.patch(`/api/v1/trainees/${updatedTrainee.id}`, {
-        ...updatedTrainee,
-        payGrade: updatedTrainee.payGrade ? updatedTrainee.payGrade : null,
-      });
-      console.log(res.data.data.trainee);
-      setTrainees((prev) =>
-        prev.map((trainee) =>
-          trainee.id === +updatedTrainee.id ? res.data.data.trainee : trainee
-        )
-      );
-      toast.success("تم تعديل المتدرب بنجاح");
-      setShowEditForm(false);
-      setCurrentTrainee(null);
-    } catch (error) {
-      console.error("Error updating trainee:", error);
-    }
-  };
-
-  // if (loading) {
-  //   return <div className="text-center">جاري التحميل...</div>;
-  // }
+    const timeout = setTimeout(() => {
+      dispatch(setTraineesSearch(searchText));
+      dispatch(setTraineesPage(1));
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [searchText]);
 
   return (
-    <div className="container mx-auto py-10 rtl">
-      <h1 className="text-3xl font-bold mb-5">قائمة المتدربين</h1>
+    <div className="container px-5 mx-auto py-10 rtl">
       <div className="flex justify-between items-center mb-5">
-        <Button onClick={() => setShowAddForm(true)}>إضافة متدرب جديد</Button>
-        <div className="flex items-center">
-          <Label htmlFor="search" className="ml-2">
-            بحث:
-          </Label>
-          <Input
-            id="search"
-            type="text"
-            placeholder="ابحث عن متدرب..."
-            value={searchQuery}
-            onFocus={() => setPage(1)}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-sm m-4"
-          />
-        </div>
+        <h1 className="text-3xl font-bold">قائمة المتدربين</h1>
+        <FormDialog title="إضافة متدرب جديد" type="add">
+          <Button>
+            <UserPlus />
+            إضافة متدرب جديد
+          </Button>
+        </FormDialog>
+      </div>
+      <div className="flex items-center mb-5">
+        <Label htmlFor="search" className="ml-2">
+          بحث:
+        </Label>
+        <Input
+          id="search"
+          type="text"
+          placeholder="ابحث عن متدرب..."
+          value={searchText}
+          // onFocus={() => setPage(1)}
+          onChange={(e) => setSearchText(e.target.value)}
+          className="max-w-sm m-4"
+        />
       </div>
       <Table>
         <TableHeader>
@@ -152,113 +99,95 @@ export default function TraineesPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {trainees.map((trainee) => (
-            <TableRow key={trainee.id}>
-              <TableCell className="font-medium text-center">
-                {trainee.id}
-              </TableCell>
-              <TableCell className="text-center">
-                {trainee.name || <span className="text-muted">//</span>}
-              </TableCell>
-              <TableCell className="text-center">
-                {trainee.phone || <span className="text-muted">//</span>}
-              </TableCell>
-              <TableCell className="text-center">
-                {trainee.address || <span className="text-muted">//</span>}
-              </TableCell>
-              <TableCell className="text-center">
-                {trainee.employer || <span className="text-muted">//</span>}
-              </TableCell>
-              <TableCell className="text-center">
-                {trainee.type || <span className="text-muted">//</span>}
-              </TableCell>
-              <TableCell className="text-center">
-                {trainee.payGrade || <span className="text-muted">//</span>}
-              </TableCell>
-              <TableCell>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    setTraineeToDelete(trainee);
-                    setShowDeleteConfirm(true);
-                  }}
-                  variant="destructive"
-                  className="ml-2"
-                >
-                  <span>حذف</span>
-                  <Trash />
-                </Button>
-                <Button
-                  size="sm"
-                  variant={"secondary"}
-                  onClick={() => {
-                    setCurrentTrainee(trainee);
-                    setShowEditForm(true);
-                  }}
-                  className="hover:bg-primary hover:text-primary-foreground"
-                >
-                  <span>تعديل</span>
-                  <Pencil />
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
+          {isLoading ? (
+            <TableSkeleton columns={8} />
+          ) : (
+            data?.data.map((trainee) => (
+              <TableRow key={trainee.id}>
+                <TableCell className="font-medium text-center">
+                  {trainee.id}
+                </TableCell>
+                <TableCell className="text-center">
+                  {trainee.name || <span className="text-muted">//</span>}
+                </TableCell>
+                <TableCell className="text-center">
+                  {trainee.phone || <span className="text-muted">//</span>}
+                </TableCell>
+                <TableCell className="text-center">
+                  {trainee.address || <span className="text-muted">//</span>}
+                </TableCell>
+                <TableCell className="text-center">
+                  {trainee.employer || <span className="text-muted">//</span>}
+                </TableCell>
+                <TableCell className="text-center">
+                  {trainee.traineeType?.name || (
+                    <span className="text-muted">//</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-center">
+                  {trainee.payGrade || <span className="text-muted">//</span>}
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-2">
+                    <ConfirmModal
+                      title="هل انت متاكد من حذف هذا المتدرب؟"
+                      mutationKey={["delete-trainee", { id: trainee.id }]}
+                      mutationFn={() =>
+                        TraineesService.deleteTrainee(trainee.id)
+                      }
+                      onSuccess={() => {
+                        toast.success("تم حذف المتدرب بنجاح");
+                        queryClient.invalidateQueries({
+                          queryKey: [
+                            "trainees",
+                            { page },
+                            { search },
+                            { type },
+                            { typeId },
+                          ],
+                        });
+                      }}
+                      onError={(e) => {
+                        let message = "حدث خطأ أثناء حذف المتدرب";
+                        if (e instanceof AxiosError) {
+                          message = e.response?.data?.message || message;
+                        }
+                        toast.error(message);
+                      }}
+                    >
+                      <Button size="sm" variant="destructive">
+                        <Trash />
+                      </Button>
+                    </ConfirmModal>
+                    <FormDialog
+                      type="edit"
+                      title={`تعديل المتدرب "${trainee.name}"`}
+                      trainee={trainee}
+                    >
+                      <Button
+                        size="sm"
+                        variant={"secondary"}
+                        className="hover:bg-primary hover:text-primary-foreground"
+                      >
+                        <Pencil />
+                      </Button>
+                    </FormDialog>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
-      <div className="mt-4 flex justify-center">
-        <Button
-          onClick={() => setPage(page - 1)}
-          disabled={page === 1}
-          variant="outline"
-          className="mx-1"
-        >
-          السابق
-        </Button>
-        <Button
-          onClick={() => setPage(page + 1)}
-          disabled={trainees.length + limit * (page - 1) >= AllTraineesCount}
-          variant="outline"
-          className="mx-1"
-        >
-          التالي
-        </Button>
+      <div>
+        {data && (
+          <Pagination
+            page={page}
+            lastPage={data?.lastPage}
+            setPage={(p) => dispatch(setTraineesPage(p))}
+          />
+        )}
       </div>
-      {showAddForm && (
-        <FormDialog
-          title="إضافة متدرب جديد"
-          initialData={{}}
-          onSubmit={handleAddTrainee}
-          onClose={() => setShowAddForm(false)}
-        />
-      )}
-      {showEditForm && currentTrainee && (
-        <FormDialog
-          title="تعديل بيانات المتدرب"
-          initialData={currentTrainee}
-          onSubmit={handleEditTrainee}
-          onClose={() => setShowEditForm(false)}
-        />
-      )}
-      {/* <ToastContainer
-        position="top-right"
-        rtl={true}
-        autoClose={5000}
-        hideProgressBar={false}
-        closeOnClick
-        pauseOnHover
-        draggable
-      /> */}
-      {showDeleteConfirm && traineeToDelete && (
-        <DeleteConfirmModal
-          item={traineeToDelete}
-          itemName="المتدرب"
-          onConfirm={handleDeleteConfirm}
-          onClose={() => {
-            setShowDeleteConfirm(false);
-            setTraineeToDelete(null);
-          }}
-        />
-      )}
     </div>
   );
 }

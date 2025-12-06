@@ -40,6 +40,7 @@ export default function OrganizationPage() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       dispatch(setOrganizationSearch(searchText));
+      dispatch(setOrganizationPage(1));
     }, 500);
 
     return () => clearTimeout(timeout);
