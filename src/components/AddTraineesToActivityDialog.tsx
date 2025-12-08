@@ -1,8 +1,7 @@
 import { Trainee } from "@/types";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ReactNode, useState } from "react";
 import { Input } from "./ui/input";
-import { Card } from "./ui/card";
 import {
   Table,
   TableBody,
@@ -15,30 +14,30 @@ import { Checkbox } from "./ui/checkbox";
 import { Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
 import toast from "react-hot-toast";
-import api from "@/lib/api";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import { TraineesService } from "@/services/trainees.service";
 
 interface Props {
   activityId: string;
+  children: ReactNode;
   oldTrainees: Trainee[];
-  hide: () => void;
+  onSuccess?: () => void;
 }
-
-const getTrainees = async (search: string, page: number) => {
-  const searchQuery = search ? `&search=${search}` : "";
-  const res = await api.get<{
-    data: { trainees: Trainee[] };
-  }>(`/api/v1/trainees?page=${page}&limit=10${searchQuery}`);
-  console.log(res);
-  return res.data.data;
-};
 
 export default function AddTraineesToActivityDialog({
   activityId,
   oldTrainees,
-  hide,
+  children,
 }: Props) {
   const {
-    addTrainees,
+    isPending,
+    mutateAsync,
     isLoading,
     search,
     selectedTrainees,
@@ -49,19 +48,12 @@ export default function AddTraineesToActivityDialog({
     page,
   } = useAddTraineesDialog(activityId);
   return (
-    <div
-      onClick={(
-        e: React.MouseEvent<HTMLDivElement, MouseEvent> & {
-          target: HTMLDivElement;
-        }
-      ) => e.target?.id === "trainees-dialog-overlay" && hide()}
-      id="trainees-dialog-overlay"
-      className="fixed inset-0 bg-black/50 h-screen z-50 flex items-center justify-center"
-    >
-      <Card className="p-3 w-[35rem] max-h-[70vh] overflow-y-scroll min-h-96">
-        <h2 className="text-xl text-center font-bold mb-3">
-          قائمة كل المتدربين
-        </h2>
+    <Dialog>
+      <DialogTrigger>{children}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>قائمة كل المتدربين</DialogTitle>
+        </DialogHeader>
         <div className="flex items-center gap-3">
           <Input
             id="search"
@@ -69,7 +61,11 @@ export default function AddTraineesToActivityDialog({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <Button onClick={() => addTrainees()} className="font-bold">
+          <Button
+            disabled={isPending || selectedTrainees.length < 1}
+            onClick={async () => await mutateAsync()}
+            className="font-bold"
+          >
             تأكيد
           </Button>
         </div>
@@ -145,8 +141,8 @@ export default function AddTraineesToActivityDialog({
             التالي
           </Button>
         </div>
-      </Card>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -157,34 +153,31 @@ const useAddTraineesDialog = (activityId: string) => {
   const [page, setPage] = useState<number>(1);
   const { data, isLoading } = useQuery({
     queryKey: ["trainees", { search }, { page }],
-    queryFn: () => getTrainees(search, page),
+    queryFn: () => TraineesService.getTrainees(page, search),
   });
-  const trainees = data?.trainees || [];
-  const addTrainees = async () => {
-    try {
-      const traineesIds = selectedTrainees.map((trainee) => trainee.id);
-      const res = await api.post(
-        `/api/v1/training-activities/${activityId}/trainee`,
-        {
-          traineesIds,
-        }
-      );
-      if (res.status === 200) {
-        toast.success("تمت إضافة المتدربين بنجاح");
-        queryClient.invalidateQueries({
-          queryKey: ["trainees", { activityId }],
-        });
-      }
-      // setTrainees(data.data.activity.trainees);
-    } catch (error) {
-      console.log(error);
+  const trainees = data?.data || [];
+  const { mutateAsync, isPending } = useMutation({
+    mutationKey: ["add-trainees-to-activity"],
+    mutationFn: async () =>
+      TraineesService.addTraineesToActivity(
+        activityId,
+        selectedTrainees.map((t) => t.id)
+      ),
+    onSuccess: () => {
+      toast.success("تمت إضافة المتدربين بنجاح");
+      queryClient.invalidateQueries({
+        queryKey: ["trainees", { activityId }],
+      });
+      setSelectedTrainees([]);
+    },
+    onError() {
       toast.error("حدث خطأ أثناء إضافة المتدربين");
-    }
-    console.log(selectedTrainees.map((trainee) => trainee.id));
-  };
+    },
+  });
 
   return {
-    addTrainees,
+    mutateAsync,
+    isPending,
     selectedTrainees,
     setSelectedTrainees,
     search,

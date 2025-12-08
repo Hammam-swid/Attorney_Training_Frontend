@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import { Activity, PaginatedData } from "@/types";
+import { Activity, ActivityTrainee, PaginatedData } from "@/types";
 
 export class ActivityService {
   static async getActivities(
@@ -61,6 +61,36 @@ export class ActivityService {
       rating,
     });
     return res.data.data;
+  }
+
+  static async getActivityTrainees(id: string) {
+    const res = await api.get<{
+      data: { activity: Activity; traineesForActivity: ActivityTrainee[] };
+    }>(`/api/v1/training-activities/${id}/trainee`);
+    return res.data.data;
+  }
+
+  static async removeTraineeFromActivity(
+    activityId: string | number,
+    traineeId: number
+  ) {
+    const res = await api.delete(
+      `/api/v1/training-activities/${activityId}/trainee`,
+      { data: { traineeId } }
+    );
+    return res.status;
+  }
+
+  static async rateTraineeFromActivity(
+    activityId: string | number,
+    traineeId: number,
+    rating: number | undefined
+  ) {
+    const res = await api.post(
+      `/api/v1/training-activities/${activityId}/trainee/rate`,
+      { traineeId, rating }
+    );
+    return res.data;
   }
 }
 

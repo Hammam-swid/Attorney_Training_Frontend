@@ -35,6 +35,7 @@ import UsersPage from "./pages/UsersPage";
 import SettingsPage from "./pages/SettingsPage";
 import AddActivityPage from "./pages/AddActivityPage";
 import EditActivityPage from "./pages/EditActivityPage";
+import ActivityInstructorsPage from "./pages/ActivityInstructorsPage";
 
 const routes = createRoutesFromElements(
   <>
@@ -71,7 +72,18 @@ const routes = createRoutesFromElements(
         path="activities/:activityId"
         element={<ActivityDetailsPage />}
         errorElement={<ErrorPage />}
-      />
+      >
+        <Route
+          index
+          element={<ActivityTraineesPage />}
+          errorElement={<ErrorPage />}
+        />
+        <Route
+          path="instructors"
+          element={<ActivityInstructorsPage />}
+          errorElement={<ErrorPage />}
+        />
+      </Route>
       <Route
         path="activities/:activityId/edit"
         element={<EditActivityPage />}

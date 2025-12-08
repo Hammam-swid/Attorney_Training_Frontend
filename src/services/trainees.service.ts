@@ -39,6 +39,19 @@ export class TraineesService {
     const res = await api.get(`/api/v1/trainees/check?search=${name}`);
     return res.data.data.isTrainee ? true : false;
   }
+
+  static async addTraineesToActivity(
+    activityId: number | string,
+    traineesIds: number[]
+  ) {
+    const res = await api.post(
+      `/api/v1/training-activities/${activityId}/trainee`,
+      {
+        traineesIds,
+      }
+    );
+    return res.data;
+  }
 }
 
 export interface TraineeFormValues {

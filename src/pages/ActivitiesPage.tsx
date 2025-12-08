@@ -18,21 +18,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PlusCircle, RotateCcw } from "lucide-react";
-import { ReactElement, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 // import jsLingua from "jslingua";
-import { AxiosError } from "axios";
-import { Activity, ActivityType } from "@/types";
-import SureModal from "@/components/SureModal";
-import { toast } from "react-hot-toast";
-import ActivityForm from "@/components/ActivityForm";
-import { FormikHelpers } from "formik";
+import { Activity } from "@/types";
 import ActivityTraineesDialog from "@/components/ActivityTraineesDialog";
 import InstructorActivityDialog from "@/components/InstructorActivityDialog";
 import { Helmet } from "react-helmet";
-import ActivityActions from "@/components/ActivityActions";
 import { format } from "date-fns";
-import api from "@/lib/api";
 import YearSelect from "@/components/ui/YearSelect";
 import DatePicker from "@/components/ui/DatePicker";
 import { useQuery } from "@tanstack/react-query";
@@ -55,25 +48,6 @@ import { ActivityTypeService } from "@/services/actvitiy-type.service";
 import { Badge } from "@/components/ui/badge";
 import { parseActivityStatusClassName } from "@/lib/parseActivityStatus";
 
-interface SureModalType {
-  title: string;
-  description: ReactElement;
-  show: boolean;
-  onConfirm: () => void;
-  onCancel: () => void;
-}
-
-interface FormValues {
-  title: string;
-  location: string;
-  hours: number | undefined;
-  startDate: Date;
-  endDate: Date;
-  hostId: number | undefined;
-  executorId: number | undefined;
-  activityTypeId: number;
-}
-
 export default function ActivitiesPage() {
   const { page, search, status, year, date, dateType } = useAppSelector(
     (state) => state.activities
@@ -81,45 +55,16 @@ export default function ActivitiesPage() {
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const typeId = searchParams.get("type");
-  const [, setActivities] = useState<Activity[]>([]);
   const [searchText, setSearchText] = useState<string>(search);
   const [selectedActivityForTrainee, setSelectedActivityForTrainee] =
     useState<Activity | null>(null);
   const [selectedActivityForInstructor, setSelectedActivityForInstructor] =
     useState<Activity | null>(null);
 
-  const [sureModal, setSureModal] = useState<SureModalType>({
-    title: "",
-    show: false,
-    description: <></>,
-    onCancel: () => {},
-    onConfirm: () => {},
-  });
-
-  const [activityForm, setActivityForm] = useState<{
-    show: boolean;
-    title: string;
-    activity?: Activity;
-    onSubmit: (values: FormValues, helpers: FormikHelpers<FormValues>) => void;
-    hideForm: () => void;
-    activityTypeId: number;
-  }>({
-    show: false,
-    title: "",
-    activity: undefined,
-    onSubmit: () => {},
-    hideForm: () => {},
-    activityTypeId: typeId ? +typeId : 0,
-  });
-
   const { data: activityType } = useQuery({
     queryKey: ["activityType", { typeId }],
     queryFn: () => ActivityTypeService.getActivityType(Number(typeId) ?? 0),
   });
-
-  // console.log(activities);
-
-  // console.log(type);
 
   const { data, isLoading } = useQuery({
     queryKey: [
@@ -149,82 +94,6 @@ export default function ActivitiesPage() {
     }, 500);
     return () => clearTimeout(timeout);
   }, [searchText]);
-
-  const deleteActivity = async (id: number) => {
-    try {
-      const res = await api.delete(`/api/v1/training-activities/${id}`);
-      if (res.status === 204) {
-        setActivities((prev) => prev.filter((activity) => activity.id !== id));
-        toast.success("تم حذف النشاط بنجاح");
-        setSureModal({
-          description: <>تم حذف النشاط بنجاح</>,
-          show: false,
-          title: "",
-          onCancel: () => {},
-          onConfirm: () => {},
-        });
-      }
-    } catch (error) {
-      console.log(error);
-      if (error instanceof AxiosError) {
-        toast.error(error.response?.data.message);
-      } else toast.error("حدث خطأ أثناء حذف النشاط");
-    }
-  };
-  const handleEdit = (activity: Activity) => {
-    setActivityForm({
-      ...activityForm,
-      show: true,
-      title: "تعديل النشاط",
-      activity: activity,
-      hideForm: () =>
-        setActivityForm({
-          ...activityForm,
-          show: false,
-          title: "",
-          activity: undefined,
-          onSubmit: () => {},
-          hideForm: () => {},
-        }),
-      onSubmit: async (values, helpers) => {
-        try {
-          const res = await api.patch(
-            `/api/v1/training-activities/${activity.id}`,
-            values
-          );
-          if (res.status === 200) {
-            console.log(res);
-            toast.success("تم تعديل النشاط بنجاح");
-            helpers.resetForm();
-            setActivityForm({
-              ...activityForm,
-              show: false,
-              title: "",
-              activity: undefined,
-              onSubmit: () => {},
-              hideForm: () => {},
-            });
-            const newActivity = {
-              ...res.data.data.activity,
-              startDate: new Date(res.data.data.activity.startDate),
-              endDate: new Date(res.data.data.activity.endDate),
-              hostName: res.data.data.activity.host?.name || activity.host.name,
-              executorName:
-                res.data.data.activity.executor?.name || activity.executor.name,
-            };
-            setActivities((prev) =>
-              prev.map((act) => (act.id === activity.id ? newActivity : act))
-            );
-          }
-        } catch (error) {
-          console.log(error);
-          if (error instanceof AxiosError) {
-            toast.error(error.response?.data.message);
-          } else toast.error("حدث خطأ أثناء تعديل النشاط");
-        }
-      },
-    });
-  };
 
   return (
     <div className="container pe-4 mx-auto py-10">
@@ -414,13 +283,6 @@ export default function ActivitiesPage() {
             )}
           </TableBody>
         </Table>
-        <SureModal
-          title={sureModal.title}
-          description={sureModal.description}
-          show={sureModal.show}
-          onConfirm={sureModal.onConfirm}
-          onCancel={sureModal.onCancel}
-        />
 
         {selectedActivityForTrainee?.id && (
           <ActivityTraineesDialog

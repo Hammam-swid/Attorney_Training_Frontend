@@ -6,15 +6,27 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getDifferenceDays } from "@/lib/getDifferenceDays";
 import { parseActivityStatusClassName } from "@/lib/parseActivityStatus";
+import { cn } from "@/lib/utils";
 import { ActivityService } from "@/services/activity.service";
 import { useAppSelector } from "@/store/hooks";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Pencil, Trash, TrendingUp } from "lucide-react";
+import { Pencil, Star, Trash } from "lucide-react";
 import { ReactNode } from "react";
 import toast from "react-hot-toast";
-import { useNavigate, useParams } from "react-router";
-import { Link } from "react-router-dom";
+import { Outlet, useNavigate, useParams } from "react-router";
+import { Link, NavLink } from "react-router-dom";
+
+const links = [
+  {
+    to: ".",
+    label: "قائمة المتدربين",
+  },
+  {
+    to: "instructors",
+    label: "قائمة المدربين",
+  },
+];
 
 export default function ActivityDetailsPage() {
   const { activityId } = useParams();
@@ -60,7 +72,7 @@ export default function ActivityDetailsPage() {
               <>
                 <ActivityRating activity={activity}>
                   <Button variant={"outline"}>
-                    <TrendingUp className="w-4 h-4" />
+                    <Star className="fill-yellow-500" />
                     <span>تقييم النشاط</span>
                   </Button>
                 </ActivityRating>
@@ -146,6 +158,28 @@ export default function ActivityDetailsPage() {
           )
         )}
       </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center gap-4 p-3">
+          <span></span>
+          {links.map((link, i) => (
+            <NavLink
+              className={({ isActive }) =>
+                cn(
+                  `py-2 px-8 rounded-md transition-all`,
+                  "hover:bg-primary/70 hover:font-semibold",
+                  isActive && "bg-primary font-bold text-white"
+                )
+              }
+              end
+              key={i}
+              to={link.to}
+            >
+              {link.label}
+            </NavLink>
+          ))}
+        </CardHeader>
+      </Card>
+      <Outlet />
     </div>
   );
 }
