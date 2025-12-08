@@ -10,28 +10,29 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Button } from "./ui/button";
-import { LoaderCircle, PlusCircle, Save, X } from "lucide-react";
+import { LoaderCircle, PlusCircle, Save } from "lucide-react";
 import OrganizationForm from "./OrganizationForm";
 import * as Yup from "yup";
 
 import DatePicker from "./ui/DatePicker";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { OrganizationService } from "@/services/organization.service";
 import { ActivityTypeService } from "@/services/actvitiy-type.service";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
-import { useState } from "react";
 import {
   ActivityFormValues,
   ActivityService,
 } from "@/services/activity.service";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import toast from "react-hot-toast";
+import { useAppSelector } from "@/store/hooks";
+import { useNavigate } from "react-router";
 
 interface addActivityProps {
   type: "add";
@@ -44,7 +45,7 @@ interface editActivityProps {
 }
 
 type Props = {
-  children: React.ReactNode;
+  // children: React.ReactNode;
   title: string;
   activityTypeId: number;
 } & (addActivityProps | editActivityProps);
@@ -52,21 +53,22 @@ type Props = {
 export default function ActivityForm({
   type,
   activity,
-  children,
   title,
   activityTypeId,
 }: Props) {
-  const { open, setOpen, formik, activityTypes, organizations } =
-    useActivityForm({ activity, activityTypeId, type } as Props);
+  const { formik, activityTypes, organizations, isPending } = useActivityForm({
+    activity,
+    activityTypeId,
+    type,
+  } as Props);
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>ادخل معلومات النشاط التدريبي</DialogDescription>
-        </DialogHeader>
-        <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>ادخل معلومات النشاط التدريبي</CardDescription>
+      </CardHeader>
+      <form onSubmit={formik.handleSubmit}>
+        <CardContent className="space-y-4">
           <Label htmlFor="title">عنوان النشاط</Label>
           <div>
             <Input
@@ -234,45 +236,55 @@ export default function ActivityForm({
               </div>
             </div>
           )}
-          <div className="flex flex-row-reverse gap-2">
-            <Button disabled={formik.isSubmitting} type="submit">
-              {!formik.isSubmitting ? (
-                <>
-                  <span>حفظ</span>
-                  <Save />
-                </>
-              ) : (
-                <LoaderCircle className="animate-spin" />
-              )}
-            </Button>
-            <DialogClose>
-              <Button
-                className="hover:text-red-500"
-                variant={"outline"}
-                type="button"
-              >
-                <span>إلغاء</span>
-                <X />
-              </Button>
-            </DialogClose>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </CardContent>
+        <CardFooter>
+          <Button disabled={isPending} type="submit" className="w-full">
+            {!isPending ? (
+              <>
+                <span>حفظ</span>
+                <Save />
+              </>
+            ) : (
+              <LoaderCircle className="animate-spin" />
+            )}
+          </Button>
+        </CardFooter>
+      </form>
+    </Card>
   );
 }
 
 const useActivityForm = ({ activityTypeId, activity, type }: Props) => {
-  const [open, setOpen] = useState(false);
-
-  const { mutateAsync } = useMutation({
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { page, status, search, year, date } = useAppSelector(
+    (state) => state.activities
+  );
+  const { mutateAsync, isPending } = useMutation({
     mutationKey: type === "add" ? ["add-activity"] : ["update-activity"],
     mutationFn: (values: ActivityFormValues) =>
       type === "add"
-        ? ActivityService.createActivity(values)
+        ? ActivityService.createActivity(values, activityTypeId)
         : ActivityService.updateActivity(activity.id, values),
     onSuccess: () => {
-      setOpen(false);
+      toast.success("تم حفظ النشاط");
+      if (type === "edit")
+        queryClient.invalidateQueries({
+          queryKey: ["training-activity", { activityId: String(activity.id) }],
+        });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "activities",
+          { typeId: String(activityTypeId) },
+          { page },
+          { status },
+          { search },
+          { year },
+          { ...date },
+        ],
+      });
+      if (type === "add") navigate(`/activities?type=${activityTypeId}`);
+      else navigate(`/activities/${activity.id}`, { replace: true });
     },
   });
   const { data: activityTypes } = useQuery({
@@ -317,5 +329,6 @@ const useActivityForm = ({ activityTypeId, activity, type }: Props) => {
       await mutateAsync(values);
     },
   });
-  return { open, setOpen, formik, activityTypes, organizations };
+  console.log(formik.errors);
+  return { formik, activityTypes, organizations, isPending };
 };

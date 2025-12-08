@@ -31,7 +31,6 @@ import ActivityTraineesDialog from "@/components/ActivityTraineesDialog";
 import InstructorActivityDialog from "@/components/InstructorActivityDialog";
 import { Helmet } from "react-helmet";
 import ActivityActions from "@/components/ActivityActions";
-import RatingActivity from "@/components/RatingActivity";
 import { format } from "date-fns";
 import api from "@/lib/api";
 import YearSelect from "@/components/ui/YearSelect";
@@ -87,8 +86,6 @@ export default function ActivitiesPage() {
   const [selectedActivityForTrainee, setSelectedActivityForTrainee] =
     useState<Activity | null>(null);
   const [selectedActivityForInstructor, setSelectedActivityForInstructor] =
-    useState<Activity | null>(null);
-  const [selectedActivityForRating, setSelectedActivityForRating] =
     useState<Activity | null>(null);
 
   const [sureModal, setSureModal] = useState<SureModalType>({
@@ -153,9 +150,6 @@ export default function ActivitiesPage() {
     return () => clearTimeout(timeout);
   }, [searchText]);
 
-  const handleRating = (activity: Activity) => {
-    setSelectedActivityForRating(activity);
-  };
   const deleteActivity = async (id: number) => {
     try {
       const res = await api.delete(`/api/v1/training-activities/${id}`);
@@ -231,34 +225,7 @@ export default function ActivitiesPage() {
       },
     });
   };
-  const handleDelete = (activity: Activity) =>
-    setSureModal({
-      description: (
-        <p>
-          هل أنت متأكد من حذف{" "}
-          <span className="font-bold">{activity.title}</span>؟
-        </p>
-      ),
-      title: "حذف نشاط",
-      show: true,
-      onConfirm: () => deleteActivity(activity.id),
-      onCancel: () =>
-        setSureModal({
-          show: false,
-          description: <></>,
-          title: "",
-          onConfirm: () => {},
-          onCancel: () => {},
-        }),
-    });
 
-  const updateRating = (activityId: number, rating: number) => {
-    setActivities((prev) =>
-      prev.map((activity) =>
-        activity.id === activityId ? { ...activity, rating: rating } : activity
-      )
-    );
-  };
   return (
     <div className="container pe-4 mx-auto py-10">
       <Helmet>
@@ -272,16 +239,14 @@ export default function ActivitiesPage() {
         <h1 className="text-3xl font-bold">
           {activityType?.name || "الأنشطة التدريبية"}
         </h1>
-        <ActivityForm
-          title="إضافة نشاط جديد"
-          type="add"
-          activityTypeId={Number(typeId) || 1}
-        >
-          <Button className="text-lg">
-            <span>إضافة جديد</span>
-            <PlusCircle />
+        {activityType && (
+          <Button className="text-lg" asChild>
+            <Link to={`add?typeId=${activityType?.id}`}>
+              <span>إضافة جديد</span>
+              <PlusCircle />
+            </Link>
           </Button>
-        </ActivityForm>
+        )}
       </div>
       <div className="flex items-center justify-between gap-3 mb-4 mt-4">
         <Input
@@ -457,24 +422,6 @@ export default function ActivitiesPage() {
           onCancel={sureModal.onCancel}
         />
 
-        {/* {activityForm.show && (
-          <ActivityForm
-            hideForm={activityForm.hideForm}
-            onSubmit={activityForm.onSubmit}
-            title={activityForm.title}
-            show={activityForm.show}
-            activityTypeId={typeId ? +typeId : 0}
-            activity={activityForm.activity}
-          />
-        )} */}
-        {selectedActivityForRating?.id && (
-          <RatingActivity
-            updateRating={updateRating}
-            activity={selectedActivityForRating}
-            onCancel={() => setSelectedActivityForRating(null)}
-          />
-        )}
-
         {selectedActivityForTrainee?.id && (
           <ActivityTraineesDialog
             activityId={selectedActivityForTrainee.id}
@@ -502,22 +449,6 @@ export default function ActivitiesPage() {
           />
         )}
 
-        {/* <div className="flex items-center justify-center mt-4 gap-2">
-          <Button
-            onClick={() => handlePage("prev")}
-            disabled={page <= 1}
-            variant={"ghost"}
-          >
-            السابق
-          </Button>
-          <Button
-            disabled={activities.length + (page - 1) * 10 >= activityCount}
-            onClick={() => handlePage("next")}
-            variant={"ghost"}
-          >
-            التالي
-          </Button>
-        </div> */}
         {data && (
           <Pagination
             page={page}

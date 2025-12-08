@@ -1,4 +1,5 @@
-import ActivityForm from "@/components/ActivityForm";
+import ActivityRating from "@/components/activities/ActivityRating";
+import ConfirmModal from "@/components/common/ConfirmModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,11 +7,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getDifferenceDays } from "@/lib/getDifferenceDays";
 import { parseActivityStatusClassName } from "@/lib/parseActivityStatus";
 import { ActivityService } from "@/services/activity.service";
-import { useQuery } from "@tanstack/react-query";
+import { useAppSelector } from "@/store/hooks";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Pencil } from "lucide-react";
+import { Pencil, Trash, TrendingUp } from "lucide-react";
 import { ReactNode } from "react";
-import { useParams } from "react-router";
+import toast from "react-hot-toast";
+import { useNavigate, useParams } from "react-router";
+import { Link } from "react-router-dom";
 
 export default function ActivityDetailsPage() {
   const { activityId } = useParams();
@@ -18,8 +22,13 @@ export default function ActivityDetailsPage() {
     queryKey: ["training-activity", { activityId }],
     queryFn: () => ActivityService.getActivityById(Number(activityId)),
   });
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { date, page, search, status, year } = useAppSelector(
+    (state) => state.activities
+  );
   return (
-    <div className="p-6 space-y-6 w-full">
+    <div className="w-full container mx-auto p-6 space-y-6">
       <Card>
         <CardHeader className="flex-row justify-between items-center">
           <CardTitle className="flex items-center gap-3">
@@ -39,19 +48,52 @@ export default function ActivityDetailsPage() {
               </>
             )}
           </CardTitle>
-          {activity && (
-            <ActivityForm
-              activityTypeId={activity?.type.id}
-              title="تعديل النشاط"
-              type="edit"
-              activity={activity}
-            >
-              <Button>
+
+          <div className="flex items-center gap-3">
+            <Button asChild>
+              <Link to={`edit`}>
                 <Pencil />
                 تعديل
-              </Button>
-            </ActivityForm>
-          )}
+              </Link>
+            </Button>
+            {activity && (
+              <>
+                <ActivityRating activity={activity}>
+                  <Button variant={"outline"}>
+                    <TrendingUp className="w-4 h-4" />
+                    <span>تقييم النشاط</span>
+                  </Button>
+                </ActivityRating>
+                <ConfirmModal
+                  title="هل انت متأكد من حذف النشاط؟"
+                  mutationKey={["delete-activity", { activityId }]}
+                  mutationFn={() =>
+                    ActivityService.deleteActivity(Number(activityId))
+                  }
+                  onSuccess={() => {
+                    toast.success("تم حذف النشاط بنجاح");
+                    queryClient.invalidateQueries({
+                      queryKey: [
+                        "activities",
+                        { typeId: String(activity.type.id) },
+                        { page },
+                        { status },
+                        { search },
+                        { year },
+                        { ...date },
+                      ],
+                    });
+                    navigate("/activities?type=" + activity.type.id);
+                  }}
+                >
+                  <Button variant={"destructive"}>
+                    <Trash className="w-4 h-4" />
+                    حذف
+                  </Button>
+                </ConfirmModal>
+              </>
+            )}
+          </div>
         </CardHeader>
         {isLoading ? (
           <CardContent>

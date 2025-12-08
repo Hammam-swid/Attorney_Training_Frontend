@@ -32,8 +32,17 @@ export class ActivityService {
     return res.data.data.activity;
   }
 
-  static async createActivity(activity: ActivityFormValues) {
-    const res = await api.post("/api/v1/training-activities", activity);
+  static async createActivity(
+    activity: ActivityFormValues,
+    activityTypeId: number
+  ) {
+    const res = await api.post(
+      "/api/v1/training-activities",
+      { ...activity, activityTypeId },
+      {
+        headers: { Accept: "application/json" },
+      }
+    );
     return res.data.data;
   }
 
@@ -44,6 +53,13 @@ export class ActivityService {
 
   static async deleteActivity(id: number) {
     const res = await api.delete(`/api/v1/training-activities/${id}`);
+    return res.data.data;
+  }
+
+  static async rateActivity(id: number, rating: number | undefined) {
+    const res = await api.post(`/api/v1/training-activities/${id}/rate`, {
+      rating,
+    });
     return res.data.data;
   }
 }

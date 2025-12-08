@@ -11,6 +11,7 @@ export default function Pagination({
   setPage,
   lastPage,
 }: PaginationProps) {
+  if (lastPage === 1) return null;
   return (
     <div className="mt-8 space-y-2">
       <hr />
