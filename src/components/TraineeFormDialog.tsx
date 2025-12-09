@@ -61,11 +61,18 @@ const payGrades = [
 ];
 
 const FormDialog: React.FC<Props> = ({ title, children, type, trainee }) => {
-  const { formik, warning, traineesTypes, isPending, open, setOpen, typeId } =
-    useTraineeForm({
-      type,
-      trainee,
-    } as Props);
+  const {
+    formik,
+    warning,
+    traineesTypes,
+    isPending,
+    open,
+    setOpen,
+    selectedTraineeType,
+  } = useTraineeForm({
+    type,
+    trainee,
+  } as Props);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger>{children}</DialogTrigger>
@@ -145,10 +152,14 @@ const FormDialog: React.FC<Props> = ({ title, children, type, trainee }) => {
             <div className="mb-4">
               <Label htmlFor="type">النوع</Label>
               <Select
+                dir="rtl"
                 value={formik.values.typeId?.toString() ?? ""}
                 onValueChange={(val) => {
                   formik.setFieldValue("typeId", Number(val));
-                  if (val !== "1") {
+                  const newType = traineesTypes?.find(
+                    (type) => type.id === Number(val)
+                  );
+                  if (!newType?.hasPayGrade) {
                     formik.setFieldValue("payGrade", "");
                   }
                   setTimeout(() => {
@@ -174,11 +185,12 @@ const FormDialog: React.FC<Props> = ({ title, children, type, trainee }) => {
               )}
             </div>
           )}
-          {Number(typeId) === 1 && (
+          {selectedTraineeType?.hasPayGrade && (
             <div className="mb-4">
               <Label htmlFor="type">الدرجة القضائية</Label>
               <Select
-                value={formik.values.payGrade}
+                dir="rtl"
+                value={formik.values.payGrade || ""}
                 onValueChange={(val) => {
                   formik.setFieldValue("payGrade", val);
                   setTimeout(() => {
@@ -186,10 +198,10 @@ const FormDialog: React.FC<Props> = ({ title, children, type, trainee }) => {
                   }, 100);
                 }}
               >
-                <SelectTrigger dir="rtl">
+                <SelectTrigger>
                   <SelectValue placeholder="اختر الدرجة القضائية" />
                 </SelectTrigger>
-                <SelectContent dir="rtl">
+                <SelectContent>
                   {payGrades.map((payGrade) => (
                     <SelectItem key={payGrade} value={payGrade}>
                       {payGrade}
@@ -260,7 +272,7 @@ const useTraineeForm = ({ type, trainee }: Props) => {
           })
         : TraineesService.updateTrainee(trainee.id, {
             ...data,
-            payGrade: data.typeId === 1 ? data.payGrade : undefined,
+            payGrade: data.typeId === 1 ? data.payGrade : null,
           }),
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -274,7 +286,9 @@ const useTraineeForm = ({ type, trainee }: Props) => {
       });
       setOpen(false);
       toast.success("تم الحفظ بنجاح");
-      formik.resetForm();
+      if (type === "add") {
+        formik.resetForm();
+      }
     },
   });
   const { data: traineesTypes } = useQuery({
@@ -300,8 +314,10 @@ const useTraineeForm = ({ type, trainee }: Props) => {
       await mutateAsync(values);
     },
   });
-  console.log(formik.errors);
 
+  const selectedTraineeType = traineesTypes?.find((t) =>
+    type === "add" ? Number(typeId) === t.id : formik.values.typeId === t.id
+  );
   const { data: warning } = useQuery({
     queryKey: ["check-trainee", { name: formik.values.name }],
     queryFn: () => TraineesService.checkTraineeName(formik.values.name),
@@ -311,6 +327,7 @@ const useTraineeForm = ({ type, trainee }: Props) => {
     formik,
     warning,
     traineesTypes,
+    selectedTraineeType,
     isPending,
     open,
     setOpen,

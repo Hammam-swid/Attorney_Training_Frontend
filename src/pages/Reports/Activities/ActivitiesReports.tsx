@@ -294,7 +294,7 @@ export default function ActivitiesReports() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <Select value={selectedType} onValueChange={setSelectedType}>
+        <Select dir="rtl" value={selectedType} onValueChange={setSelectedType}>
           <SelectTrigger dir="rtl" className="w-[180px]">
             <SelectValue dir="rtl" />
           </SelectTrigger>

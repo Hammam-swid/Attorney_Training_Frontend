@@ -145,6 +145,7 @@ export default function ActivityForm({
           <div>
             <div className="flex gap-2">
               <Select
+                dir="rtl"
                 value={formik.values.hostId + ""}
                 onValueChange={(value) => {
                   formik.setFieldValue("hostId", +value);
@@ -182,6 +183,7 @@ export default function ActivityForm({
           <Label htmlFor="executorId">الجهة المنفذة</Label>
           <div>
             <Select
+              dir="rtl"
               autoComplete=""
               value={formik.values.executorId + ""}
               onValueChange={(value) => {
@@ -192,7 +194,6 @@ export default function ActivityForm({
                 <SelectValue placeholder="اختر الجهة المنفذة" />
               </SelectTrigger>
               <SelectContent
-                dir="rtl"
                 onBlur={() => formik.setFieldTouched("executorId", true)}
               >
                 {organizations?.map((organization) => (

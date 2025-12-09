@@ -185,6 +185,7 @@ export default function TraineesPage() {
             page={page}
             lastPage={data?.lastPage}
             setPage={(p) => dispatch(setTraineesPage(p))}
+            totalCount={data.totalCount}
           />
         )}
       </div>

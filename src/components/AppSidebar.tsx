@@ -5,7 +5,6 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -145,7 +144,12 @@ export default function AppSidebar() {
   return (
     <Sidebar side="right" collapsible="icon">
       {open && (
-        <SidebarHeader className="font-bold">إدارة التدريب</SidebarHeader>
+        <Link
+          to={"/"}
+          className="flex items-center justify-center m-2 hover:bg-primary transition-colors rounded-md"
+        >
+          <img src="/center-logo.png" className="w-44 h-28 object-cover" />
+        </Link>
       )}
       <SidebarContent>
         <SidebarGroup>
@@ -317,7 +321,7 @@ export default function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="border-t">
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu dir="rtl">

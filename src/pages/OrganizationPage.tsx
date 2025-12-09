@@ -169,6 +169,7 @@ export default function OrganizationPage() {
             lastPage={data?.lastPage}
             page={page}
             setPage={(page) => dispatch(setOrganizationPage(page))}
+            totalCount={data.totalCount}
           />
         )}
       </div>

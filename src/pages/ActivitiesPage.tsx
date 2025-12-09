@@ -21,9 +21,6 @@ import { PlusCircle, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 // import jsLingua from "jslingua";
-import { Activity } from "@/types";
-import ActivityTraineesDialog from "@/components/ActivityTraineesDialog";
-import InstructorActivityDialog from "@/components/InstructorActivityDialog";
 import { Helmet } from "react-helmet";
 import { format } from "date-fns";
 import YearSelect from "@/components/ui/YearSelect";
@@ -56,10 +53,6 @@ export default function ActivitiesPage() {
   const [searchParams] = useSearchParams();
   const typeId = searchParams.get("type");
   const [searchText, setSearchText] = useState<string>(search);
-  const [selectedActivityForTrainee, setSelectedActivityForTrainee] =
-    useState<Activity | null>(null);
-  const [selectedActivityForInstructor, setSelectedActivityForInstructor] =
-    useState<Activity | null>(null);
 
   const { data: activityType } = useQuery({
     queryKey: ["activityType", { typeId }],
@@ -84,7 +77,8 @@ export default function ActivitiesPage() {
         status,
         year,
         date.startDate && format(date.startDate, "yyyy-MM-dd"),
-        date.endDate && format(date.endDate, "yyyy-MM-dd")
+        date.endDate && format(date.endDate, "yyyy-MM-dd"),
+        null
       ),
   });
 
@@ -284,38 +278,12 @@ export default function ActivitiesPage() {
           </TableBody>
         </Table>
 
-        {selectedActivityForTrainee?.id && (
-          <ActivityTraineesDialog
-            activityId={selectedActivityForTrainee.id}
-            activityName={selectedActivityForTrainee.title}
-            onClose={() => setSelectedActivityForTrainee(null)}
-            refresh={() => {
-              // setSearch(" ");
-              // setTimeout(() => {
-              //   setSearch("");
-              // }, 1);
-            }}
-          />
-        )}
-        {selectedActivityForInstructor?.id && (
-          <InstructorActivityDialog
-            activityId={selectedActivityForInstructor.id}
-            activityName={selectedActivityForInstructor.title}
-            onClose={() => setSelectedActivityForInstructor(null)}
-            refresh={() => {
-              // setSearch(" ");
-              // setTimeout(() => {
-              //   setSearch("");
-              // }, 1);
-            }}
-          />
-        )}
-
         {data && (
           <Pagination
             page={page}
             setPage={(p) => dispatch(setActivitiesPage(p))}
             lastPage={data?.lastPage}
+            totalCount={data.totalCount}
           />
         )}
       </div>

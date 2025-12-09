@@ -26,7 +26,7 @@ export class TraineesService {
 
   static async updateTrainee(id: number, trainee: TraineeFormValues) {
     console.log(trainee);
-    const res = await api.put(`/api/v1/trainees/${id}`, trainee);
+    const res = await api.patch(`/api/v1/trainees/${id}`, trainee);
     return res.data;
   }
 
@@ -60,5 +60,5 @@ export interface TraineeFormValues {
   address: string;
   employer: string;
   typeId?: number | null;
-  payGrade?: string;
+  payGrade?: string | null;
 }

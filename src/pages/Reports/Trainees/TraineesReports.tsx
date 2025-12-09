@@ -250,7 +250,7 @@ interface TypeFilterProps {
 }
 function TypeFilter({ type, setType }: TypeFilterProps) {
   return (
-    <Select value={type} onValueChange={setType}>
+    <Select dir="rtl" value={type} onValueChange={setType}>
       <SelectTrigger dir="rtl" className="w-32">
         <SelectValue placeholder="النوع" />
       </SelectTrigger>
@@ -289,7 +289,7 @@ const AllPayGrades = [
 ];
 function PayGradeFilter({ payGrade, setPayGrade }: PayGradeFilterProps) {
   return (
-    <Select value={payGrade} onValueChange={setPayGrade}>
+    <Select dir="rtl" value={payGrade} onValueChange={setPayGrade}>
       <SelectTrigger dir="rtl" className="w-52">
         <SelectValue placeholder="الدرجة القضائية" />
       </SelectTrigger>

@@ -26,6 +26,10 @@ const links = [
     to: "instructors",
     label: "قائمة المدربين",
   },
+  {
+    to: "sub-activities",
+    label: "قائمة النشاطات الفرعية",
+  },
 ];
 
 export default function ActivityDetailsPage() {

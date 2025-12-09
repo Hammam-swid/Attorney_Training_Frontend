@@ -6,10 +6,12 @@ import { useAppSelector } from "@/store/hooks";
 import { useEffect } from "react";
 import AuthProvider from "@/auth/AuthProvider";
 import ChangePasswordAlert from "@/components/ChangePasswordAlert";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function MainLayout() {
   const theme = useAppSelector((state) => state.theme);
   const alert = useAppSelector((state) => state.alert);
+  const queryClient = useQueryClient();
   useEffect(() => {
     const root = document.documentElement;
     if (theme.darkMode) {
@@ -18,12 +20,20 @@ export default function MainLayout() {
       root?.classList.remove("dark");
     }
   }, [theme]);
+  useEffect(() => {
+    window.addEventListener("keydown", (e) => {
+      if (e.ctrlKey && e.key === "r") {
+        e.preventDefault();
+        queryClient.invalidateQueries();
+      }
+    });
+  }, []);
   return (
     <AuthProvider>
       <SidebarProvider>
         <AppSidebar />
         <SidebarTrigger />
-        <Toaster position="bottom-center" />
+        <Toaster position="bottom-center" toastOptions={{ duration: 3000 }} />
         <Outlet />
         {alert.isAlert && <ChangePasswordAlert />}
       </SidebarProvider>

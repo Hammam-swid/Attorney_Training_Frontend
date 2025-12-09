@@ -3,13 +3,14 @@ import { Activity, ActivityTrainee, PaginatedData } from "@/types";
 
 export class ActivityService {
   static async getActivities(
-    typeId: number | string,
+    typeId: number | string | null,
     page = 1,
     search?: string,
     status?: string,
     year?: number,
     startDate?: string,
-    endDate?: string
+    endDate?: string,
+    parentId?: number | null
   ) {
     const pageQuery = `?page=${page}`;
     const searchQuery = search ? `&search=${search}` : "";
@@ -19,8 +20,11 @@ export class ActivityService {
       : startDate && endDate
       ? `&startDate=${startDate}&endDate=${endDate}`
       : "";
+    const typeIdQuery = typeId ? `&typeId=${typeId}` : "";
+    const parentIdQuery =
+      parentId || parentId === null ? `&parentId=${parentId}` : "";
     const res = await api.get<PaginatedData<Activity>>(
-      `/api/v1/training-activities/type/${typeId}${pageQuery}${searchQuery}${statusQuery}${dateQuery}`
+      `/api/v1/training-activities/type/${typeId}${pageQuery}${searchQuery}${statusQuery}${dateQuery}${typeIdQuery}${parentIdQuery}`
     );
     return res.data;
   }

@@ -46,6 +46,8 @@ export default function ActivityTraineesPage() {
     (data?.traineesForActivity.map((t) => ({
       ...t.trainee,
       rating: t.rating,
+      payGrade: t.traineePayGrade,
+      employer: t.traineeEmployer,
     })) as Trainee[]) || [];
 
   return (
@@ -79,7 +81,7 @@ export default function ActivityTraineesPage() {
               <TableHead className="text-right">المعرف</TableHead>
               <TableHead className="text-right">الاسم</TableHead>
               <TableHead className="text-right">رقم الهاتف</TableHead>
-              {/* <TableHead className="text-right">العنوان</TableHead> */}
+              <TableHead className="text-right">الدرجة القضائية</TableHead>
               <TableHead className="text-right">جهة العمل</TableHead>
               {/* <TableHead className="text-right">النوع</TableHead> */}
               <TableHead className="text-right">التقييم</TableHead>
@@ -102,8 +104,8 @@ export default function ActivityTraineesPage() {
                     <TableCell className="font-medium">{trainee?.id}</TableCell>
                     <TableCell>{trainee?.name}</TableCell>
                     <TableCell>{trainee?.phone}</TableCell>
-                    {/* <TableCell>{trainee?.address}</TableCell> */}
-                    <TableCell>{trainee?.employer}</TableCell>
+                    <TableCell>{trainee?.payGrade || "//"}</TableCell>
+                    <TableCell>{trainee?.employer || "//"}</TableCell>
                     {/* <TableCell>{trainee?.type}</TableCell> */}
                     <TableCell>
                       {!isEditing || isEditing?.id !== trainee?.id ? (

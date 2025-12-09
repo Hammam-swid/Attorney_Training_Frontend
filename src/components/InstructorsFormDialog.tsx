@@ -98,6 +98,7 @@ const FormDialog: React.FC<FormDialogProps> = ({
           <div className="mb-4">
             <Label htmlFor="organization">الجهة التابع لها</Label>
             <Select
+              dir="rtl"
               value={String(formik.values.organizationId)}
               onValueChange={(value) => {
                 formik.setFieldValue("organizationId", Number(value));

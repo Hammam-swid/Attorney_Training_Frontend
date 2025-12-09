@@ -157,11 +157,14 @@ export default function UsersPage() {
           )}
         </TableBody>
       </Table>
-      <Pagination
-        page={page}
-        setPage={(page) => dispatch(setUsersPage(page))}
-        lastPage={lastPage}
-      />
+      {data && (
+        <Pagination
+          page={page}
+          setPage={(page) => dispatch(setUsersPage(page))}
+          lastPage={lastPage}
+          totalCount={data?.totalCount}
+        />
+      )}
     </div>
   );
 }

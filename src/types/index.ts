@@ -80,6 +80,7 @@ export interface TraineeType {
   id: number;
   name: string;
   traineesCount?: number;
+  hasPayGrade: boolean;
 }
 
 export interface ActivityTrainee {
@@ -87,6 +88,19 @@ export interface ActivityTrainee {
   trainee: Trainee;
   activity: Activity;
   rating: number;
+  traineeEmployer: string;
+  traineePayGrade:
+    | "محامي عام من الفئة أ"
+    | "محامي عام من الفئة ب"
+    | "رئيس نيابة"
+    | "نائب نيابة من الدرجة الأولى"
+    | "نائب نيابة من الدرجة الثانية"
+    | "وكيل نيابة من الدرجة الأولى"
+    | "وكيل نيابة من الدرجة الثانية"
+    | "وكيل نيابة من الدرجة الثالثة"
+    | "مساعد نيابة"
+    | "معاون نيابة"
+    | "أخرى";
 }
 
 export interface User {
