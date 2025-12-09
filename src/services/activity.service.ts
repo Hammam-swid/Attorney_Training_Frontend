@@ -107,4 +107,5 @@ export interface ActivityFormValues {
   hostId: number | undefined;
   executorId: number | undefined;
   activityTypeId: number;
+  parentId: number | undefined | null;
 }

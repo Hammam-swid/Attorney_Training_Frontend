@@ -19,6 +19,8 @@ export interface Activity {
 
   traineesCount: number;
   instructorRating: number;
+  parent: Activity | null;
+  children: Activity[];
 
   activityTrainees: ActivityTrainee[];
 }

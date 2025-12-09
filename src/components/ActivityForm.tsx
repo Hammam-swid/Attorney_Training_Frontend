@@ -31,17 +31,18 @@ import {
   CardTitle,
 } from "./ui/card";
 import toast from "react-hot-toast";
-import { useAppSelector } from "@/store/hooks";
 import { useNavigate } from "react-router";
 
 interface addActivityProps {
   type: "add";
   activity?: never;
+  parentId?: number | null;
 }
 
 interface editActivityProps {
   type: "edit";
   activity: Activity;
+  parentId?: number | null;
 }
 
 type Props = {
@@ -55,11 +56,13 @@ export default function ActivityForm({
   activity,
   title,
   activityTypeId,
+  parentId,
 }: Props) {
   const { formik, activityTypes, organizations, isPending } = useActivityForm({
     activity,
     activityTypeId,
     type,
+    parentId,
   } as Props);
   return (
     <Card>
@@ -255,12 +258,15 @@ export default function ActivityForm({
   );
 }
 
-const useActivityForm = ({ activityTypeId, activity, type }: Props) => {
+const useActivityForm = ({
+  activityTypeId,
+  activity,
+  type,
+  parentId,
+}: Props) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { page, status, search, year, date } = useAppSelector(
-    (state) => state.activities
-  );
+
   const { mutateAsync, isPending } = useMutation({
     mutationKey: type === "add" ? ["add-activity"] : ["update-activity"],
     mutationFn: (values: ActivityFormValues) =>
@@ -269,21 +275,8 @@ const useActivityForm = ({ activityTypeId, activity, type }: Props) => {
         : ActivityService.updateActivity(activity.id, values),
     onSuccess: () => {
       toast.success("تم حفظ النشاط");
-      if (type === "edit")
-        queryClient.invalidateQueries({
-          queryKey: ["training-activity", { activityId: String(activity.id) }],
-        });
-      queryClient.invalidateQueries({
-        queryKey: [
-          "activities",
-          { typeId: String(activityTypeId) },
-          { page },
-          { status },
-          { search },
-          { year },
-          { ...date },
-        ],
-      });
+
+      queryClient.invalidateQueries();
       if (type === "add") navigate(`/activities?type=${activityTypeId}`);
       else navigate(`/activities/${activity.id}`, { replace: true });
     },
@@ -307,6 +300,7 @@ const useActivityForm = ({ activityTypeId, activity, type }: Props) => {
       hostId: type === "edit" ? activity.host.id : undefined,
       executorId: type === "edit" ? activity.executor.id : undefined,
       activityTypeId: type === "edit" ? activity.type.id : activityTypeId,
+      parentId: type === "edit" ? activity.parent?.id ?? null : parentId,
     },
     validationSchema: Yup.object({
       title: Yup.string().required("العنوان مطلوب"),
