@@ -18,13 +18,10 @@ import { Instructor, Organization, PaginatedData } from "@/types";
 import {
   fetchInstructors,
   fetchOrganizations,
-  createInstructor,
-  editInstructor,
   removeInstructor,
 } from "@/services/instructors.service";
-import { toast } from "react-hot-toast";
 
-export default function TrainerPage() {
+export default function InstructorsPage() {
   const [showForm, setShowForm] = useState(false);
   const [currentTrainer, setCurrentTrainer] = useState<Instructor | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -43,40 +40,11 @@ export default function TrainerPage() {
     queryFn: fetchOrganizations,
   });
 
-  const createMutation = useMutation({
-    mutationFn: (trainer: Partial<Instructor>) => createInstructor(trainer),
-    onSuccess: () => {
-      toast.success("تمت إضافة المدرب بنجاح");
-      queryClient.invalidateQueries({ queryKey: ["instructors"] });
-      setShowForm(false);
-    },
-    onError: () => {
-      toast.error("حدث خطأ أثناء إضافة المدرب");
-    },
-  });
-
-  const editMutation = useMutation({
-    mutationFn: (trainer: Instructor) => editInstructor(trainer),
-    onSuccess: () => {
-      toast.success("تم تعديل بيانات المدرب بنجاح");
-      queryClient.invalidateQueries({ queryKey: ["instructors"] });
-      setShowForm(false);
-      setCurrentTrainer(null);
-    },
-    onError: () => {
-      toast.error("حدث خطأ أثناء تعديل المدرب");
-    },
-  });
-
   const deleteMutation = useMutation({
     mutationFn: (id: number) => removeInstructor(id),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["instructors"] }),
   });
-
-  const handleAdd = (trainer: Partial<Instructor>) =>
-    createMutation.mutate(trainer);
-  const handleEdit = (trainer: Instructor) => editMutation.mutate(trainer);
 
   return (
     <div className="container mx-auto py-10 rtl">
@@ -182,14 +150,10 @@ export default function TrainerPage() {
           title={currentTrainer ? "تعديل بيانات المدرب" : "إضافة مدرب جديد"}
           initialData={currentTrainer || {}}
           organizations={organizations}
-          onSubmit={currentTrainer ? handleEdit : handleAdd}
           onClose={() => {
             setShowForm(false);
             setCurrentTrainer(null);
           }}
-          isLoading={
-            currentTrainer ? editMutation.isPending : createMutation.isPending
-          }
         />
       )}
     </div>

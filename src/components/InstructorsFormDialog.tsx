@@ -11,24 +11,54 @@ import { Button } from "@/components/ui/button";
 import { Instructor, Organization } from "@/types";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  createInstructor,
+  editInstructor,
+} from "@/services/instructors.service";
+import { toast } from "react-hot-toast";
 
 interface FormDialogProps {
   title: string;
   initialData: Partial<Instructor>;
   organizations: Organization[];
-  onSubmit: (data: Instructor) => void;
   onClose: () => void;
-  isLoading: boolean;
 }
 
 const FormDialog: React.FC<FormDialogProps> = ({
   title,
   initialData,
   organizations,
-  onSubmit,
   onClose,
-  isLoading,
 }) => {
+  const queryClient = useQueryClient();
+
+  const createMutation = useMutation({
+    mutationFn: (trainer: Instructor) => createInstructor(trainer),
+    onSuccess: () => {
+      toast.success("تمت إضافة المدرب بنجاح");
+      queryClient.invalidateQueries({ queryKey: ["instructors"] });
+      onClose();
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء إضافة المدرب");
+    },
+  });
+
+  const editMutation = useMutation({
+    mutationFn: (trainer: Instructor) => editInstructor(trainer),
+    onSuccess: () => {
+      toast.success("تم تعديل بيانات المدرب بنجاح");
+      queryClient.invalidateQueries({ queryKey: ["instructors"] });
+      onClose();
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء تعديل المدرب");
+    },
+  });
+
+  const isEdit = Boolean(initialData.id);
+
   const formik = useFormik({
     initialValues: {
       name: initialData.name || "",
@@ -49,9 +79,15 @@ const FormDialog: React.FC<FormDialogProps> = ({
           ? { name: "", id: values.organizationId }
           : null,
       };
-      onSubmit(instructor);
+      if (isEdit) {
+        editMutation.mutate(instructor);
+      } else {
+        createMutation.mutate(instructor);
+      }
     },
   });
+
+  const isLoading = isEdit ? editMutation.isPending : createMutation.isPending;
 
   const handleClose = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget && !isLoading) onClose();
@@ -97,7 +133,6 @@ const FormDialog: React.FC<FormDialogProps> = ({
           <div className="mb-4">
             <Label htmlFor="organization">الجهة التابع لها</Label>
             <Select
-              dir="rtl"
               value={String(formik.values.organizationId)}
               onValueChange={(value) =>
                 formik.setFieldValue("organizationId", Number(value))
