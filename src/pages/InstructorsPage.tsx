@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -10,108 +10,87 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "react-hot-toast";
-import FormDialog from "../components/InstructorsFormDialog";
-import DeleteConfirmModal from "../components/DeleteConfirmModal";
 import { Pencil, Trash } from "lucide-react";
-import { Instructor, Organization } from "@/types";
-import api from "@/lib/api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import FormDialog from "@/components/InstructorsFormDialog";
+import ConfirmModal from "../components/common/ConfirmModal";
+import { Instructor, Organization, PaginatedData } from "@/types";
+import {
+  fetchInstructors,
+  fetchOrganizations,
+  createInstructor,
+  editInstructor,
+  removeInstructor,
+} from "@/services/instructors.service";
+import { toast } from "react-hot-toast";
 
 export default function TrainerPage() {
-  const [showAddForm, setShowAddForm] = useState<boolean>(false);
-  const [showEditForm, setShowEditForm] = useState<boolean>(false);
-  const [trainers, setTrainers] = useState<Instructor[]>([]);
-  const [allTrainersCount, setAllTrainersCount] = useState<number>(0);
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [showForm, setShowForm] = useState(false);
   const [currentTrainer, setCurrentTrainer] = useState<Instructor | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
-  const [trainerToDelete, setTrainerToDelete] = useState<Instructor | null>(
-    null
-  );
-
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [page, setPage] = useState<number>(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
   const limit = 10;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const searchParam = searchQuery ? `&search=${searchQuery}` : "";
-        const pageParam = `?page=${page}&limit=${limit}`;
+  const queryClient = useQueryClient();
 
-        console.log(`/api/v1/instructors${pageParam}${searchParam}`);
-        const [trainersRes, orgsRes] = await Promise.all([
-          api.get(`/api/v1/instructors${pageParam}${searchParam}`),
-          api.get("/api/v1/organizations/all"),
-        ]);
+  const { data: instructorsData } = useQuery<PaginatedData<Instructor>, Error>({
+    queryKey: ["instructors", page, searchQuery],
+    queryFn: () => fetchInstructors(page, limit, searchQuery),
+  });
 
-        setTrainers(trainersRes.data.data.instructors);
-        setOrganizations(orgsRes.data.data.organizations);
-        setAllTrainersCount(trainersRes.data.data.count);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
+  const { data: organizations } = useQuery<Organization[], Error>({
+    queryKey: ["organizations"],
+    queryFn: fetchOrganizations,
+  });
 
-    fetchData();
-  }, [searchQuery, page]);
+  const createMutation = useMutation({
+    mutationFn: (trainer: Partial<Instructor>) => createInstructor(trainer),
+    onSuccess: () => {
+      toast.success("تمت إضافة المدرب بنجاح");
+      queryClient.invalidateQueries({ queryKey: ["instructors"] });
+      setShowForm(false);
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء إضافة المدرب");
+    },
+  });
 
-  const handleDeleteConfirm = async () => {
-    if (!trainerToDelete) return;
-    try {
-      await api.delete(`/api/v1/instructors/${trainerToDelete.id}`);
-      setTrainers(
-        trainers.filter((trainer) => trainer.id !== trainerToDelete.id)
-      );
-      toast.success("تم حذف المدرب بنجاح");
-    } catch (error) {
-      console.error("Error deleting trainer:", error);
-    } finally {
-      setShowDeleteConfirm(false);
-      setTrainerToDelete(null);
-    }
-  };
-  const handleAddTrainer = async (newTrainer: Instructor) => {
-    try {
-      const res = await api.post("/api/v1/instructors", {
-        name: newTrainer.name,
-        phone: newTrainer.phone,
-        organization: newTrainer.organization,
-      });
-      setTrainers([...trainers, res.data.data.instructor]);
-      toast.success("تم إضافة المدرب بنجاح");
-      setShowAddForm(false);
-    } catch (error) {
-      console.error("Error adding trainer:", error);
-    }
-  };
-
-  const handleEditTrainer = async (updatedTrainer: Instructor) => {
-    try {
-      console.log(updatedTrainer);
-      const res = await api.patch(`/api/v1/instructors/${updatedTrainer.id}`, {
-        name: updatedTrainer.name,
-        phone: updatedTrainer.phone,
-        organization: updatedTrainer.organization,
-      });
-      setTrainers(
-        trainers.map((trainer) =>
-          trainer.id === updatedTrainer.id ? res.data.data.instructor : trainer
-        )
-      );
-      toast.success("تم تعديل المتدرب بنجاح");
-      setShowEditForm(false);
+  const editMutation = useMutation({
+    mutationFn: (trainer: Instructor) => editInstructor(trainer),
+    onSuccess: () => {
+      toast.success("تم تعديل بيانات المدرب بنجاح");
+      queryClient.invalidateQueries({ queryKey: ["instructors"] });
+      setShowForm(false);
       setCurrentTrainer(null);
-    } catch (error) {
-      console.error("Error updating trainer:", error);
-    }
-  };
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء تعديل المدرب");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => removeInstructor(id),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["instructors"] }),
+  });
+
+  const handleAdd = (trainer: Partial<Instructor>) =>
+    createMutation.mutate(trainer);
+  const handleEdit = (trainer: Instructor) => editMutation.mutate(trainer);
 
   return (
     <div className="container mx-auto py-10 rtl">
       <h1 className="text-3xl font-bold mb-5">قائمة المدربين</h1>
+
       <div className="flex justify-between items-center mb-5">
-        <Button onClick={() => setShowAddForm(true)}>إضافة مدرب جديد</Button>
+        <Button
+          onClick={() => {
+            setCurrentTrainer(null);
+            setShowForm(true);
+          }}
+        >
+          إضافة مدرب جديد
+        </Button>
         <div className="flex items-center">
           <Label htmlFor="search" className="ml-2">
             بحث:
@@ -121,11 +100,12 @@ export default function TrainerPage() {
             type="text"
             placeholder="ابحث عن مدرب..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)} // التحديث التلقائي
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="max-w-sm m-4"
           />
         </div>
       </div>
+
       <Table>
         <TableHeader>
           <TableRow>
@@ -137,46 +117,44 @@ export default function TrainerPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {trainers.map((trainer) => (
+          {instructorsData?.data.map((trainer) => (
             <TableRow key={trainer.id}>
               <TableCell className="font-medium">{trainer.id}</TableCell>
               <TableCell>{trainer.name}</TableCell>
               <TableCell>{trainer.phone}</TableCell>
               <TableCell>
-                {trainer?.organization?.name || (
+                {trainer.organization?.name || (
                   <span className="text-sm text-muted">الجهة غير موجودة</span>
                 )}
               </TableCell>
-              <TableCell>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    setTrainerToDelete(trainer);
-                    setShowDeleteConfirm(true);
-                  }}
-                  variant="destructive"
-                  className="ml-2"
+              <TableCell className="flex gap-2">
+                <ConfirmModal
+                  title={`هل أنت متأكد من حذف المدرب ${trainer.name}?`}
+                  mutationKey={["deleteInstructor", trainer.id]}
+                  mutationFn={() => deleteMutation.mutateAsync(trainer.id)}
                 >
-                  <span>حذف</span>
-                  <Trash />
-                </Button>
+                  <Button size="sm" variant="destructive">
+                    حذف <Trash />
+                  </Button>
+                </ConfirmModal>
+
                 <Button
                   size="sm"
-                  variant={"secondary"}
+                  variant="secondary"
                   className="hover:bg-primary hover:text-primary-foreground"
                   onClick={() => {
                     setCurrentTrainer(trainer);
-                    setShowEditForm(true);
+                    setShowForm(true);
                   }}
                 >
-                  <span>تعديل</span>
-                  <Pencil />
+                  تعديل <Pencil />
                 </Button>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+
       <div className="mt-4 flex justify-center">
         <Button
           onClick={() => setPage(page - 1)}
@@ -188,49 +166,30 @@ export default function TrainerPage() {
         </Button>
         <Button
           onClick={() => setPage(page + 1)}
-          disabled={trainers.length + limit * (page - 1) >= allTrainersCount}
+          disabled={
+            (instructorsData?.data.length || 0) + limit * (page - 1) >=
+            (instructorsData?.totalCount || 0)
+          }
           variant="outline"
           className="mx-1"
         >
           التالي
         </Button>
       </div>
-      {showAddForm && (
+
+      {showForm && organizations && (
         <FormDialog
-          title="إضافة مدرب جديد"
-          initialData={{}}
+          title={currentTrainer ? "تعديل بيانات المدرب" : "إضافة مدرب جديد"}
+          initialData={currentTrainer || {}}
           organizations={organizations}
-          onSubmit={handleAddTrainer}
-          onClose={() => setShowAddForm(false)}
-        />
-      )}
-      {showEditForm && currentTrainer && (
-        <FormDialog
-          title="تعديل بيانات المدرب"
-          initialData={currentTrainer}
-          organizations={organizations}
-          onSubmit={handleEditTrainer}
-          onClose={() => setShowEditForm(false)}
-        />
-      )}
-      {/* <ToastContainer
-        position="top-right"
-        rtl={true}
-        autoClose={5000}
-        hideProgressBar={false}
-        closeOnClick
-        pauseOnHover
-        draggable
-      /> */}
-      {showDeleteConfirm && trainerToDelete && (
-        <DeleteConfirmModal
-          item={trainerToDelete}
-          itemName="المدرب"
-          onConfirm={handleDeleteConfirm}
+          onSubmit={currentTrainer ? handleEdit : handleAdd}
           onClose={() => {
-            setShowDeleteConfirm(false);
-            setTrainerToDelete(null);
+            setShowForm(false);
+            setCurrentTrainer(null);
           }}
+          isLoading={
+            currentTrainer ? editMutation.isPending : createMutation.isPending
+          }
         />
       )}
     </div>

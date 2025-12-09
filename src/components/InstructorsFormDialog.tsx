@@ -18,6 +18,7 @@ interface FormDialogProps {
   organizations: Organization[];
   onSubmit: (data: Instructor) => void;
   onClose: () => void;
+  isLoading: boolean;
 }
 
 const FormDialog: React.FC<FormDialogProps> = ({
@@ -26,6 +27,7 @@ const FormDialog: React.FC<FormDialogProps> = ({
   organizations,
   onSubmit,
   onClose,
+  isLoading,
 }) => {
   const formik = useFormik({
     initialValues: {
@@ -35,10 +37,7 @@ const FormDialog: React.FC<FormDialogProps> = ({
     },
     validationSchema: Yup.object({
       name: Yup.string().required("يرجى إدخال اسم المدرب"),
-      phone: Yup.string().matches(
-        /^(\+218|00218|0)?(9[1-5]\d{7})$/,
-        "يجب إدخال الرقم بشكل صحيح"
-      ),
+      phone: Yup.string(),
       organizationId: Yup.number(),
     }),
     onSubmit: (values) => {
@@ -55,9 +54,7 @@ const FormDialog: React.FC<FormDialogProps> = ({
   });
 
   const handleClose = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
+    if (e.target === e.currentTarget && !isLoading) onClose();
   };
 
   return (
@@ -78,6 +75,7 @@ const FormDialog: React.FC<FormDialogProps> = ({
               value={formik.values.name}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
+              disabled={isLoading}
             />
             {formik.touched.name && formik.errors.name && (
               <p className="text-sm text-destructive">{formik.errors.name}</p>
@@ -90,6 +88,7 @@ const FormDialog: React.FC<FormDialogProps> = ({
               value={formik.values.phone}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
+              disabled={isLoading}
             />
             {formik.touched.phone && formik.errors.phone && (
               <p className="text-sm text-destructive">{formik.errors.phone}</p>
@@ -100,10 +99,10 @@ const FormDialog: React.FC<FormDialogProps> = ({
             <Select
               dir="rtl"
               value={String(formik.values.organizationId)}
-              onValueChange={(value) => {
-                formik.setFieldValue("organizationId", Number(value));
-                formik.setFieldTouched("organizationId", true);
-              }}
+              onValueChange={(value) =>
+                formik.setFieldValue("organizationId", Number(value))
+              }
+              disabled={isLoading}
             >
               <SelectTrigger>
                 <SelectValue placeholder="اختر الجهة" />
@@ -116,19 +115,19 @@ const FormDialog: React.FC<FormDialogProps> = ({
                 ))}
               </SelectContent>
             </Select>
-            {formik.touched.organizationId && formik.errors.organizationId && (
-              <p className="text-sm text-destructive">
-                {formik.errors.organizationId}
-              </p>
-            )}
           </div>
+
           <div className="flex justify-start flex-row-reverse">
-            <Button type="submit">حفظ</Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "جاري الحفظ..." : "حفظ"}
+            </Button>
+
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
               className="ml-2"
+              disabled={isLoading}
             >
               إلغاء
             </Button>
