@@ -13,7 +13,7 @@ export default function Pagination({
   lastPage,
   totalCount,
 }: PaginationProps) {
-  if (lastPage === 1) return null;
+  if (lastPage <= 1) return null;
   return (
     <div className="mt-8 space-y-2">
       <hr />

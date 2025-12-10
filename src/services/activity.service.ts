@@ -10,7 +10,9 @@ export class ActivityService {
     year?: number,
     startDate?: string,
     endDate?: string,
-    parentId?: number | null
+    parentId?: number | null,
+    notParentId?: number | null,
+    limit: number = 10
   ) {
     const pageQuery = `?page=${page}`;
     const searchQuery = search ? `&search=${search}` : "";
@@ -23,8 +25,10 @@ export class ActivityService {
     const typeIdQuery = typeId ? `&typeId=${typeId}` : "";
     const parentIdQuery =
       parentId || parentId === null ? `&parentId=${parentId}` : "";
+    const notParentIdQuery =
+      notParentId || notParentId === null ? `&notParentId=${notParentId}` : "";
     const res = await api.get<PaginatedData<Activity>>(
-      `/api/v1/training-activities/type/${typeId}${pageQuery}${searchQuery}${statusQuery}${dateQuery}${typeIdQuery}${parentIdQuery}`
+      `/api/v1/training-activities/type/${typeId}${pageQuery}${searchQuery}${statusQuery}${dateQuery}${typeIdQuery}${parentIdQuery}${notParentIdQuery}&limit=${limit}`
     );
     return res.data;
   }
@@ -95,6 +99,13 @@ export class ActivityService {
       { traineeId, rating }
     );
     return res.data;
+  }
+
+  static async moveSubActivities(parentId: number, childrenIds: number[]) {
+    const res = await api.post(`/api/v1/training-activities/${parentId}/move`, {
+      childrenIds,
+    });
+    return res.data.data;
   }
 }
 

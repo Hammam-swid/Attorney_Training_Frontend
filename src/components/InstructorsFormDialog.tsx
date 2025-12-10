@@ -67,7 +67,10 @@ const FormDialog: React.FC<FormDialogProps> = ({
     },
     validationSchema: Yup.object({
       name: Yup.string().required("يرجى إدخال اسم المدرب"),
-      phone: Yup.string(),
+      phone: Yup.string().matches(
+        /^(\+218|00218|0)?(9[1-5]\d{7})$/,
+        "يجب إدخال الرقم بشكل صحيح"
+      ),
       organizationId: Yup.number(),
     }),
     onSubmit: (values) => {

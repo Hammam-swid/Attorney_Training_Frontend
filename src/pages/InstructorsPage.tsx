@@ -1,8 +1,7 @@
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../store/index";
+import { useDispatch } from "react-redux";
 import { setPage, setSearchQuery } from "../store/instructorSlice";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FormDialog from "@/components/InstructorsFormDialog";
 import ConfirmModal from "../components/common/ConfirmModal";
 import {
@@ -22,14 +21,15 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Pencil, Trash } from "lucide-react";
+import { Pencil, Trash, UserPlus2 } from "lucide-react";
+import { useAppSelector } from "@/store/hooks";
+import toast from "react-hot-toast";
+import Pagination from "@/components/ui/pagination";
 
 export default function InstructorsPage() {
   const dispatch = useDispatch();
-  const page = useSelector((state: RootState) => state.instructors.page);
-  const searchQuery = useSelector(
-    (state: RootState) => state.instructors.searchQuery
-  );
+  const { page, searchQuery } = useAppSelector((state) => state.instructors);
+  const [searchText, setSearchText] = useState(searchQuery);
 
   const [showForm, setShowForm] = useState(false);
   const [currentTrainer, setCurrentTrainer] = useState<Instructor | null>(null);
@@ -38,7 +38,7 @@ export default function InstructorsPage() {
   const queryClient = useQueryClient();
 
   const { data: instructorsData } = useQuery<PaginatedData<Instructor>, Error>({
-    queryKey: ["instructors", page, searchQuery],
+    queryKey: ["instructors", { page }, { searchQuery }],
     queryFn: () => fetchInstructors(page, limit, searchQuery),
   });
 
@@ -53,33 +53,39 @@ export default function InstructorsPage() {
       queryClient.invalidateQueries({ queryKey: ["instructors"] }),
   });
 
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      dispatch(setSearchQuery(searchText));
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [searchText]);
+
   return (
     <div className="container mx-auto py-10 rtl">
-      <h1 className="text-3xl font-bold mb-5">قائمة المدربين</h1>
-
       <div className="flex justify-between items-center mb-5">
+        <h1 className="text-3xl font-bold mb-5">قائمة المدربين</h1>
         <Button
           onClick={() => {
             setCurrentTrainer(null);
             setShowForm(true);
           }}
         >
+          <UserPlus2 />
           إضافة مدرب جديد
         </Button>
-
-        <div className="flex items-center">
-          <Label htmlFor="search" className="ml-2">
-            بحث:
-          </Label>
-          <Input
-            id="search"
-            type="text"
-            placeholder="ابحث عن مدرب..."
-            value={searchQuery}
-            onChange={(e) => dispatch(setSearchQuery(e.target.value))}
-            className="max-w-sm m-4"
-          />
-        </div>
+      </div>
+      <div className="flex items-center">
+        <Label htmlFor="search" className="ml-2">
+          بحث:
+        </Label>
+        <Input
+          id="search"
+          type="text"
+          placeholder="ابحث عن مدرب..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          className="max-w-sm m-4"
+        />
       </div>
 
       <Table>
@@ -104,9 +110,12 @@ export default function InstructorsPage() {
 
               <TableCell className="flex gap-2">
                 <ConfirmModal
-                  title={`هل أنت متأكد من حذف المدرب ${trainer.name}?`}
+                  title={`هل أنت متأكد من حذف المدرب ${trainer.name}؟`}
                   mutationKey={["deleteInstructor", trainer.id]}
                   mutationFn={() => deleteMutation.mutateAsync(trainer.id)}
+                  onError={() => {
+                    toast.error("حدث خطأ أثناء حذف المدرب");
+                  }}
                 >
                   <Button size="sm" variant="destructive">
                     حذف <Trash />
@@ -129,26 +138,14 @@ export default function InstructorsPage() {
         </TableBody>
       </Table>
 
-      <div className="mt-4 flex justify-center">
-        <Button
-          onClick={() => dispatch(setPage(page - 1))}
-          disabled={page <= 1}
-          variant="outline"
-        >
-          السابق
-        </Button>
-
-        <Button
-          onClick={() => dispatch(setPage(page + 1))}
-          disabled={
-            (instructorsData?.data.length || 0) + limit * (page - 1) >=
-            (instructorsData?.totalCount || 0)
-          }
-          variant="outline"
-        >
-          التالي
-        </Button>
-      </div>
+      {instructorsData && (
+        <Pagination
+          page={page}
+          lastPage={instructorsData?.lastPage}
+          totalCount={instructorsData?.totalCount}
+          setPage={(newPage) => dispatch(setPage(newPage))}
+        />
+      )}
 
       {showForm && organizations && (
         <FormDialog

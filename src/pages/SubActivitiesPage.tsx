@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PlusCircle } from "lucide-react";
+import { Move, PlusCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 // import jsLingua from "jslingua";
@@ -21,6 +21,7 @@ import { getDifferenceDays } from "@/lib/getDifferenceDays";
 import { Badge } from "@/components/ui/badge";
 import { parseActivityStatusClassName } from "@/lib/parseActivityStatus";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import MoveSubActivities from "@/components/activities/MoveSubActivities";
 
 export default function SubActivitiesPage() {
   const [search, setSearch] = useState("");
@@ -61,14 +62,24 @@ export default function SubActivitiesPage() {
           قائمة الأنشطة الفرعية
         </CardTitle>
 
-        <Button className="text-lg" asChild>
-          <Link
-            to={`/activities/add?parentId=${parentId}&typeId=${parent?.type.id}`}
-          >
-            <span>إضافة جديد</span>
-            <PlusCircle />
-          </Link>
-        </Button>
+        <div className="flex items-center gap-4">
+          <Button className="text-lg" asChild>
+            <Link
+              to={`/activities/add?parentId=${parentId}&typeId=${parent?.type.id}`}
+            >
+              <PlusCircle />
+              <span>إضافة نشاط فرعي جديد</span>
+            </Link>
+          </Button>
+          {parent && (
+            <MoveSubActivities parent={parent}>
+              <Button variant={"outline"} className="text-lg">
+                <Move />
+                <span>نقل نشاط</span>
+              </Button>
+            </MoveSubActivities>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between gap-3 mb-4 mt-4">

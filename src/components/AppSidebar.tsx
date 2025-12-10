@@ -110,10 +110,10 @@ export default function AppSidebar() {
 
   const peopleLinks = [
     { label: "المدربون", to: "/instructors", icon: Users2 },
-    { label: "أعضاء النيابة", to: "/trainees?type=attorney", icon: Users },
-    { label: "الضباط", to: "/trainees?type=officer", icon: Users },
-    { label: "الموظفون", to: "/trainees?type=employee", icon: Users },
-    { label: "آخرون", to: "/trainees?type=other", icon: Users },
+    { label: "كل المتدربين", to: "/trainees?type=attorney", icon: Users },
+    // { label: "الضباط", to: "/trainees?type=officer", icon: Users },
+    // { label: "الموظفون", to: "/trainees?type=employee", icon: Users },
+    // { label: "آخرون", to: "/trainees?type=other", icon: Users },
   ];
 
   const organizationLinks = [
