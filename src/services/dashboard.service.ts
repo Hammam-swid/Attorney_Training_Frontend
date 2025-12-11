@@ -33,4 +33,12 @@ export class DashboardService {
     );
     return res.data.data.activitiesPerMonth;
   }
+
+  static async getTraineeTypes(year?: number) {
+    const yearQuery = year ? `?year=${year}` : "";
+    const res = await api.get<{ data: { traineeTypes: ActivityType[] } }>(
+      `/api/v1/statistics/trainees-activities-per-type${yearQuery}`
+    );
+    return res.data.data.traineeTypes;
+  }
 }

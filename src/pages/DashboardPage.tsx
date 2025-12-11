@@ -3,7 +3,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookOpen, Users, User2, Building, RotateCcw } from "lucide-react";
 
 import { useState } from "react";
-import ActivityTypesCard from "@/components/ActivityTypesCard";
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
 
@@ -26,6 +25,11 @@ export default function DashboardPage() {
   const { data: instructors } = useQuery({
     queryKey: ["top-5-instructors", { year }],
     queryFn: () => DashboardService.getTop5Instructors(year),
+  });
+
+  const {} = useQuery({
+    queryKey: ["trainee-types", { year }],
+    queryFn: () => DashboardService.getTraineeTypes(year),
   });
 
   return (
@@ -170,7 +174,7 @@ export default function DashboardPage() {
             </div>
           </CardContent>
         </Card>
-        <ActivityTypesCard />
+        {/* <ActivityTypesCard /> */}
       </div>
     </div>
   );

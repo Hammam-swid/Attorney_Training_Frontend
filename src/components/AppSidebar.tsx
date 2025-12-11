@@ -27,7 +27,7 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 // import { createLucideIcon } from "lucide-react";
 import Icon from "./ui/Icon";
-import { TraineeType } from "@/types";
+
 import dynamicIconImports from "lucide-react/dynamicIconImports";
 import {
   DropdownMenu,
@@ -51,6 +51,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "./ui/skeleton";
 import { ActivityTypeService } from "@/services/actvitiy-type.service";
+import { TraineeTypeService } from "@/services/trainee-types.service";
 
 interface NavLink {
   label: string;
@@ -100,12 +101,7 @@ export default function AppSidebar() {
 
   const { data: traineesTypes, isLoading: isTraineeLoading } = useQuery({
     queryKey: ["trainee-types"],
-    queryFn: async () => {
-      const res = await api.get<{ data: { traineeTypes: TraineeType[] } }>(
-        "/api/v1/trainee-types"
-      );
-      return res.data.data.traineeTypes;
-    },
+    queryFn: TraineeTypeService.getTraineeTypes,
   });
 
   const peopleLinks = [

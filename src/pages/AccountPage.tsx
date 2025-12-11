@@ -15,10 +15,9 @@ const Account: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto py-10 rtl">
-      <div className="max-w-4xl mx-auto">
+    <div className="">
+      <div className="">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold">الإعدادات</h1>
           <Button
             onClick={handleThemeToggle}
             variant="outline"

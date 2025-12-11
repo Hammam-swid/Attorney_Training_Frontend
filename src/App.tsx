@@ -38,6 +38,7 @@ import EditActivityPage from "./pages/EditActivityPage";
 import ActivityInstructorsPage from "./pages/ActivityInstructorsPage";
 import SubActivitiesPage from "./pages/SubActivitiesPage";
 import ActivityTypesPage from "./pages/settings/ActivityTypesPage";
+import TraineeTypesPage from "./pages/settings/TraineeTypesPage";
 
 const routes = createRoutesFromElements(
   <>
@@ -132,7 +133,8 @@ const routes = createRoutesFromElements(
         errorElement={<ErrorPage />}
       >
         <Route index element={<ActivityTypesPage />} />
-        <Route path="trainee-types" element={<div>أنواع المتدربين</div>} />
+        <Route path="trainee-types" element={<TraineeTypesPage />} />
+        <Route path="account" element={<AccountPage />} />
       </Route>
       <Route path="reports" element={<ReportsLayout />}>
         <Route

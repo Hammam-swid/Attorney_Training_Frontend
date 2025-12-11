@@ -23,6 +23,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ActivityTypeService } from "@/services/actvitiy-type.service";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import * as Yup from "yup";
 
 interface Props {
   children: React.ReactNode;
@@ -84,69 +85,107 @@ export default function AddTypeModal({ children }: Props) {
         <DialogHeader>
           <DialogTitle className="text-center">إضافة نوع نشاط جديد</DialogTitle>
         </DialogHeader>
-        <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
-          <Label htmlFor="name">الاسم</Label>
-          <Input
-            id="name"
-            name="name"
-            placeholder="أدخل اسم نوع النشاط التدريبي"
-            value={formik.values.name}
-            onChange={formik.handleChange}
-          />
-
-          <Label htmlFor="iconName">مسمى المدرب</Label>
-          <Input
-            id="instructorName"
-            name="instructorName"
-            placeholder="المدرب/المدربون"
-            value={formik.values.instructorName}
-            onChange={formik.handleChange}
-          />
-          <Label htmlFor="iconName">مسمى المتدرب</Label>
-          <Input
-            id="traineeName"
-            name="traineeName"
-            placeholder="المتدرب/المتدربون"
-            value={formik.values.traineeName}
-            onChange={formik.handleChange}
-          />
-          <Label htmlFor="isHaveRating">هل يمكن تقييم المدرب</Label>
-          <div className="flex items-center gap-2">
-            {yesOrNo.map((choice, index) => (
-              <span
-                key={index}
-                className={`px-6 py-1 rounded-full text-primary-foreground cursor-pointer ${
-                  formik.values.isHaveRating === choice.value
-                    ? "bg-primary font-bold"
-                    : "bg-primary/50"
-                }`}
-                onClick={() =>
-                  formik.setFieldValue("isHaveRating", choice.value)
-                }
-              >
-                {choice.label}
+        <form onSubmit={formik.handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="name">الاسم</Label>
+            <Input
+              id="name"
+              name="name"
+              placeholder="أدخل اسم نوع النشاط التدريبي"
+              value={formik.values.name}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+            />
+            {formik.errors.name && formik.touched.name && (
+              <span className="text-destructive text-xs">
+                {formik.errors.name}
               </span>
-            ))}
+            )}
           </div>
-          <Label htmlFor="iconName">أيقونة النوع</Label>
-          <div className="flex flex-wrap gap-2">
-            {icons.map((icon, index) => (
-              <div
-                key={index}
-                className="flex flex-col items-center cursor-pointer"
-                onClick={() => formik.setFieldValue("iconName", icon.name)}
-              >
+
+          <div>
+            <Label htmlFor="iconName">مسمى المدرب</Label>
+            <Input
+              id="instructorName"
+              name="instructorName"
+              placeholder="المدرب/المدربون"
+              value={formik.values.instructorName}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+            />
+            {formik.errors.instructorName && formik.touched.instructorName && (
+              <span className="text-destructive text-xs">
+                {formik.errors.instructorName}
+              </span>
+            )}
+          </div>
+          <div>
+            <Label htmlFor="iconName">مسمى المتدرب</Label>
+            <Input
+              id="traineeName"
+              name="traineeName"
+              placeholder="المتدرب/المتدربون"
+              value={formik.values.traineeName}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+            />
+            {formik.errors.traineeName && formik.touched.traineeName && (
+              <span className="text-destructive text-xs">
+                {formik.errors.traineeName}
+              </span>
+            )}
+          </div>
+          <div>
+            <Label htmlFor="isHaveRating">هل يمكن تقييم المدرب</Label>
+            <div className="flex items-center gap-2">
+              {yesOrNo.map((choice, index) => (
                 <span
-                  className={`rounded-md p-2 ${
-                    formik.values.iconName === icon.name
-                      ? "bg-primary text-primary-foreground"
-                      : "text-gray-500"
+                  key={index}
+                  className={`px-6 py-1 rounded-full text-primary-foreground cursor-pointer ${
+                    formik.values.isHaveRating === choice.value
+                      ? "bg-primary font-bold"
+                      : "bg-primary/50"
                   }`}
+                  onClick={() =>
+                    formik.setFieldValue("isHaveRating", choice.value)
+                  }
                 >
-                  <icon.Icon />
+                  {choice.label}
                 </span>
-              </div>
-            ))}
+              ))}
+            </div>
+            {formik.errors.isHaveRating && formik.touched.isHaveRating && (
+              <span className="text-destructive text-xs">
+                {formik.errors.isHaveRating}
+              </span>
+            )}
+          </div>
+          <div>
+            <Label htmlFor="iconName">أيقونة النوع</Label>
+            <div className="flex flex-wrap gap-2">
+              {icons.map((icon, index) => (
+                <div
+                  key={index}
+                  className="flex flex-col items-center cursor-pointer"
+                  onClick={() => formik.setFieldValue("iconName", icon.name)}
+                >
+                  <span
+                    className={`rounded-md p-2 ${
+                      formik.values.iconName === icon.name
+                        ? "bg-primary text-primary-foreground"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    <icon.Icon />
+                  </span>
+                </div>
+              ))}
+            </div>
+            {formik.errors.iconName && formik.touched.iconName && (
+              <span className="text-destructive text-xs">
+                {formik.errors.iconName}
+              </span>
+            )}
           </div>
 
           <div className="flex flex-row-reverse gap-2 mt-6">
@@ -170,6 +209,14 @@ export default function AddTypeModal({ children }: Props) {
   );
 }
 
+const validationSchema = Yup.object({
+  name: Yup.string().required("الاسم مطلوب"),
+  iconName: Yup.string().required("أيقونة النوع مطلوبة"),
+  isHaveRating: Yup.boolean().required("هل يمكن تقييم المدرب مطلوب"),
+  instructorName: Yup.string(),
+  traineeName: Yup.string(),
+});
+
 const useTypeForm = () => {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -190,19 +237,9 @@ const useTypeForm = () => {
       instructorName: "",
       traineeName: "",
     },
+    validationSchema,
     onSubmit: async (values) => {
       await mutateAsync(values);
-      // try {
-      //   const res = await api.post("/api/v1/activity-types", values);
-      //   if (res.status === 201) {
-      //     closeModal();
-      //     toast.success("تم إضافة النوع بنجاح");
-      //   }
-      // } catch (error) {
-      //   const message =
-      //     error instanceof AxiosError ? error?.response?.data?.message : null;
-      //   toast.error(message || "حدث خطأ ما");
-      // }
     },
   });
 
