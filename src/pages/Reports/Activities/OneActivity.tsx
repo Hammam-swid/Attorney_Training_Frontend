@@ -28,7 +28,7 @@ const allFields = [
   { label: "الهاتف", value: "phone" },
   { label: "العنوان", value: "address" },
   { label: "جهة العمل", value: "employer" },
-  { label: "النوع", value: "type" },
+  { label: "النوع", value: "traineeType[name]" },
   { label: "الدرجة القضائية", value: "payGrade" },
   { label: "التقييم", value: "rating" },
 ];
@@ -103,11 +103,7 @@ export default function OneActivity() {
     utils.sheet_add_json(worksheet, data, { origin: "A2" });
     worksheet["!cols"] = fields.map(() => ({ wch: 15 }));
     worksheet["!dir"] = "rtl";
-    utils.book_append_sheet(
-      workbook,
-      worksheet,
-      `تقرير-المتدربين-للنشاط-${search}`
-    );
+    utils.book_append_sheet(workbook, worksheet, `تقرير-المتدربين-للنشاط`);
 
     writeFile(workbook, `تقرير-المتدربين-للنشاط.xlsx`);
   };

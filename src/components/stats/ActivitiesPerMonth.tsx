@@ -27,7 +27,7 @@ export default function ActivitiesPerMonth() {
   const [year, setYear] = useState(new Date().getFullYear());
 
   const { data: activitiesPerMonth = [], isLoading } = useQuery({
-    queryKey: ["activities-per-month", year],
+    queryKey: ["activities", "per-month", year],
     queryFn: () => DashboardService.getActivitiesPerMonth(year),
   });
 

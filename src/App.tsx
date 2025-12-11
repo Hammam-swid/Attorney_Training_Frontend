@@ -32,11 +32,12 @@ import { store } from "./store";
 import ActivityTraineesPage from "./pages/ActivityTraineesPage";
 import ActivityDetailsPage from "./pages/ActivityDetailsPage";
 import UsersPage from "./pages/UsersPage";
-import SettingsPage from "./pages/SettingsPage";
+import SettingsLayout from "./pages/SettingsLayout";
 import AddActivityPage from "./pages/AddActivityPage";
 import EditActivityPage from "./pages/EditActivityPage";
 import ActivityInstructorsPage from "./pages/ActivityInstructorsPage";
 import SubActivitiesPage from "./pages/SubActivitiesPage";
+import ActivityTypesPage from "./pages/settings/ActivityTypesPage";
 
 const routes = createRoutesFromElements(
   <>
@@ -127,9 +128,12 @@ const routes = createRoutesFromElements(
       />
       <Route
         path="settings"
-        element={<SettingsPage />}
+        element={<SettingsLayout />}
         errorElement={<ErrorPage />}
-      />
+      >
+        <Route index element={<ActivityTypesPage />} />
+        <Route path="trainee-types" element={<div>أنواع المتدربين</div>} />
+      </Route>
       <Route path="reports" element={<ReportsLayout />}>
         <Route
           path="activities"

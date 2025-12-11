@@ -23,7 +23,7 @@ export default function ActivitiesPerType() {
   const [year, setYear] = useState<number>();
 
   const { data: Types = [], isLoading } = useQuery({
-    queryKey: ["activity-per-type", year],
+    queryKey: ["activities", "per-type", year],
     queryFn: () => DashboardService.getActivitiesPerType(year),
     select: (types) =>
       types.map((type, index) => ({

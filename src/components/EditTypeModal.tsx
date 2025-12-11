@@ -1,5 +1,4 @@
 import { useFormik } from "formik";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { ActivityType } from "@/types";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -16,12 +15,24 @@ import {
 import { Button } from "./ui/button";
 import { AxiosError } from "axios";
 import toast from "react-hot-toast";
-import api from "@/lib/api";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import { ReactNode, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  ActivityTypeService,
+  AddFormValues,
+} from "@/services/actvitiy-type.service";
 
 interface Props {
   type: ActivityType;
-  onClose: () => void;
-  onEdit: (newType: ActivityType) => void;
+  children: ReactNode;
 }
 
 const icons = [
@@ -62,57 +73,17 @@ const yesOrNo = [
   },
 ];
 
-export default function EditTypeModal({ type, onClose, onEdit }: Props) {
-  const formik = useFormik({
-    initialValues: {
-      name: type.name,
-      iconName: type.iconName,
-      isHaveRating: type.isHaveRating,
-      instructorName: type.instructorName,
-      traineeName: type.traineeName,
-    },
-    onSubmit: async (values) => {
-      try {
-        const res = await api.patch(
-          `/api/v1/activity-types/${type.id}`,
-          values
-        );
-        if (res.status === 200) {
-          toast.success("تم تعديل النوع بنجاح");
-          closeModal();
-          console.log(res.data);
-          onEdit(res.data.data.type as ActivityType);
-        }
-      } catch (error) {
-        const message =
-          error instanceof AxiosError ? error.response?.data?.message : null;
-        toast.error(message || "حدث خطأ ما");
-      }
-    },
-  });
-  const closeModal = () => {
-    onClose();
-    formik.resetForm();
-  };
+export default function EditTypeModal({ type, children }: Props) {
+  const { formik, open, setOpen, isPending } = useEditTypeModal(type);
   return (
-    <div
-      id="edit-type-modal-overlay"
-      onClick={(
-        e: React.MouseEvent<HTMLDivElement, MouseEvent> & {
-          target: HTMLDivElement;
-        }
-      ) => e.target.id === "edit-type-modal-overlay" && closeModal()}
-      className="fixed inset-0 bg-black bg-opacity-50 h-screen w-screen flex items-center justify-center z-50"
-    >
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-center">تعديل نوع نشاط</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form
-            onSubmit={formik.handleSubmit}
-            className="flex flex-col gap-4 w-96"
-          >
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="text-center">تعديل نوع نشاط</DialogTitle>
+        </DialogHeader>
+        <div>
+          <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
             <Label htmlFor="name">الاسم</Label>
             <Input
               id="name"
@@ -178,23 +149,65 @@ export default function EditTypeModal({ type, onClose, onEdit }: Props) {
             </div>
 
             <div className="flex flex-row-reverse gap-2 mt-6">
-              <Button type="submit">
+              <Button disabled={isPending} type="submit">
                 <span>حفظ</span>
                 <Save />
               </Button>
-              <Button
-                type="button"
-                onClick={() => closeModal()}
-                className="hover:text-destructive"
-                variant={"outline"}
-              >
-                <span>إلغاء</span>
-                <X />
-              </Button>
+              <DialogClose>
+                <Button
+                  type="button"
+                  className="hover:text-destructive"
+                  variant={"outline"}
+                >
+                  <span>إلغاء</span>
+                  <X />
+                </Button>
+              </DialogClose>
             </div>
           </form>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
+
+const useEditTypeModal = (type: ActivityType) => {
+  const [open, setOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationKey: ["update", "activity-type", type.id],
+    mutationFn: (data: AddFormValues) =>
+      ActivityTypeService.updateActivityType(type.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["activity-types"],
+      });
+      toast.success("تم تعديل النوع بنجاح");
+      setOpen(false);
+    },
+    onError: (error) => {
+      const message =
+        error instanceof AxiosError ? error.response?.data?.message : null;
+      toast.error(message || "حدث خطأ ما");
+    },
+  });
+  const formik = useFormik({
+    initialValues: {
+      name: type.name,
+      iconName: type.iconName,
+      isHaveRating: type.isHaveRating,
+      instructorName: type.instructorName,
+      traineeName: type.traineeName,
+    },
+    onSubmit: async (values) => {
+      await mutateAsync(values);
+    },
+  });
+
+  return {
+    open,
+    setOpen,
+    formik,
+    isPending,
+  };
+};

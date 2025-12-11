@@ -61,7 +61,7 @@ export default function InstructorsPage() {
   }, [searchText]);
 
   return (
-    <div className="container mx-auto py-10 rtl">
+    <div className="container mx-auto py-10 px-2">
       <div className="flex justify-between items-center mb-5">
         <h1 className="text-3xl font-bold mb-5">قائمة المدربين</h1>
         <Button
@@ -118,7 +118,7 @@ export default function InstructorsPage() {
                   }}
                 >
                   <Button size="sm" variant="destructive">
-                    حذف <Trash />
+                    <Trash />
                   </Button>
                 </ConfirmModal>
 
@@ -130,7 +130,7 @@ export default function InstructorsPage() {
                     setShowForm(true);
                   }}
                 >
-                  تعديل <Pencil />
+                  <Pencil />
                 </Button>
               </TableCell>
             </TableRow>

@@ -1,7 +1,7 @@
 import api from "@/lib/api";
 import { ActivityType } from "@/types";
 
-interface AddFormValues {
+export interface AddFormValues {
   name: string;
   iconName: string;
   isHaveRating: boolean | null;
@@ -25,6 +25,16 @@ export class ActivityTypeService {
 
   static async createActivityType(data: AddFormValues) {
     const res = await api.post("/api/v1/activity-types", data);
+    return res.data;
+  }
+
+  static async updateActivityType(id: number, data: AddFormValues) {
+    const res = await api.patch(`/api/v1/activity-types/${id}`, data);
+    return res.data;
+  }
+
+  static async deleteActivityType(id: number) {
+    const res = await api.delete(`/api/v1/activity-types/${id}`);
     return res.data;
   }
 }
