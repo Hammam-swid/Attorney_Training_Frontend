@@ -13,6 +13,7 @@ import YearSelect from "@/components/ui/YearSelect";
 import { useQuery } from "@tanstack/react-query";
 import { DashboardService } from "@/services/dashboard.service";
 import { Skeleton } from "@/components/ui/skeleton";
+import TraineesPerType from "@/components/stats/TraineesPerType";
 
 export default function DashboardPage() {
   const [year, setYear] = useState<number | undefined>(undefined);
@@ -25,11 +26,6 @@ export default function DashboardPage() {
   const { data: instructors } = useQuery({
     queryKey: ["top-5-instructors", { year }],
     queryFn: () => DashboardService.getTop5Instructors(year),
-  });
-
-  const {} = useQuery({
-    queryKey: ["trainee-types", { year }],
-    queryFn: () => DashboardService.getTraineeTypes(year),
   });
 
   return (
@@ -174,7 +170,7 @@ export default function DashboardPage() {
             </div>
           </CardContent>
         </Card>
-        {/* <ActivityTypesCard /> */}
+        <TraineesPerType year={year} />
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import { Activity, ActivityTrainee, PaginatedData } from "@/types";
+import { Activity, ActivityTrainee, Instructor, PaginatedData } from "@/types";
 
 export class ActivityService {
   static async getActivities(
@@ -97,6 +97,51 @@ export class ActivityService {
     const res = await api.post(
       `/api/v1/training-activities/${activityId}/trainee/rate`,
       { traineeId, rating }
+    );
+    return res.data;
+  }
+
+  static async getActivityInstructors(id: string) {
+    const res = await api.get<{
+      data: { instructors: Instructor[] };
+    }>(`/api/v1/training-activities/${id}/instructor`);
+    return res.data.data.instructors;
+  }
+
+  static async addInstructorsToActivity(
+    activityId: string,
+    instructorIds: number[]
+  ) {
+    const res = await api.post(
+      `/api/v1/training-activities/${activityId}/instructor`,
+      { instructorIds }
+    );
+    return res.data;
+  }
+
+  static async removeInstructorFromActivity(
+    activityId: string,
+    instructorId: number
+  ) {
+    const res = await api.delete(
+      `/api/v1/training-activities/${activityId}/instructor`,
+      { data: { instructorId } }
+    );
+
+    return res.data;
+  }
+
+  static async rateInstructor(
+    activityId: string,
+    instructorId: number,
+    rating: number
+  ) {
+    const res = await api.patch(
+      `/api/v1/training-activities/${activityId}/instructor/rate`,
+      {
+        instructorId,
+        rating,
+      }
     );
     return res.data;
   }

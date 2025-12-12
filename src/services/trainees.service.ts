@@ -6,14 +6,15 @@ export class TraineesService {
     page: number = 1,
     search: string,
     type?: string,
-    typeId?: string
+    typeId?: string,
+    limit: number = 10
   ) {
     const searchParam = search ? `&search=${encodeURIComponent(search)}` : "";
     const typeParam = type ? `&type=${type}` : "";
     const typeIdParam = typeId ? `&typeId=${typeId}` : "";
 
     const res = await api.get<PaginatedData<Trainee>>(
-      `/api/v1/trainees?page=${page}&limit=10${searchParam}${typeParam}${typeIdParam}`
+      `/api/v1/trainees?page=${page}&limit=${limit}${searchParam}${typeParam}${typeIdParam}`
     );
     return res.data;
   }

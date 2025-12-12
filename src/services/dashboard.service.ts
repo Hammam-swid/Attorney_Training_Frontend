@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import { Instructor, Statistics } from "@/types";
+import { Instructor, Statistics, TraineeType } from "@/types";
 import { ActivityType } from "@/types";
 export class DashboardService {
   static async getStatistics(year?: number) {
@@ -36,7 +36,7 @@ export class DashboardService {
 
   static async getTraineeTypes(year?: number) {
     const yearQuery = year ? `?year=${year}` : "";
-    const res = await api.get<{ data: { traineeTypes: ActivityType[] } }>(
+    const res = await api.get<{ data: { traineeTypes: TraineeType[] } }>(
       `/api/v1/statistics/trainees-activities-per-type${yearQuery}`
     );
     return res.data.data.traineeTypes;

@@ -70,7 +70,7 @@ export default function ActivityTraineesPage() {
             activityId={activityId!}
             oldTrainees={trainees}
           >
-            <Button variant={"default"} size={"lg"}>
+            <Button variant={"default"}>
               <span>إدراج متدرب للنشاط</span>
             </Button>
           </AddTraineesToActivityDialog>
