@@ -12,58 +12,73 @@ import { Instructor, Organization } from "@/types";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { InstructorService } from "@/services/instructors.service";
+import toast from "react-hot-toast";
 import {
-  createInstructor,
-  editInstructor,
-} from "@/services/instructors.service";
-import { toast } from "react-hot-toast";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import { ReactNode, useState } from "react";
 
-interface FormDialogProps {
-  title: string;
-  initialData: Partial<Instructor>;
-  organizations: Organization[];
-  onClose: () => void;
+interface AddInstructorProps {
+  type: "add";
+  instructor?: never;
 }
 
-const FormDialog: React.FC<FormDialogProps> = ({
+interface EditInstructorProps {
+  type: "edit";
+  instructor: Instructor;
+}
+
+type Props = {
+  title: string;
+  children: ReactNode;
+  organizations: Organization[];
+} & (AddInstructorProps | EditInstructorProps);
+
+export default function InstructorForm({
   title,
-  initialData,
+  children,
+  type,
+  instructor,
   organizations,
-  onClose,
-}) => {
+}: Props) {
+  const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
+  const isEdit = type === "edit";
 
   const createMutation = useMutation({
-    mutationFn: (trainer: Instructor) => createInstructor(trainer),
+    mutationFn: (trainer: Instructor) =>
+      InstructorService.createInstructor(trainer),
     onSuccess: () => {
       toast.success("تمت إضافة المدرب بنجاح");
       queryClient.invalidateQueries({ queryKey: ["instructors"] });
-      onClose();
+      formik.resetForm();
+      setOpen(false);
     },
-    onError: () => {
-      toast.error("حدث خطأ أثناء إضافة المدرب");
-    },
+    onError: () => toast.error("حدث خطأ أثناء إضافة المدرب"),
   });
 
   const editMutation = useMutation({
-    mutationFn: (trainer: Instructor) => editInstructor(trainer),
+    mutationFn: (trainer: Instructor) =>
+      InstructorService.editInstructor(trainer),
     onSuccess: () => {
       toast.success("تم تعديل بيانات المدرب بنجاح");
       queryClient.invalidateQueries({ queryKey: ["instructors"] });
-      onClose();
+      formik.resetForm();
+      setOpen(false);
     },
-    onError: () => {
-      toast.error("حدث خطأ أثناء تعديل المدرب");
-    },
+    onError: () => toast.error("حدث خطأ أثناء تعديل المدرب"),
   });
-
-  const isEdit = Boolean(initialData.id);
 
   const formik = useFormik({
     initialValues: {
-      name: initialData.name || "",
-      phone: initialData.phone || "",
-      organizationId: initialData.organization?.id || 0,
+      name: isEdit ? instructor.name : "",
+      phone: isEdit ? instructor.phone : "",
+      organizationId: isEdit ? instructor.organization?.id || 0 : 0,
     },
     validationSchema: Yup.object({
       name: Yup.string().required("يرجى إدخال اسم المدرب"),
@@ -74,43 +89,37 @@ const FormDialog: React.FC<FormDialogProps> = ({
       organizationId: Yup.number(),
     }),
     onSubmit: (values) => {
-      const instructor: Instructor = {
-        id: initialData.id || 0,
+      const trainer: Instructor = {
+        id: isEdit ? instructor.id : 0,
         name: values.name,
         phone: values.phone,
         organization: values.organizationId
-          ? { name: "", id: values.organizationId }
+          ? { id: values.organizationId, name: "" }
           : null,
       };
-      if (isEdit) {
-        editMutation.mutate(instructor);
-      } else {
-        createMutation.mutate(instructor);
-      }
+      isEdit ? editMutation.mutate(trainer) : createMutation.mutate(trainer);
     },
   });
 
   const isLoading = isEdit ? editMutation.isPending : createMutation.isPending;
 
-  const handleClose = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget && !isLoading) onClose();
-  };
-
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center rtl z-50"
-      onClick={handleClose}
-    >
-      <div
-        className="bg-background p-6 rounded-lg w-96"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className="text-2xl font-bold mb-4">{title}</h2>
-        <form onSubmit={formik.handleSubmit}>
-          <div className="mb-4">
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <form
+          onSubmit={formik.handleSubmit}
+          className="flex flex-col gap-4 mt-4"
+        >
+          <div>
             <Label htmlFor="name">الاسم</Label>
             <Input
               id="name"
+              name="name"
               value={formik.values.name}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -120,10 +129,12 @@ const FormDialog: React.FC<FormDialogProps> = ({
               <p className="text-sm text-destructive">{formik.errors.name}</p>
             )}
           </div>
-          <div className="mb-4">
+
+          <div>
             <Label htmlFor="phone">رقم الهاتف</Label>
             <Input
               id="phone"
+              name="phone"
               value={formik.values.phone}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -133,12 +144,13 @@ const FormDialog: React.FC<FormDialogProps> = ({
               <p className="text-sm text-destructive">{formik.errors.phone}</p>
             )}
           </div>
-          <div className="mb-4">
+
+          <div>
             <Label htmlFor="organization">الجهة التابع لها</Label>
             <Select
               value={String(formik.values.organizationId)}
-              onValueChange={(value) =>
-                formik.setFieldValue("organizationId", Number(value))
+              onValueChange={(v) =>
+                formik.setFieldValue("organizationId", Number(v))
               }
               disabled={isLoading}
             >
@@ -155,25 +167,21 @@ const FormDialog: React.FC<FormDialogProps> = ({
             </Select>
           </div>
 
-          <div className="flex justify-start flex-row-reverse">
+          <div className="flex justify-start flex-row-reverse gap-2 mt-4">
             <Button type="submit" disabled={isLoading}>
               {isLoading ? "جاري الحفظ..." : "حفظ"}
             </Button>
-
             <Button
               type="button"
               variant="outline"
-              onClick={onClose}
-              className="ml-2"
+              onClick={() => setOpen(false)}
               disabled={isLoading}
             >
               إلغاء
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
-};
-
-export default FormDialog;
+}
