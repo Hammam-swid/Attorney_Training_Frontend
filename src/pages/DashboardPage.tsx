@@ -3,7 +3,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookOpen, Users, User2, Building, RotateCcw } from "lucide-react";
 
 import { useState } from "react";
-import ActivityTypesCard from "@/components/ActivityTypesCard";
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
 
@@ -14,6 +13,7 @@ import YearSelect from "@/components/ui/YearSelect";
 import { useQuery } from "@tanstack/react-query";
 import { DashboardService } from "@/services/dashboard.service";
 import { Skeleton } from "@/components/ui/skeleton";
+import TraineesPerType from "@/components/stats/TraineesPerType";
 
 export default function DashboardPage() {
   const [year, setYear] = useState<number | undefined>(undefined);
@@ -170,7 +170,7 @@ export default function DashboardPage() {
             </div>
           </CardContent>
         </Card>
-        <ActivityTypesCard />
+        <TraineesPerType year={year} />
       </div>
     </div>
   );

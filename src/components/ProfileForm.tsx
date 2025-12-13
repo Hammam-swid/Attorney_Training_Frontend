@@ -15,9 +15,13 @@ import { Button } from "./ui/button";
 import { AxiosError } from "axios";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
+import { setUser } from "@/store/authSlice";
+import { useDispatch } from "react-redux";
+import { User as UserType } from "@/types";
 
 export default function ProfileForm() {
   const user = useAppSelector((state) => state.auth.user);
+  const dispatch = useDispatch();
   const formik = useFormik({
     initialValues: {
       fullName: user?.fullName || "",
@@ -35,13 +39,15 @@ export default function ProfileForm() {
     }),
     onSubmit: async (values) => {
       try {
-        const res = await api.patch("/api/v1/users/update-me", values);
-        console.log(res);
+        const res = await api.patch<{ data: { user: UserType } }>(
+          "/api/v1/users/update-me",
+          values
+        );
         if (res.status === 200) {
           toast.success("تم تحديث الملف الشخصي بنجاح");
+          dispatch(setUser(res.data.data.user));
         }
       } catch (error) {
-        console.log(error);
         const message =
           error instanceof AxiosError
             ? error.response?.data?.message ||

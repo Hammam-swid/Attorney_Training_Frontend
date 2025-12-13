@@ -286,7 +286,7 @@ const useActivityForm = ({
     queryFn: ActivityTypeService.getActivityTypes,
   });
   const { data: organizations } = useQuery({
-    queryKey: ["all-organizations"],
+    queryKey: ["organizations"],
     queryFn: OrganizationService.getAllOrganization,
   });
 

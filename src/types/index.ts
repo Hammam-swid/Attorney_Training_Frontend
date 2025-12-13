@@ -81,7 +81,7 @@ export interface Trainee {
 export interface TraineeType {
   id: number;
   name: string;
-  traineesCount?: number;
+  traineeCount?: number;
   hasPayGrade: boolean;
 }
 

@@ -33,7 +33,7 @@ export default function OrganizationPage() {
   const dispatch = useDispatch();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["organization", { page }, { search }],
+    queryKey: ["organizations", { page }, { search }],
     queryFn: () => OrganizationService.getOrganization(page, search),
   });
 
@@ -132,7 +132,7 @@ export default function OrganizationPage() {
                       }
                       onSuccess={() => {
                         queryClient.invalidateQueries({
-                          queryKey: ["organization", { page }, { search }],
+                          queryKey: ["organizations"],
                         });
                         toast.success("تمت العملية بنجاح");
                       }}

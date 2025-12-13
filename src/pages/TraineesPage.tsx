@@ -64,12 +64,14 @@ export default function TraineesPage() {
     <div className="container px-5 mx-auto py-10 rtl">
       <div className="flex justify-between items-center mb-5">
         <h1 className="text-3xl font-bold">قائمة المتدربين</h1>
-        <FormDialog title="إضافة متدرب جديد" type="add">
-          <Button>
-            <UserPlus />
-            إضافة متدرب جديد
-          </Button>
-        </FormDialog>
+        {typeId && (
+          <FormDialog title="إضافة متدرب جديد" type="add">
+            <Button>
+              <UserPlus />
+              إضافة متدرب جديد
+            </Button>
+          </FormDialog>
+        )}
       </div>
       <div className="flex items-center mb-5">
         <Label htmlFor="search" className="ml-2">

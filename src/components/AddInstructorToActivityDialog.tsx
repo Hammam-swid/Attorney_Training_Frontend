@@ -1,4 +1,4 @@
-import { Trainee } from "@/types";
+import { Instructor } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ReactNode, useState } from "react";
 import { Input } from "./ui/input";
@@ -22,19 +22,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
-import { TraineesService } from "@/services/trainees.service";
+import { fetchInstructors } from "@/services/instructors.service";
 import Pagination from "./ui/pagination";
+import { ActivityService } from "@/services/activity.service";
 
 interface Props {
   activityId: string;
   children: ReactNode;
-  oldTrainees: Trainee[];
-  onSuccess?: () => void;
+  oldInstructors: Instructor[];
 }
 
-export default function AddTraineesToActivityDialog({
+export default function AddInstructorToActivityDialog({
   activityId,
-  oldTrainees,
+  oldInstructors,
   children,
 }: Props) {
   const {
@@ -42,21 +42,22 @@ export default function AddTraineesToActivityDialog({
     mutateAsync,
     isLoading,
     search,
-    selectedTrainees,
+    selectedInstructors,
     setSearch,
-    setSelectedTrainees,
-    trainees,
+    setSelectedInstructors,
+    instructors,
     setPage,
     page,
     lastPage,
     totalCount,
-  } = useAddTraineesDialog(activityId);
+  } = useAddInstructorsDialog(activityId);
+
   return (
     <Dialog>
       <DialogTrigger>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>قائمة كل المتدربين</DialogTitle>
+          <DialogTitle>قائمة كل المدربين</DialogTitle>
         </DialogHeader>
         <div className="flex items-center gap-3">
           <Input
@@ -66,8 +67,8 @@ export default function AddTraineesToActivityDialog({
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        {selectedTrainees.length > 0 && (
-          <div>تم تحديد {selectedTrainees.length} متدرب</div>
+        {selectedInstructors.length > 0 && (
+          <div>تم تحديد {selectedInstructors.length} مدرب</div>
         )}
         <Table className="mt-4">
           <TableHeader>
@@ -84,32 +85,39 @@ export default function AddTraineesToActivityDialog({
                   <Loader2 className="animate-spin mx-auto text-primary w-16 h-16" />
                 </TableCell>
               </TableRow>
-            ) : trainees && trainees.length > 0 ? (
-              trainees
+            ) : instructors && instructors.length > 0 ? (
+              instructors
                 ?.filter(
-                  (trainee) => !oldTrainees.some((t) => t.id === trainee.id)
+                  (instructor) =>
+                    !oldInstructors.some((i) => i.id === instructor.id)
                 )
-                .map((trainee) => (
-                  <TableRow className="" key={trainee.id}>
+                .map((instructor) => (
+                  <TableRow className="" key={instructor.id}>
                     <TableCell>
                       <Checkbox
-                        checked={selectedTrainees.some(
-                          (t) => t.id === trainee.id
+                        checked={selectedInstructors.some(
+                          (i) => i.id === instructor.id
                         )}
-                        // onChange={(e)=> {setSelectedTrainees(prev =>)}}
                         onCheckedChange={(checked) => {
                           if (checked) {
-                            setSelectedTrainees((prev) => [...prev, trainee]);
+                            setSelectedInstructors((prev) => [
+                              ...prev,
+                              instructor,
+                            ]);
                           } else {
-                            setSelectedTrainees((prev) =>
-                              prev.filter((t) => t.id !== trainee.id)
+                            setSelectedInstructors((prev) =>
+                              prev.filter((i) => i.id !== instructor.id)
                             );
                           }
                         }}
                       />
                     </TableCell>
-                    <TableCell className="text-right">{trainee.id}</TableCell>
-                    <TableCell className="text-right">{trainee.name}</TableCell>
+                    <TableCell className="text-right">
+                      {instructor.id}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {instructor.name}
+                    </TableCell>
                   </TableRow>
                 ))
             ) : (
@@ -131,7 +139,7 @@ export default function AddTraineesToActivityDialog({
         )}
         <DialogFooter className="">
           <Button
-            disabled={isPending || selectedTrainees.length < 1}
+            disabled={isPending || selectedInstructors.length < 1}
             onClick={async () => await mutateAsync()}
             className="font-bold w-full"
           >
@@ -143,44 +151,48 @@ export default function AddTraineesToActivityDialog({
   );
 }
 
-const useAddTraineesDialog = (activityId: string) => {
+const useAddInstructorsDialog = (activityId: string) => {
   const queryClient = useQueryClient();
-  const [selectedTrainees, setSelectedTrainees] = useState<Trainee[]>([]);
+  const [selectedInstructors, setSelectedInstructors] = useState<Instructor[]>(
+    []
+  );
   const [search, setSearch] = useState<string>("");
   const [page, setPage] = useState<number>(1);
+
   const { data, isLoading } = useQuery({
-    queryKey: ["trainees", { search }, { page }],
-    queryFn: () =>
-      TraineesService.getTrainees(page, search, undefined, undefined, 5),
+    queryKey: ["instructors", { search }, { page }],
+    queryFn: () => fetchInstructors(page, 5, search),
   });
-  const trainees = data?.data || [];
+
+  const instructors = data?.data || [];
+
   const { mutateAsync, isPending } = useMutation({
-    mutationKey: ["add-trainees-to-activity"],
+    mutationKey: ["add-instructors-to-activity"],
     mutationFn: async () =>
-      TraineesService.addTraineesToActivity(
+      ActivityService.addInstructorsToActivity(
         activityId,
-        selectedTrainees.map((t) => t.id)
+        selectedInstructors.map((i) => i.id)
       ),
     onSuccess: () => {
-      toast.success("تمت إضافة المتدربين بنجاح");
+      toast.success("تمت إضافة المدربين بنجاح");
       queryClient.invalidateQueries({
-        queryKey: ["trainees", { activityId }],
+        queryKey: ["instructors"],
       });
-      setSelectedTrainees([]);
+      setSelectedInstructors([]);
     },
     onError() {
-      toast.error("حدث خطأ أثناء إضافة المتدربين");
+      toast.error("حدث خطأ أثناء إضافة المدربين");
     },
   });
 
   return {
     mutateAsync,
     isPending,
-    selectedTrainees,
-    setSelectedTrainees,
+    selectedInstructors,
+    setSelectedInstructors,
     search,
     setSearch,
-    trainees,
+    instructors,
     isLoading,
     setPage,
     page,

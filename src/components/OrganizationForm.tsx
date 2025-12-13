@@ -16,7 +16,6 @@ import { Organization } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { OrganizationService } from "@/services/organization.service";
 import toast from "react-hot-toast";
-import { useAppSelector } from "@/store/hooks";
 
 interface AddOrganizationProps {
   type: "add";
@@ -92,7 +91,6 @@ export default function OrganizationForm({
 
 const useOrganizationForm = ({ type, organization }: props) => {
   const [open, setOpen] = useState(false);
-  const { page, search } = useAppSelector((state) => state.organizations);
   const queryClient = useQueryClient();
   const { mutateAsync } = useMutation({
     mutationKey:
@@ -108,10 +106,7 @@ const useOrganizationForm = ({ type, organization }: props) => {
       formik.resetForm();
       setOpen(false);
       queryClient.invalidateQueries({
-        queryKey: ["organization", { page }, { search }],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["all-organizations"],
+        queryKey: ["organizations"],
       });
     },
   });

@@ -63,7 +63,7 @@ export default function SubActivitiesPage() {
         </CardTitle>
 
         <div className="flex items-center gap-4">
-          <Button className="text-lg" asChild>
+          <Button asChild>
             <Link
               to={`/activities/add?parentId=${parentId}&typeId=${parent?.type.id}`}
             >
@@ -73,7 +73,7 @@ export default function SubActivitiesPage() {
           </Button>
           {parent && (
             <MoveSubActivities parent={parent}>
-              <Button variant={"outline"} className="text-lg">
+              <Button variant={"outline"}>
                 <Move />
                 <span>نقل نشاط</span>
               </Button>

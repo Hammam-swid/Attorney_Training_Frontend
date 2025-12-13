@@ -9,10 +9,12 @@ import {
 } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { useMutation } from "@tanstack/react-query";
+import { DialogDescription } from "@radix-ui/react-dialog";
 
 interface props {
   children: ReactNode;
   title: string;
+  description?: string;
   mutationKey: any;
   mutationFn?: () => Promise<any>;
   onSuccess?: () => void;
@@ -21,6 +23,7 @@ interface props {
 export default function ConfirmModal({
   children,
   title,
+  description,
   mutationKey,
   mutationFn,
   onError,
@@ -38,6 +41,7 @@ export default function ConfirmModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <div className="flex items-center justify-end gap-4 mt-4">
           <DialogClose asChild>
