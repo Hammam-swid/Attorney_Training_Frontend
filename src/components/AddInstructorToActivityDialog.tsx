@@ -22,7 +22,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
-import { fetchInstructors } from "@/services/instructors.service";
+import { InstructorService } from "@/services/instructors.service";
 import Pagination from "./ui/pagination";
 import { ActivityService } from "@/services/activity.service";
 
@@ -161,7 +161,7 @@ const useAddInstructorsDialog = (activityId: string) => {
 
   const { data, isLoading } = useQuery({
     queryKey: ["instructors", { search }, { page }],
-    queryFn: () => fetchInstructors(page, 5, search),
+    queryFn: () => InstructorService.fetchInstructors(page, 5, search),
   });
 
   const instructors = data?.data || [];
