@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/table";
 import api from "@/lib/api";
 import { getDifferenceDays } from "@/lib/getDifferenceDays";
-// import { generatePrintHTML, openPrintWindow } from "@/lib/printUtils";
+import { generatePrintHTML, openPrintWindow } from "@/lib/printUtils";
 import { useAppSelector } from "@/store/hooks";
 import { Activity } from "@/types";
 import { format } from "date-fns";
@@ -242,16 +242,9 @@ export default function ActivitiesReports() {
     fetchActivities();
   }, [fields, dateFilter, selectedType]);
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     if (activities.length === 0) {
       toast.error("لا يوجد بيانات للطباعة");
-      return;
-    }
-
-    // Create a print-friendly window
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) {
-      toast.error("تعذر فتح نافذة الطباعة");
       return;
     }
 
@@ -263,107 +256,27 @@ export default function ActivitiesReports() {
           )} إلى ${format(dateFilter.endDate, "dd-MM-yyyy")}`
         : "تقرير الأنشطة التدريبية";
 
-    // Generate table HTML
-    const tableHTML = `
-      <!DOCTYPE html>
-      <html dir="rtl" lang="ar">
-        <head>
-          <meta charset="UTF-8">
-          <title>${reportTitle}</title>
-          <style>
-            body {
-              font-family: 'Arial', sans-serif;
-              direction: rtl;
-              padding: 20px;
-            }
-            h1 {
-              text-align: center;
-              margin-bottom: 30px;
-              color: #333;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-top: 20px;
-            }
-            th, td {
-              border: 1px solid #ddd;
-              padding: 12px 8px;
-              text-align: center;
-            }
-            th {
-              background-color: #f5f5f5;
-              font-weight: bold;
-              color: #333;
-            }
-            tr:nth-child(even) {
-              background-color: #f9f9f9;
-            }
-            @media print {
-              body {
-                padding: 10px;
-              }
-              h1 {
-                font-size: 18px;
-                margin-bottom: 15px;
-              }
-              table {
-                font-size: 12px;
-              }
-              th, td {
-                padding: 6px 4px;
-              }
-            }
-            .empty-value {
-              color: #999;
-              font-style: italic;
-            }
-          </style>
-        </head>
-        <body>
-          <h1>${reportTitle}</h1>
-          <table>
-            <thead>
-              <tr>
-                <th>ت.</th>
-                ${fields
-                  .map((field) => `<th>${getFieldLabel(field)}</th>`)
-                  .join("")}
-              </tr>
-            </thead>
-            <tbody>
-              ${activities
-                .map(
-                  (activity, index) => `
-                <tr>
-                  <td>${index + 1}</td>
-                  ${fields
-                    .map((field) => {
-                      const value = getExportFieldValue(activity, field);
-                      return `<td>${
-                        value === "//"
-                          ? '<span class="empty-value">-</span>'
-                          : value
-                      }</td>`;
-                    })
-                    .join("")}
-                </tr>
-              `
-                )
-                .join("")}
-            </tbody>
-          </table>
-        </body>
-      </html>
-    `;
+    // Generate columns for the print table
+    const columns = fields.map((field) => ({
+      label: getFieldLabel(field),
+      value: field,
+    }));
 
-    printWindow.document.write(tableHTML);
-    printWindow.document.close();
+    // Generate print HTML using utility function
+    const printHTML = generatePrintHTML({
+      title: reportTitle,
+      columns,
+      data: activities,
+      getFieldValue: getExportFieldValue,
+    });
 
-    // Wait for content to load then print
-    printWindow.onload = () => {
-      printWindow.print();
-    };
+    // Open print window using utility function
+    try {
+      await openPrintWindow(printHTML);
+    } catch (error) {
+      console.error("Error opening print window:", error);
+      toast.error("تعذر فتح نافذة الطباعة");
+    }
   };
 
   const handleExport = () => {
@@ -555,43 +468,45 @@ export default function ActivitiesReports() {
           </Button>
         </div>
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableCell>ت.</TableCell>
-            {allFields
-              .filter((field) => fields.includes(field.value))
-              .map((field) => (
-                <TableCell key={field.value}>{field.label}</TableCell>
-              ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody key={activities?.length}>
-          {activities.length > 0 ? (
-            activities.map((activity, index) => (
-              <TableRow key={activity.id}>
-                <TableCell>{index + 1}</TableCell>
-                {allFields
-                  ?.filter((field) => fields.includes(field.value))
-                  ?.map((field) => (
-                    <TableCell key={field.value}>
-                      {getFieldValue(activity, field.value)}
-                    </TableCell>
-                  ))}
-              </TableRow>
-            ))
-          ) : (
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell
-                className="text-center text-gray-400 dark:text-gray-600"
-                colSpan={allFields.length + 1}
-              >
-                لا يوجد نشاطات
-              </TableCell>
+              <TableCell>ت.</TableCell>
+              {allFields
+                .filter((field) => fields.includes(field.value))
+                .map((field) => (
+                  <TableCell key={field.value}>{field.label}</TableCell>
+                ))}
             </TableRow>
-          )}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody key={activities?.length}>
+            {activities.length > 0 ? (
+              activities.map((activity, index) => (
+                <TableRow key={activity.id}>
+                  <TableCell>{index + 1}</TableCell>
+                  {allFields
+                    ?.filter((field) => fields.includes(field.value))
+                    ?.map((field) => (
+                      <TableCell key={field.value}>
+                        {getFieldValue(activity, field.value)}
+                      </TableCell>
+                    ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  className="text-center text-gray-400 dark:text-gray-600"
+                  colSpan={allFields.length + 1}
+                >
+                  لا يوجد نشاطات
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import ActivitiesSelector from "@/components/activities/ActivitiesSelector";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -7,7 +8,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -17,11 +17,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import api from "@/lib/api";
-import { Trainee } from "@/types";
-import { Check, ChevronDown, CircleCheck, Download } from "lucide-react";
+import { Activity, Trainee } from "@/types";
+import {
+  Check,
+  ChevronDown,
+  CircleCheck,
+  Download,
+  Printer,
+  RotateCcw,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { utils, writeFile } from "xlsx";
+import { generatePrintHTML, openPrintWindow } from "@/lib/printUtils";
 
 const allFields = [
   { label: "الاسم", value: "name" },
@@ -34,21 +42,47 @@ const allFields = [
 ];
 
 export default function OneActivity() {
-  const [search, setSearch] = useState("");
   const [trainees, setTrainees] = useState<Trainee[]>([]);
   const [fields, setFields] = useState<string[]>(allFields.map((f) => f.value));
+  const [selectedActivities, setSelectedActivities] = useState<Activity[]>([]);
+
+  // Helper function to get field value from trainee
+  const getFieldValue = (trainee: Trainee, fieldValue: string): string => {
+    if (fieldValue === "traineeType[name]") {
+      return trainee.traineeType?.name || "//";
+    }
+
+    const value = trainee[fieldValue as keyof Trainee];
+
+    if (value === null || value === undefined) {
+      return "//";
+    }
+
+    if (typeof value === "number") {
+      return fieldValue === "rating" ? value.toFixed(2) : value.toString();
+    }
+
+    if (typeof value === "string") {
+      return value;
+    }
+
+    return "//";
+  };
+
   useEffect(() => {
     const fetchTrainees = async () => {
       const res = await api.get(
         `/api/v1/reports/training-activities/trainees${
-          search ? `?activityName=${search}` : ""
+          selectedActivities.length > 0
+            ? `?activityIds=${selectedActivities.map((a) => a.id).join(",")}`
+            : ""
         }`
       );
       console.log(res);
       setTrainees(res.data.data.trainees);
     };
     fetchTrainees();
-  }, [search]);
+  }, [selectedActivities]);
 
   const handleExport = () => {
     if (trainees.length === 0) {
@@ -93,7 +127,11 @@ export default function OneActivity() {
 
     const workbook = utils.book_new();
     const titleRow = [
-      [search ? `تقرير-المتدربين-للنشاط-${search}` : "تقرير-الأنشطة-التدريبية"],
+      [
+        selectedActivities.length > 0
+          ? `تقرير-المتدربين-للنشاط-${selectedActivities.join("-")}`
+          : "تقرير-الأنشطة-التدريبية",
+      ],
     ];
     const worksheet = utils.aoa_to_sheet(titleRow);
 
@@ -108,15 +146,59 @@ export default function OneActivity() {
     writeFile(workbook, `تقرير-المتدربين-للنشاط.xlsx`);
   };
 
+  const handlePrint = () => {
+    if (trainees.length === 0) {
+      toast.error("لا يوجد بيانات للطباعة");
+      return;
+    }
+
+    const title =
+      selectedActivities.length > 0
+        ? `تقرير المتدربين للنشاط: ${selectedActivities
+            .map((a) => a.title)
+            .join(" - ")}`
+        : "تقرير الأنشطة التدريبية";
+
+    const columns = allFields
+      .filter((f) => fields.includes(f.value))
+      .map((f) => ({ label: f.label, value: f.value }));
+
+    const html = generatePrintHTML({
+      title,
+      columns,
+      data: trainees,
+      getFieldValue,
+    });
+
+    openPrintWindow(html).catch((error) => {
+      console.error("Print error:", error);
+      toast.error("فشل في فتح نافذة الطباعة");
+    });
+  };
+
   return (
     <div>
       <div className="flex justify-between mb-4">
-        <Input
-          placeholder="اكتب اسم النشاط"
-          className="w-[300px]"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <div className="flex items-center gap-2">
+          {selectedActivities.length > 0 && (
+            <Button
+              variant={"outline"}
+              onClick={() => setSelectedActivities([])}
+            >
+              <RotateCcw />
+            </Button>
+          )}
+          <ActivitiesSelector
+            selectedActivities={selectedActivities}
+            setSelectedActivities={setSelectedActivities}
+          >
+            <Button variant={"outline"}>
+              {selectedActivities.length > 0
+                ? `${selectedActivities.length} نشاط/أنشطة`
+                : "اختر النشاط"}
+            </Button>
+          </ActivitiesSelector>
+        </div>
         <div className="flex gap-2">
           <Button
             variant={"secondary"}
@@ -172,10 +254,16 @@ export default function OneActivity() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <Button onClick={handleExport}>
-          <span>تصدير</span>
-          <Download />
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handlePrint} variant="outline">
+            <span>طباعة</span>
+            <Printer />
+          </Button>
+          <Button onClick={handleExport}>
+            <span>تصدير</span>
+            <Download />
+          </Button>
+        </div>
       </div>
       <Table dir="rtl">
         <TableHeader>
@@ -199,7 +287,7 @@ export default function OneActivity() {
                   .filter((f) => fields.includes(f.value))
                   .map((field) => (
                     <TableCell key={field.value}>
-                      {trainee[field.value as keyof Trainee]}
+                      {getFieldValue(trainee, field.value)}
                     </TableCell>
                   ))}
               </TableRow>
