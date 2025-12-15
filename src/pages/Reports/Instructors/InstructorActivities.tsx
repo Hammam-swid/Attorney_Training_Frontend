@@ -1,4 +1,3 @@
-import InstructorsCombobox from "@/components/InstructorsCombobox";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,7 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import api from "@/lib/api";
-import { Activity } from "@/types";
+import { Activity, Instructor } from "@/types";
 import {
   Check,
   ChevronDown,
@@ -29,6 +28,8 @@ import { useLayoutEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { utils, writeFile as writeExcelFile } from "xlsx";
 import { generatePrintHTML, openPrintWindow } from "@/lib/printUtils";
+import GenericSelector from "@/components/GenericSelector";
+import { InstructorService } from "@/services/instructors.service";
 
 const allFields = [
   { label: "العنوان", value: "title" },
@@ -49,10 +50,8 @@ const allFields = [
 
 export default function InstructorActivities() {
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [selectedInstructor, setSelectedInstructor] = useState<{
-    label: string;
-    value: string;
-  }>({ label: "", value: "" });
+  const [selectedInstructor, setSelectedInstructor] =
+    useState<Instructor | null>(null);
   const [fields, setFields] = useState<string[]>(allFields.map((f) => f.value));
 
   useLayoutEffect(() => {
@@ -60,9 +59,7 @@ export default function InstructorActivities() {
       try {
         const res = await api.get(
           `/api/v1/reports/instructors/training-activities${
-            selectedInstructor.value
-              ? `?search=${selectedInstructor.value}`
-              : ""
+            selectedInstructor?.id ? `?search=${selectedInstructor.id}` : ""
           }`
         );
         if (res.status === 200) {
@@ -74,7 +71,7 @@ export default function InstructorActivities() {
     };
 
     fetchActivities();
-  }, [selectedInstructor.value]);
+  }, [selectedInstructor]);
 
   const handleExport = () => {
     if (activities.length === 0) {
@@ -85,7 +82,7 @@ export default function InstructorActivities() {
 
     // Add title row
     const titleRow = [
-      [`تقرير-الأنشطة-التدريبية-الخاصة-بالمدرب-${selectedInstructor.label}`],
+      [`تقرير-الأنشطة-التدريبية-الخاصة-بالمدرب-${selectedInstructor?.name}`],
     ];
     const worksheet = utils.aoa_to_sheet(titleRow);
 
@@ -247,8 +244,8 @@ export default function InstructorActivities() {
       return;
     }
 
-    const reportTitle = selectedInstructor.label
-      ? `تقرير الأنشطة التدريبية للمدرب ${selectedInstructor.label}`
+    const reportTitle = selectedInstructor?.name
+      ? `تقرير الأنشطة التدريبية للمدرب ${selectedInstructor?.name}`
       : "تقرير الأنشطة التدريبية للمدرب";
 
     // Generate columns for the print table
@@ -278,10 +275,22 @@ export default function InstructorActivities() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <InstructorsCombobox
-          instructor={selectedInstructor}
-          setInstructor={setSelectedInstructor}
-        />
+        <GenericSelector<Instructor>
+          columns={[
+            { header: "المعرف", accessor: (item) => item.id },
+            { header: "الاسم", accessor: (item) => item.name },
+          ]}
+          queryKey="trainees"
+          queryFn={(page, search) =>
+            InstructorService.fetchInstructors(page, 5, search)
+          }
+          getItemId={(item) => item.id}
+          title="اختر المتدرب"
+          selectedItems={selectedInstructor}
+          setSelectedItems={setSelectedInstructor}
+        >
+          <Button variant={"outline"}>اختر المتدرب</Button>
+        </GenericSelector>
 
         <div className="flex items-center gap-2">
           <Button
@@ -405,8 +414,7 @@ export default function InstructorActivities() {
                         ? activity.instructors
                             ?.filter(
                               (instructor) =>
-                                instructor.id.toString() ==
-                                selectedInstructor.value
+                                instructor.id === selectedInstructor?.id
                             )
                             ?.map((instructor) => instructor.rating)
                             ?.join(", ") || (

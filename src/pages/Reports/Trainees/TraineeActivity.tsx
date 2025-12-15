@@ -22,13 +22,14 @@ import {
   Download,
   Printer,
 } from "lucide-react";
-import { Activity } from "@/types";
+import { Activity, Trainee } from "@/types";
 import { useLayoutEffect, useState } from "react";
 import { utils, writeFile as writeExcelFile } from "xlsx";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
-import TraineesCombobox from "@/components/TraineesCombobox";
 import { generatePrintHTML, openPrintWindow } from "@/lib/printUtils";
+import GenericSelector from "@/components/GenericSelector";
+import { TraineesService } from "@/services/trainees.service";
 
 const allFields = [
   { label: "العنوان", value: "title" },
@@ -47,17 +48,9 @@ const allFields = [
   { label: "تقييم المتدرب", value: "traineeRating" },
 ];
 
-interface Item {
-  label: string;
-  value: string;
-}
-
 export default function TraineeActivity() {
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [selectedTrainee, setSelectedTrainee] = useState<Item>({
-    label: "",
-    value: "",
-  });
+  const [selectedTrainee, setSelectedTrainee] = useState<Trainee | null>(null);
   const [fields, setFields] = useState<string[]>(allFields.map((f) => f.value));
 
   useLayoutEffect(() => {
@@ -65,7 +58,7 @@ export default function TraineeActivity() {
       try {
         const response = await api.get(
           `/api/v1/reports/trainees/training-activities${
-            selectedTrainee.value ? `?search=${selectedTrainee.value}` : ""
+            selectedTrainee?.id ? `?search=${selectedTrainee.id}` : ""
           }`
         );
         const data = response.data;
@@ -75,7 +68,7 @@ export default function TraineeActivity() {
       }
     };
     fetchTrainees();
-  }, [selectedTrainee.value]);
+  }, [selectedTrainee]);
   const handleExport = () => {
     if (activities.length === 0) {
       toast.error("لا يوجد بيانات لتصديرها");
@@ -85,7 +78,7 @@ export default function TraineeActivity() {
 
     // Add title row
     const titleRow = [
-      [`تقرير-الأنشطة-التدريبية-الخاصة-بالمتدرب-${selectedTrainee.label}`],
+      [`تقرير-الأنشطة-التدريبية-الخاصة-بالمتدرب-${selectedTrainee?.name}`],
     ];
     const worksheet = utils.aoa_to_sheet(titleRow);
 
@@ -152,9 +145,7 @@ export default function TraineeActivity() {
           case "traineeRating":
             data["تقييم المتدرب"] =
               activity?.activityTrainees
-                ?.filter(
-                  (at) => at?.trainee?.id.toString() === selectedTrainee.value
-                )
+                ?.filter((at) => at?.trainee?.id === selectedTrainee?.id)
                 .map((at) => at.rating)
                 .join("") || "//";
             break;
@@ -238,7 +229,7 @@ export default function TraineeActivity() {
         return activity.rating?.toString() || "//";
       case "traineeRating":
         const traineeActivity = activity.activityTrainees?.find(
-          (at) => at.trainee?.id.toString() === selectedTrainee.value
+          (at) => at.trainee?.id === selectedTrainee?.id
         );
         return traineeActivity?.rating?.toString() || "//";
       default:
@@ -252,8 +243,8 @@ export default function TraineeActivity() {
       return;
     }
 
-    const reportTitle = selectedTrainee.label
-      ? `تقرير الأنشطة التدريبية للمتدرب ${selectedTrainee.label}`
+    const reportTitle = selectedTrainee?.name
+      ? `تقرير الأنشطة التدريبية للمتدرب ${selectedTrainee.name}`
       : "تقرير الأنشطة التدريبية للمتدرب";
 
     // Generate columns for the print table
@@ -283,10 +274,24 @@ export default function TraineeActivity() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <TraineesCombobox
+        {/* <TraineesCombobox
           trainee={selectedTrainee}
           setTrainee={setSelectedTrainee}
-        />
+        /> */}
+        <GenericSelector<Trainee>
+          columns={[
+            { header: "المعرف", accessor: (item) => item.id },
+            { header: "الاسم", accessor: (item) => item.name },
+          ]}
+          queryKey="trainees"
+          queryFn={(page, search) => TraineesService.getTrainees(page, search)}
+          getItemId={(item) => item.id}
+          title="اختر المتدرب"
+          selectedItems={selectedTrainee}
+          setSelectedItems={setSelectedTrainee}
+        >
+          <Button variant={"outline"}>اختر المتدرب</Button>
+        </GenericSelector>
         <div className="flex items-center gap-2">
           <Button
             variant={"secondary"}
@@ -418,9 +423,7 @@ export default function TraineeActivity() {
                         field.value === "traineeRating"
                         ? activity?.activityTrainees
                             ?.filter(
-                              (at) =>
-                                at?.trainee?.id.toString() ===
-                                selectedTrainee.value
+                              (at) => at?.trainee?.id === selectedTrainee?.id
                             )
                             .map((at) => at.rating)
                             .join("") || (
