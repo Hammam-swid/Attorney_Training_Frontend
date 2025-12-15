@@ -24,6 +24,7 @@ import {
   CircleCheck,
   Download,
   Loader2,
+  Printer,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { utils, writeFile as writeExcelFile } from "xlsx";
@@ -32,6 +33,10 @@ import DatePicker from "@/components/ui/DatePicker";
 import { format } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
 import api from "@/lib/api";
+import { generatePrintHTML, openPrintWindow } from "@/lib/printUtils";
+import toast from "react-hot-toast";
+import { useQuery } from "@tanstack/react-query";
+import { TraineeTypeService } from "@/services/trainee-types.service";
 
 type Field = {
   label: string;
@@ -50,7 +55,7 @@ const allFields: Field[] = [
   { label: "رقم الهاتف", value: "phone" },
   { label: "العنوان", value: "address" },
   { label: "جهة العمل", value: "employer" },
-  { label: "النوع", value: "type" },
+  { label: "النوع", value: "traineeType" },
   { label: "الدرجة القضائية", value: "payGrade" },
   { label: "عدد الأنشطة", value: "activityCount" },
 ];
@@ -123,7 +128,54 @@ export default function TraineesReports() {
     const workbook = utils.book_new();
     const worksheet = utils.json_to_sheet(data);
     utils.book_append_sheet(workbook, worksheet, "Trainees");
-    writeExcelFile(workbook, "trainees.xlsx");
+    writeExcelFile(workbook, `تقرير-المتدربين.xlsx`);
+  };
+
+  // Helper function to get field value as string for printing
+  const getPrintFieldValue = (trainee: Trainee, fieldValue: string): string => {
+    const value = trainee[fieldValue as keyof Trainee];
+    if (value === null || value === undefined) return "//";
+    if (typeof value === "object" && "name" in value) return value.name;
+    return value.toString();
+  };
+
+  const handlePrint = async () => {
+    if (trainees.length === 0) {
+      toast.error("لا يوجد بيانات للطباعة");
+      return;
+    }
+
+    const reportTitle =
+      isDate && dateFilter.startDate && dateFilter.endDate
+        ? `تقرير المتدربين من ${format(
+            dateFilter.startDate,
+            "dd-MM-yyyy"
+          )} إلى ${format(dateFilter.endDate, "dd-MM-yyyy")}`
+        : "تقرير المتدربين";
+
+    // Generate columns for the print table
+    const columns = allFields
+      .filter((f) => fields.includes(f.value))
+      .map((field) => ({
+        label: field.label,
+        value: field.value,
+      }));
+
+    // Generate print HTML using utility function
+    const printHTML = generatePrintHTML({
+      title: reportTitle,
+      columns,
+      data: trainees,
+      getFieldValue: getPrintFieldValue,
+    });
+
+    // Open print window using utility function
+    try {
+      await openPrintWindow(printHTML);
+    } catch (error) {
+      console.error("Error opening print window:", error);
+      toast.error("تعذر فتح نافذة الطباعة");
+    }
   };
 
   return (
@@ -224,10 +276,16 @@ export default function TraineesReports() {
           )}
         </div>
 
-        <Button onClick={handleExport}>
-          <span>تصدير</span>
-          <Download />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={handlePrint} variant="outline">
+            <span>طباعة</span>
+            <Printer />
+          </Button>
+          <Button onClick={handleExport}>
+            <span>تصدير</span>
+            <Download />
+          </Button>
+        </div>
       </div>
       {loading ? (
         <Loader2 className="animate-spin" />
@@ -249,18 +307,22 @@ interface TypeFilterProps {
   setType: React.Dispatch<React.SetStateAction<string>>;
 }
 function TypeFilter({ type, setType }: TypeFilterProps) {
+  const { data: traineesTypes } = useQuery({
+    queryKey: ["trainee-types"],
+    queryFn: TraineeTypeService.getTraineeTypes,
+  });
   return (
     <Select dir="rtl" value={type} onValueChange={setType}>
       <SelectTrigger dir="rtl" className="w-32">
         <SelectValue placeholder="النوع" />
       </SelectTrigger>
-      <SelectContent dir="rtl" className="z-50 bg-background w-32">
+      <SelectContent dir="rtl" className="z-50 bg-background w-fit">
         <SelectGroup>
           <SelectLabel>النوع</SelectLabel>
           <SelectItem value="all">الكل</SelectItem>
-          {["موظف", "ضابط", "عضو نيابة", "أخرى"].map((type) => (
-            <SelectItem key={type} value={type}>
-              {type}
+          {traineesTypes?.map((type) => (
+            <SelectItem key={type.id} value={String(type.id)}>
+              {type.name}
             </SelectItem>
           ))}
         </SelectGroup>

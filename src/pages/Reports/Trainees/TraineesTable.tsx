@@ -67,7 +67,9 @@ export default function TraineesTable({
         </TableHeader>
         <TableBody>
           {displayedTrainees
-            ?.filter((t) => (type === "all" ? true : t.type === type))
+            ?.filter((t) =>
+              type === "all" ? true : String(t.traineeType.id) === type
+            )
             .filter((t) =>
               payGrade === "all" ? true : t.payGrade === payGrade
             )
@@ -78,9 +80,18 @@ export default function TraineesTable({
                   .filter((f) => fields.includes(f.value))
                   .map((field) => (
                     <TableCell className="text-center" key={field.value}>
-                      {trainee[field.value as keyof Trainee] ?? (
-                        <span className="text-gray-500">//</span>
-                      )}
+                      {(() => {
+                        const value = trainee[field.value as keyof Trainee];
+                        console.log(field.value);
+                        if (value === null || value === undefined) {
+                          return <span className="text-gray-500">//</span>;
+                        }
+                        // Handle TraineeType object
+                        if (typeof value === "object" && "name" in value) {
+                          return value.name;
+                        }
+                        return value;
+                      })()}
                     </TableCell>
                   ))}
               </TableRow>

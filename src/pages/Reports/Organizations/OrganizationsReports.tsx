@@ -20,9 +20,17 @@ import {
 import api from "@/lib/api";
 import { Organization } from "@/types";
 import { format } from "date-fns";
-import { Check, ChevronDown, CircleCheck, Download } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  CircleCheck,
+  Download,
+  Printer,
+} from "lucide-react";
 import { useLayoutEffect, useState } from "react";
 import { utils, writeFile as writeExcelFile } from "xlsx";
+import { generatePrintHTML, openPrintWindow } from "@/lib/printUtils";
+import toast from "react-hot-toast";
 
 type Field = {
   label: string;
@@ -97,6 +105,55 @@ export default function OrganizationsReports() {
     const worksheet = utils.json_to_sheet(data);
     utils.book_append_sheet(workbook, worksheet, "Organizations");
     writeExcelFile(workbook, "organizations.xlsx");
+  };
+
+  // Helper function to get field value as string for printing
+  const getPrintFieldValue = (
+    org: Organization,
+    fieldValue: string
+  ): string => {
+    const value = org[fieldValue as keyof Organization];
+    if (value === null || value === undefined) return "//";
+    return value.toString();
+  };
+
+  const handlePrint = async () => {
+    if (organizations.length === 0) {
+      toast.error("لا يوجد بيانات للطباعة");
+      return;
+    }
+
+    const reportTitle =
+      isDate && dateFilter.startDate && dateFilter.endDate
+        ? `تقرير المؤسسات من ${format(
+            dateFilter.startDate,
+            "dd-MM-yyyy"
+          )} إلى ${format(dateFilter.endDate, "dd-MM-yyyy")}`
+        : "تقرير المؤسسات";
+
+    // Generate columns for the print table
+    const columns = allFields
+      .filter((f) => fields.includes(f.value))
+      .map((field) => ({
+        label: field.label,
+        value: field.value,
+      }));
+
+    // Generate print HTML using utility function
+    const printHTML = generatePrintHTML({
+      title: reportTitle,
+      columns,
+      data: organizations,
+      getFieldValue: getPrintFieldValue,
+    });
+
+    // Open print window using utility function
+    try {
+      await openPrintWindow(printHTML);
+    } catch (error) {
+      console.error("Error opening print window:", error);
+      toast.error("تعذر فتح نافذة الطباعة");
+    }
   };
   return (
     <div>
@@ -184,10 +241,16 @@ export default function OrganizationsReports() {
             </>
           )}
         </div>
-        <Button onClick={handleExport}>
-          <span>تصدير</span>
-          <Download />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={handlePrint} variant="outline">
+            <span>طباعة</span>
+            <Printer />
+          </Button>
+          <Button onClick={handleExport}>
+            <span>تصدير</span>
+            <Download />
+          </Button>
+        </div>
       </div>
       <Table>
         <TableHeader>

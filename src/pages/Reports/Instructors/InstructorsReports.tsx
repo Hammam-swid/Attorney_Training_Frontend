@@ -20,9 +20,17 @@ import {
 import api from "@/lib/api";
 import { Instructor } from "@/types";
 import { format } from "date-fns";
-import { Check, ChevronDown, CircleCheck, Download } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  CircleCheck,
+  Download,
+  Printer,
+} from "lucide-react";
 import { useLayoutEffect, useState } from "react";
 import { utils, writeFile as writeExcelFile } from "xlsx";
+import { generatePrintHTML, openPrintWindow } from "@/lib/printUtils";
+import toast from "react-hot-toast";
 
 type Field = {
   label: string;
@@ -140,6 +148,68 @@ export default function InstructorsReports() {
     writeExcelFile(workbook, "تقرير-المدربين.xlsx");
   };
 
+  // Helper function to get field value as string for printing
+  const getPrintFieldValue = (
+    instructor: Instructor,
+    fieldValue: string
+  ): string => {
+    switch (fieldValue) {
+      case "name":
+        return instructor.name || "//";
+      case "phone":
+        return instructor.phone || "//";
+      case "avgRating":
+        return instructor.avgRating?.toString() || "//";
+      case "activityCount":
+        return instructor.activityCount?.toString() || "//";
+      case "hours":
+        return instructor.hours?.toString() || "//";
+      case "organization":
+        return instructor.organization?.name || "//";
+      default:
+        return "//";
+    }
+  };
+
+  const handlePrint = async () => {
+    if (instructors.length === 0) {
+      toast.error("لا يوجد بيانات للطباعة");
+      return;
+    }
+
+    const reportTitle =
+      isDate && dateFilter.startDate && dateFilter.endDate
+        ? `تقرير المدربين من ${format(
+            dateFilter.startDate,
+            "dd-MM-yyyy"
+          )} إلى ${format(dateFilter.endDate, "dd-MM-yyyy")}`
+        : "تقرير المدربين";
+
+    // Generate columns for the print table
+    const columns = allFields
+      .filter((f) => fields.includes(f.value))
+      .map((field) => ({
+        label: field.label,
+        value: field.value,
+      }));
+
+    // Generate print HTML using utility function
+    const printHTML = generatePrintHTML({
+      title: reportTitle,
+      columns,
+      data: instructors,
+      getFieldValue: getPrintFieldValue,
+    });
+
+    // Open print window using utility function
+    try {
+      await openPrintWindow(printHTML);
+    } catch (error) {
+      console.error("Error opening print window:", error);
+      toast.error("تعذر فتح نافذة الطباعة");
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
@@ -223,10 +293,16 @@ export default function InstructorsReports() {
             </>
           )}
         </div>
-        <Button onClick={handleExport}>
-          <span>تصدير</span>
-          <Download />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={handlePrint} variant="outline">
+            <span>طباعة</span>
+            <Printer />
+          </Button>
+          <Button onClick={handleExport}>
+            <span>تصدير</span>
+            <Download />
+          </Button>
+        </div>
       </div>
       <Table>
         <TableHeader>

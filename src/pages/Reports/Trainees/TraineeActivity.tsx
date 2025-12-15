@@ -15,13 +15,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Check, ChevronDown, CircleCheck, Download } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  CircleCheck,
+  Download,
+  Printer,
+} from "lucide-react";
 import { Activity } from "@/types";
 import { useLayoutEffect, useState } from "react";
 import { utils, writeFile as writeExcelFile } from "xlsx";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
 import TraineesCombobox from "@/components/TraineesCombobox";
+import { generatePrintHTML, openPrintWindow } from "@/lib/printUtils";
 
 const allFields = [
   { label: "العنوان", value: "title" },
@@ -182,7 +189,96 @@ export default function TraineeActivity() {
     worksheet["!dir"] = "rtl";
 
     utils.book_append_sheet(workbook, worksheet, "Activities");
-    writeExcelFile(workbook, `تقرير-الأنشطة-التدريبية-الخاصة-بالمتدرب.xlsx`);
+    writeExcelFile(workbook, `تقرير-الأنشطة-التدريبية-للمتدرب.xlsx`);
+  };
+
+  // Helper function to get field value as string for printing
+  const getPrintFieldValue = (
+    activity: Activity,
+    fieldValue: string
+  ): string => {
+    switch (fieldValue) {
+      case "title":
+        return activity.title || "//";
+      case "hours":
+        return activity.hours?.toString() || "//";
+      case "location":
+        return activity.location || "//";
+      case "status":
+        return activity.status || "//";
+      case "type":
+        return activity.type?.name || "//";
+      case "executor":
+        return activity.executor?.name || "//";
+      case "host":
+        return activity.host?.name || "//";
+      case "instructors":
+        return (
+          activity?.instructors
+            ?.map((instructor) => instructor?.name)
+            ?.join(", ") || "//"
+        );
+      case "instructorRatings":
+        return (
+          activity.instructors
+            ?.map((instructor) => instructor.rating)
+            ?.join(", ") || "//"
+        );
+      case "trainees":
+        return activity.traineesCount?.toString() || "//";
+      case "startDate":
+        return activity.startDate
+          ? new Date(activity.startDate).toLocaleDateString()
+          : "//";
+      case "endDate":
+        return activity.endDate
+          ? new Date(activity.endDate).toLocaleDateString()
+          : "//";
+      case "rating":
+        return activity.rating?.toString() || "//";
+      case "traineeRating":
+        const traineeActivity = activity.activityTrainees?.find(
+          (at) => at.trainee?.id.toString() === selectedTrainee.value
+        );
+        return traineeActivity?.rating?.toString() || "//";
+      default:
+        return "//";
+    }
+  };
+
+  const handlePrint = async () => {
+    if (activities.length === 0) {
+      toast.error("لا يوجد بيانات للطباعة");
+      return;
+    }
+
+    const reportTitle = selectedTrainee.label
+      ? `تقرير الأنشطة التدريبية للمتدرب ${selectedTrainee.label}`
+      : "تقرير الأنشطة التدريبية للمتدرب";
+
+    // Generate columns for the print table
+    const columns = allFields
+      .filter((f) => fields.includes(f.value))
+      .map((field) => ({
+        label: field.label,
+        value: field.value,
+      }));
+
+    // Generate print HTML using utility function
+    const printHTML = generatePrintHTML({
+      title: reportTitle,
+      columns,
+      data: activities,
+      getFieldValue: getPrintFieldValue,
+    });
+
+    // Open print window using utility function
+    try {
+      await openPrintWindow(printHTML);
+    } catch (error) {
+      console.error("Error opening print window:", error);
+      toast.error("تعذر فتح نافذة الطباعة");
+    }
   };
   return (
     <div>
@@ -242,10 +338,16 @@ export default function TraineeActivity() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <Button onClick={handleExport}>
-          <span>تصدير</span>
-          <Download />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={handlePrint} variant="outline">
+            <span>طباعة</span>
+            <Printer />
+          </Button>
+          <Button onClick={handleExport}>
+            <span>تصدير</span>
+            <Download />
+          </Button>
+        </div>
       </div>
       <Table>
         <TableHeader>
