@@ -4,6 +4,7 @@ import { NavLink } from "react-router-dom";
 const links = [
   { to: ".", label: "الأنشطة التدريبية" },
   { to: "one-activity", label: "المتدربون الخاصون بالأنشطة" },
+  { to: "no-activity", label: "المتدربون الذين لم يشاركوا في الأنشطة" },
 ];
 
 export default function ActivitiesLayout() {
