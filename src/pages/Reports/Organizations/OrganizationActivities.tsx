@@ -7,7 +7,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -36,6 +35,9 @@ import { useLayoutEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { utils, writeFile as writeExcelFile } from "xlsx";
 import { generatePrintHTML, openPrintWindow } from "@/lib/printUtils";
+import { Organization } from "@/types";
+import GenericSelector from "@/components/GenericSelector";
+import { OrganizationService } from "@/services/organization.service";
 
 const allFields = [
   { label: "العنوان", value: "title" },
@@ -55,21 +57,22 @@ const allFields = [
 
 export default function OrganizationActivities() {
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [search, setSearch] = useState("");
   const [type, setType] = useState<"executed" | "hosted" | "all">("all");
   const [fields, setFields] = useState<string[]>(allFields.map((f) => f.value));
+  const [selectedOrganization, setSelectedOrganization] =
+    useState<Organization | null>(null);
 
   useLayoutEffect(() => {
     const fetchActivities = async () => {
       const res = await api.get(
         `/api/v1/reports/organizations/activities${
-          search ? `?search=${search}` : ""
+          selectedOrganization ? `?search=${selectedOrganization?.id}` : ""
         }${type && type !== "all" ? `&type=${type}` : ""}`
       );
       setActivities(res.data.data.activities);
     };
     fetchActivities();
-  }, [type, search]);
+  }, [type, selectedOrganization]);
 
   const handleExport = () => {
     if (activities.length === 0) {
@@ -79,7 +82,9 @@ export default function OrganizationActivities() {
     const workbook = utils.book_new();
 
     // Add title row
-    const titleRow = [[`تقرير-الأنشطة-التدريبية-الخاصة-ب${search}`]];
+    const titleRow = [
+      [`تقرير-الأنشطة-التدريبية-الخاصة-ب${selectedOrganization?.name}`],
+    ];
     const worksheet = utils.aoa_to_sheet(titleRow);
 
     // Merge cells for title based on selected fields length
@@ -231,8 +236,8 @@ export default function OrganizationActivities() {
       return;
     }
 
-    const reportTitle = search
-      ? `تقرير الأنشطة التدريبية للمؤسسة ${search}`
+    const reportTitle = selectedOrganization?.name
+      ? `تقرير الأنشطة التدريبية للمؤسسة ${selectedOrganization.name}`
       : "تقرير الأنشطة التدريبية للمؤسسة";
 
     // Generate columns for the print table
@@ -262,12 +267,25 @@ export default function OrganizationActivities() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <Input
-          placeholder="ابحث عن جهة"
-          onChange={(e) => setSearch(e.target.value)}
-          value={search}
-          className="w-[300px]"
-        />
+        <div className="flex items-center gap-2">
+          <GenericSelector<Organization>
+            columns={[
+              { header: "المعرف", accessor: (item) => item.id },
+              { header: "الاسم", accessor: (item) => item.name },
+            ]}
+            queryKey="organizations"
+            queryFn={(page, search) =>
+              OrganizationService.getOrganization(page, search, 5)
+            }
+            getItemId={(item) => item.id}
+            title="اختر الجهة"
+            selectedItems={selectedOrganization}
+            setSelectedItems={setSelectedOrganization}
+          >
+            <Button variant={"outline"}>اختر الجهة</Button>
+          </GenericSelector>
+          <span>{selectedOrganization?.name}</span>
+        </div>
 
         <div className="flex items-center gap-2">
           <Button

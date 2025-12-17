@@ -278,20 +278,25 @@ export default function TraineeActivity() {
           trainee={selectedTrainee}
           setTrainee={setSelectedTrainee}
         /> */}
-        <GenericSelector<Trainee>
-          columns={[
-            { header: "المعرف", accessor: (item) => item.id },
-            { header: "الاسم", accessor: (item) => item.name },
-          ]}
-          queryKey="trainees"
-          queryFn={(page, search) => TraineesService.getTrainees(page, search)}
-          getItemId={(item) => item.id}
-          title="اختر المتدرب"
-          selectedItems={selectedTrainee}
-          setSelectedItems={setSelectedTrainee}
-        >
-          <Button variant={"outline"}>اختر المتدرب</Button>
-        </GenericSelector>
+        <div className="flex items-center gap-2">
+          <GenericSelector<Trainee>
+            columns={[
+              { header: "المعرف", accessor: (item) => item.id },
+              { header: "الاسم", accessor: (item) => item.name },
+            ]}
+            queryKey="trainees"
+            queryFn={(page, search) =>
+              TraineesService.getTrainees(page, search, undefined, undefined, 5)
+            }
+            getItemId={(item) => item.id}
+            title="اختر المتدرب"
+            selectedItems={selectedTrainee}
+            setSelectedItems={setSelectedTrainee}
+          >
+            <Button variant={"outline"}>اختر المتدرب</Button>
+          </GenericSelector>
+          {selectedTrainee && <span>{selectedTrainee.name}</span>}
+        </div>
         <div className="flex items-center gap-2">
           <Button
             variant={"secondary"}

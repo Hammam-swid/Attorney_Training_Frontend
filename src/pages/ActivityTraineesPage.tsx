@@ -49,6 +49,7 @@ export default function ActivityTraineesPage() {
       rating: t.rating,
       payGrade: t.traineePayGrade || t.trainee.payGrade,
       employer: t.traineeEmployer || t.trainee.employer,
+      type: t.trainee.traineeType.name,
       isChangedEmployer:
         t.traineeEmployer && t.traineeEmployer !== t.trainee.employer,
       isChangedPayGrade:
@@ -85,10 +86,9 @@ export default function ActivityTraineesPage() {
             <TableRow>
               <TableHead className="text-right">المعرف</TableHead>
               <TableHead className="text-right">الاسم</TableHead>
-              <TableHead className="text-right">رقم الهاتف</TableHead>
+              <TableHead className="text-right">النوع</TableHead>
               <TableHead className="text-right">الدرجة القضائية</TableHead>
               <TableHead className="text-right">جهة العمل</TableHead>
-              {/* <TableHead className="text-right">النوع</TableHead> */}
               <TableHead className="text-right">التقييم</TableHead>
               <TableHead className="text-right">الإجراءات</TableHead>
             </TableRow>
@@ -108,7 +108,7 @@ export default function ActivityTraineesPage() {
                   <TableRow key={trainee?.id}>
                     <TableCell className="font-medium">{trainee?.id}</TableCell>
                     <TableCell>{trainee?.name}</TableCell>
-                    <TableCell>{trainee?.phone}</TableCell>
+                    <TableCell>{trainee?.type}</TableCell>
                     <TableCell>
                       <span className="flex items-center gap-2">
                         {trainee?.payGrade || "//"}

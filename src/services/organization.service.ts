@@ -2,9 +2,9 @@ import api from "@/lib/api";
 import { Organization, PaginatedData } from "@/types";
 
 export class OrganizationService {
-  static async getOrganization(page = 1, search?: string) {
+  static async getOrganization(page = 1, search?: string, limit = 10) {
     const res = await api.get<PaginatedData<Organization>>(
-      `/api/v1/organizations?page=${page}&search=${search}`
+      `/api/v1/organizations?page=${page}&search=${search}&limit=${limit}`
     );
     return res.data;
   }
