@@ -1,6 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { BookOpen, Users, User2, Building, RotateCcw } from "lucide-react";
+import {
+  BookOpen,
+  Users,
+  User2,
+  Building,
+  RotateCcw,
+  Printer,
+} from "lucide-react";
 
 import { useState } from "react";
 import { Helmet } from "react-helmet";
@@ -37,6 +44,15 @@ export default function DashboardPage() {
       <div className="flex justify-between mb-8 items-center">
         <h1 className="text-3xl font-bold">لوحة الإحصائيات</h1>
         <div className="flex items-center gap-2">
+          <Button
+            onClick={() => window.print()}
+            variant="outline"
+            size="icon"
+            className="print-button"
+            title="طباعة"
+          >
+            <Printer className="w-4 h-4" />
+          </Button>
           {year && (
             <Button
               onClick={() => setYear(undefined)}

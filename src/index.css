@@ -112,3 +112,57 @@
 .multi-select .dropdown-content .panel-content .select-panel .search input {
   @apply focus:bg-background;
 }
+
+/* Print Styles */
+@media print {
+  /* Hide sidebar and trigger */
+  aside[data-sidebar],
+  button[data-sidebar="trigger"],
+  .no-print {
+    display: none !important;
+  }
+
+  /* Adjust main content to full width */
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Ensure cards have visible borders */
+  [data-card],
+  .card {
+    border: 1px solid #e5e7eb !important;
+    page-break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Preserve chart containers */
+  canvas {
+    max-width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid;
+  }
+
+  /* Ensure proper spacing for grid layouts */
+  .grid {
+    page-break-inside: avoid;
+  }
+
+  /* Remove excessive padding from container */
+  .container {
+    max-width: 100% !important;
+    padding: 1rem !important;
+  }
+
+  /* Ensure backgrounds and colors print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide print button when printing */
+  .print-button {
+    display: none !important;
+  }
+}
