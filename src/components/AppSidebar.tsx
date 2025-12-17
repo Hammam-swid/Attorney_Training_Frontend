@@ -106,10 +106,7 @@ export default function AppSidebar() {
 
   const peopleLinks = [
     { label: "المدربون", to: "/instructors", icon: Users2 },
-    { label: "كل المتدربين", to: "/trainees", icon: Users },
-    // { label: "الضباط", to: "/trainees?type=officer", icon: Users },
-    // { label: "الموظفون", to: "/trainees?type=employee", icon: Users },
-    // { label: "آخرون", to: "/trainees?type=other", icon: Users },
+    { label: "كل المستهدفين*", to: "/trainees", icon: Users },
   ];
 
   const organizationLinks = [
@@ -218,7 +215,7 @@ export default function AppSidebar() {
                   <CollapsibleTrigger asChild>
                     <SidebarMenuButton isActive={pathname === "/trainees"}>
                       <Users />
-                      المتدربين
+                      المستهدفين
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
@@ -277,24 +274,26 @@ export default function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         {/* مجموعة التقارير */}
-        <SidebarGroup>
-          <SidebarGroupLabel>التقارير</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={(pathname + search).includes("/reports")}
-                >
-                  <Link to="/reports">
-                    <Files />
-                    <span>التقارير</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {user?.role === "admin" && (
+          <SidebarGroup>
+            <SidebarGroupLabel>التقارير</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={(pathname + search).includes("/reports")}
+                  >
+                    <Link to="/reports">
+                      <Files />
+                      <span>التقارير</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
         {/* مجموع إدارة النظام */}
         <SidebarGroup>
           <SidebarGroupLabel>إدارة النظام</SidebarGroupLabel>
@@ -370,7 +369,10 @@ export default function AppSidebar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   <DropdownMenuItem>
-                    <Link className="w-full h-full flex gap-2" to={"/account"}>
+                    <Link
+                      className="w-full h-full flex gap-2"
+                      to={"/settings/account"}
+                    >
                       <User />
                       الحساب
                     </Link>
