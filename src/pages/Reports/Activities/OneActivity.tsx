@@ -62,6 +62,18 @@ export default function OneActivity() {
       return fieldValue === "rating" ? value.toFixed(2) : value.toString();
     }
 
+    if (fieldValue === "payGrade") {
+      return `${value.toString()} ${
+        trainee.isChangedPayGrade ? " (تم تغيير الدرجة)" : ""
+      }`;
+    }
+
+    if (fieldValue === "employer") {
+      return `${value.toString()} ${
+        trainee.isChangedEmployer ? " (منتقل)" : ""
+      }`;
+    }
+
     if (typeof value === "string") {
       return value;
     }

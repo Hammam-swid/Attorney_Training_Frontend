@@ -2,6 +2,7 @@ import TraineeRating from "@/components/activities/TraineeRating";
 import AddTraineesToActivityDialog from "@/components/AddTraineesToActivityDialog";
 import ConfirmModal from "@/components/common/ConfirmModal";
 import TableSkeleton from "@/components/TableSkeleton";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -46,8 +47,12 @@ export default function ActivityTraineesPage() {
     (data?.traineesForActivity.map((t) => ({
       ...t.trainee,
       rating: t.rating,
-      payGrade: t.traineePayGrade,
-      employer: t.traineeEmployer,
+      payGrade: t.traineePayGrade || t.trainee.payGrade,
+      employer: t.traineeEmployer || t.trainee.employer,
+      isChangedEmployer:
+        t.traineeEmployer && t.traineeEmployer !== t.trainee.employer,
+      isChangedPayGrade:
+        t.traineePayGrade && t.traineePayGrade !== t.trainee.payGrade,
     })) as Trainee[]) || [];
 
   return (
@@ -104,8 +109,32 @@ export default function ActivityTraineesPage() {
                     <TableCell className="font-medium">{trainee?.id}</TableCell>
                     <TableCell>{trainee?.name}</TableCell>
                     <TableCell>{trainee?.phone}</TableCell>
-                    <TableCell>{trainee?.payGrade || "//"}</TableCell>
-                    <TableCell>{trainee?.employer || "//"}</TableCell>
+                    <TableCell>
+                      <span className="flex items-center gap-2">
+                        {trainee?.payGrade || "//"}
+                        {trainee.isChangedPayGrade && (
+                          <Badge
+                            variant={"outline"}
+                            className="bg-yellow-600/20 text-yellow-600"
+                          >
+                            تم تغيير الدرجة
+                          </Badge>
+                        )}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="flex items-center gap-2">
+                        {trainee?.employer || "//"}
+                        {trainee.isChangedEmployer && (
+                          <Badge
+                            variant={"outline"}
+                            className="bg-yellow-600/20 text-yellow-600"
+                          >
+                            منتقل
+                          </Badge>
+                        )}
+                      </span>
+                    </TableCell>
                     {/* <TableCell>{trainee?.type}</TableCell> */}
                     <TableCell>
                       {!isEditing || isEditing?.id !== trainee?.id ? (

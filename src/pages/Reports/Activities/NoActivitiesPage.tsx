@@ -38,7 +38,6 @@ const allFields = [
   { label: "جهة العمل", value: "employer" },
   { label: "النوع", value: "traineeType[name]" },
   { label: "الدرجة القضائية", value: "payGrade" },
-  { label: "التقييم", value: "rating" },
 ];
 
 export default function NoActivitiesPage() {

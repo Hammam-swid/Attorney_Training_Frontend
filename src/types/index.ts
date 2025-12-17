@@ -76,6 +76,8 @@ export interface Trainee {
     | "أخرى";
   rating: number;
   activityCount: number;
+  isChangedPayGrade?: boolean;
+  isChangedEmployer?: boolean;
 }
 
 export interface TraineeType {
