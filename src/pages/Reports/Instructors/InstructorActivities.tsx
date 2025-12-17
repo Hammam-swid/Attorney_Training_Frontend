@@ -285,11 +285,11 @@ export default function InstructorActivities() {
             InstructorService.fetchInstructors(page, 5, search)
           }
           getItemId={(item) => item.id}
-          title="اختر المتدرب"
+          title="اختر المدرب"
           selectedItems={selectedInstructor}
           setSelectedItems={setSelectedInstructor}
         >
-          <Button variant={"outline"}>اختر المتدرب</Button>
+          <Button variant={"outline"}>اختر المدرب</Button>
         </GenericSelector>
 
         <div className="flex items-center gap-2">
