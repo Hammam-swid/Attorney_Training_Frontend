@@ -11,11 +11,10 @@ import {
 import { Trainee, TraineeType } from "@/types";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { AlertCircle, Save, X } from "lucide-react";
+import { AlertCircle, Save } from "lucide-react";
 import api from "@/lib/api";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -30,6 +29,7 @@ import { useAppSelector } from "@/store/hooks";
 import { useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { Textarea } from "./ui/textarea";
 
 interface AddProps {
   type: "add";
@@ -77,7 +77,7 @@ const FormDialog: React.FC<Props> = ({ title, children, type, trainee }) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger>{children}</DialogTrigger>
 
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto scroll-m-0">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
@@ -216,17 +216,28 @@ const FormDialog: React.FC<Props> = ({ title, children, type, trainee }) => {
               )}
             </div>
           )}
-          <div className="flex flex-row-reverse gap-2">
-            <Button disabled={isPending} type="submit">
+          <div className="mb-4">
+            <Label htmlFor="notes">ملاحظة</Label>
+            <Textarea
+              dir="rtl"
+              name="notes"
+              id="notes"
+              value={formik.values.notes || ""}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              className="resize-none"
+            />
+            {formik.touched.notes && formik.errors.notes && (
+              <div className="text-sm text-destructive">
+                {formik.errors.notes}
+              </div>
+            )}
+          </div>
+          <div>
+            <Button disabled={isPending} type="submit" className="w-full">
               <span>حفظ</span>
               <Save />
             </Button>
-            <DialogClose>
-              <Button type="button" variant="outline">
-                <span>إلغاء</span>
-                <X />
-              </Button>
-            </DialogClose>
           </div>
         </form>
       </DialogContent>
@@ -308,6 +319,7 @@ const useTraineeForm = ({ type, trainee }: Props) => {
       employer: trainee?.employer || "",
       typeId: trainee?.traineeType?.id || undefined,
       payGrade: trainee?.payGrade || "",
+      notes: trainee?.notes || "",
     },
     validationSchema: validationSchema(type),
     onSubmit: async (values) => {

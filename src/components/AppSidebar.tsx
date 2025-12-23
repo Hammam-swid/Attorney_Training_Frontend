@@ -52,6 +52,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "./ui/skeleton";
 import { ActivityTypeService } from "@/services/actvitiy-type.service";
 import { TraineeTypeService } from "@/services/trainee-types.service";
+import { setTraineesPage } from "@/store/traineesSlice";
 
 interface NavLink {
   label: string;
@@ -237,7 +238,10 @@ export default function AppSidebar() {
                                   `/trainees?typeId=${type.id}`
                                 }
                               >
-                                <Link to={`/trainees?typeId=${type.id}`}>
+                                <Link
+                                  onClick={() => dispatch(setTraineesPage(1))}
+                                  to={`/trainees?typeId=${type.id}`}
+                                >
                                   {type.name}
                                 </Link>
                               </SidebarMenuSubButton>

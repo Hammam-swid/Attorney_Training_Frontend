@@ -62,4 +62,5 @@ export interface TraineeFormValues {
   employer: string;
   typeId?: number | null;
   payGrade?: string | null;
+  notes?: string;
 }

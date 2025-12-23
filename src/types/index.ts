@@ -75,6 +75,7 @@ export interface Trainee {
     | "معاون نيابة"
     | "أخرى";
   rating: number;
+  notes: string;
   activityCount: number;
   isChangedPayGrade?: boolean;
   isChangedEmployer?: boolean;

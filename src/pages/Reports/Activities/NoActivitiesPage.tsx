@@ -30,6 +30,17 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { utils, writeFile } from "xlsx";
 import { generatePrintHTML, openPrintWindow } from "@/lib/printUtils";
+import { TraineeTypeService } from "@/services/trainee-types.service";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const allFields = [
   { label: "الاسم", value: "name" },
@@ -43,6 +54,7 @@ const allFields = [
 export default function NoActivitiesPage() {
   const [trainees, setTrainees] = useState<Trainee[]>([]);
   const [fields, setFields] = useState<string[]>(allFields.map((f) => f.value));
+  const [type, setType] = useState<string>("all");
   const [selectedActivities, setSelectedActivities] = useState<Activity[]>([]);
 
   // Helper function to get field value from trainee
@@ -70,20 +82,21 @@ export default function NoActivitiesPage() {
 
   useEffect(() => {
     const fetchTrainees = async () => {
+      const typeQuery = type === "all" ? "" : `&traineeTypeId=${type}`;
       // Use different endpoints based on whether activities are selected
       const endpoint =
         selectedActivities.length === 0
-          ? "/api/v1/reports/trainees/not-in-any-activity"
+          ? `/api/v1/reports/trainees/not-in-any-activity?ph=2${typeQuery}`
           : `/api/v1/reports/trainees/not-in-activities?ids=${selectedActivities
               .map((a) => a.id)
-              .join(",")}`;
+              .join(",")}${typeQuery}`;
 
       const res = await api.get(endpoint);
       console.log(res);
       setTrainees(res.data.data.trainees);
     };
     fetchTrainees();
-  }, [selectedActivities]);
+  }, [selectedActivities, type]);
 
   const handleExport = () => {
     if (trainees.length === 0) {
@@ -261,6 +274,9 @@ export default function NoActivitiesPage() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+        <div>
+          <TypeFilter type={type} setType={setType} />
+        </div>
         <div className="flex gap-2">
           <Button onClick={handlePrint} variant="outline">
             <span>طباعة</span>
@@ -312,5 +328,34 @@ export default function NoActivitiesPage() {
         </TableBody>
       </Table>
     </div>
+  );
+}
+
+interface TypeFilterProps {
+  type: string;
+  setType: React.Dispatch<React.SetStateAction<string>>;
+}
+function TypeFilter({ type, setType }: TypeFilterProps) {
+  const { data: traineesTypes } = useQuery({
+    queryKey: ["trainee-types"],
+    queryFn: TraineeTypeService.getTraineeTypes,
+  });
+  return (
+    <Select dir="rtl" value={type} onValueChange={setType}>
+      <SelectTrigger dir="rtl" className="w-32">
+        <SelectValue placeholder="النوع" />
+      </SelectTrigger>
+      <SelectContent dir="rtl" className="z-50 bg-background w-fit">
+        <SelectGroup>
+          <SelectLabel>النوع</SelectLabel>
+          <SelectItem value="all">الكل</SelectItem>
+          {traineesTypes?.map((type) => (
+            <SelectItem key={type.id} value={String(type.id)}>
+              {type.name}
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
   );
 }

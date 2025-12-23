@@ -30,6 +30,17 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { utils, writeFile } from "xlsx";
 import { generatePrintHTML, openPrintWindow } from "@/lib/printUtils";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { TraineeTypeService } from "@/services/trainee-types.service";
+import { useQuery } from "@tanstack/react-query";
 
 const allFields = [
   { label: "الاسم", value: "name" },
@@ -45,6 +56,7 @@ export default function OneActivity() {
   const [trainees, setTrainees] = useState<Trainee[]>([]);
   const [fields, setFields] = useState<string[]>(allFields.map((f) => f.value));
   const [selectedActivities, setSelectedActivities] = useState<Activity[]>([]);
+  const [type, setType] = useState<string>("all");
 
   // Helper function to get field value from trainee
   const getFieldValue = (trainee: Trainee, fieldValue: string): string => {
@@ -83,18 +95,19 @@ export default function OneActivity() {
 
   useEffect(() => {
     const fetchTrainees = async () => {
+      const typeQuery = type !== "all" ? `&traineeTypeId=${type}` : "";
       const res = await api.get(
         `/api/v1/reports/training-activities/trainees${
           selectedActivities.length > 0
             ? `?activityIds=${selectedActivities.map((a) => a.id).join(",")}`
             : ""
-        }`
+        }${typeQuery}`
       );
       console.log(res);
       setTrainees(res.data.data.trainees);
     };
     fetchTrainees();
-  }, [selectedActivities]);
+  }, [selectedActivities, type]);
 
   const handleExport = () => {
     if (trainees.length === 0) {
@@ -266,6 +279,9 @@ export default function OneActivity() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+        <div>
+          <TypeFilter type={type} setType={setType} />
+        </div>
         <div className="flex gap-2">
           <Button onClick={handlePrint} variant="outline">
             <span>طباعة</span>
@@ -317,5 +333,34 @@ export default function OneActivity() {
         </TableBody>
       </Table>
     </div>
+  );
+}
+
+interface TypeFilterProps {
+  type: string;
+  setType: React.Dispatch<React.SetStateAction<string>>;
+}
+function TypeFilter({ type, setType }: TypeFilterProps) {
+  const { data: traineesTypes } = useQuery({
+    queryKey: ["trainee-types"],
+    queryFn: TraineeTypeService.getTraineeTypes,
+  });
+  return (
+    <Select dir="rtl" value={type} onValueChange={setType}>
+      <SelectTrigger dir="rtl" className="w-32">
+        <SelectValue placeholder="النوع" />
+      </SelectTrigger>
+      <SelectContent dir="rtl" className="z-50 bg-background w-fit">
+        <SelectGroup>
+          <SelectLabel>النوع</SelectLabel>
+          <SelectItem value="all">الكل</SelectItem>
+          {traineesTypes?.map((type) => (
+            <SelectItem key={type.id} value={String(type.id)}>
+              {type.name}
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
   );
 }

@@ -178,6 +178,13 @@ export default function TraineesReports() {
     }
   };
 
+  const { data: types } = useQuery({
+    queryKey: ["trainee-types"],
+    queryFn: TraineeTypeService.getTraineeTypes,
+  });
+
+  const selectedType = types?.find((t) => String(t.id) === type);
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
@@ -239,7 +246,7 @@ export default function TraineesReports() {
           />
         </div>
         <div>
-          {type === "عضو نيابة" && (
+          {selectedType?.hasPayGrade && (
             <PayGradeFilter payGrade={payGrade} setPayGrade={setPayGrade} />
           )}
         </div>

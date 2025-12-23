@@ -23,6 +23,7 @@ import TableSkeleton from "@/components/TableSkeleton";
 import { useAppSelector } from "@/store/hooks";
 import { useDispatch } from "react-redux";
 import { setTraineesPage, setTraineesSearch } from "@/store/traineesSlice";
+import { TraineeTypeService } from "@/services/trainee-types.service";
 
 const arTypes = {
   attorney: "عضو نيابة",
@@ -37,6 +38,13 @@ export default function TraineesPage() {
   const [searchParams] = useSearchParams();
   const type = searchParams.get("type");
   const typeId = searchParams.get("typeId");
+  const { data: traineesTypes } = useQuery({
+    queryKey: ["trainee-types"],
+    queryFn: TraineeTypeService.getTraineeTypes,
+  });
+  const selectedType = traineesTypes?.find(
+    (type) => type.id === parseInt(typeId || "0")
+  );
 
   const [searchText, setSearchText] = useState<string>(search);
   const queryClient = useQueryClient();
@@ -63,7 +71,9 @@ export default function TraineesPage() {
   return (
     <div className="container px-5 mx-auto py-10 rtl">
       <div className="flex justify-between items-center mb-5">
-        <h1 className="text-3xl font-bold">قائمة المتدربين</h1>
+        <h1 className="text-3xl font-bold">
+          قائمة المتدربين {selectedType?.name}
+        </h1>
         {typeId && (
           <FormDialog title="إضافة متدرب جديد" type="add">
             <Button>
@@ -97,6 +107,7 @@ export default function TraineesPage() {
             <TableHead className="text-center">جهة العمل</TableHead>
             <TableHead className="text-center">النوع</TableHead>
             <TableHead className="text-center">الدرجة القضائية</TableHead>
+            <TableHead className="text-center">ملاحظة</TableHead>
             <TableHead className="text-center">الإجراءات</TableHead>
           </TableRow>
         </TableHeader>
@@ -129,6 +140,7 @@ export default function TraineesPage() {
                 <TableCell className="text-center">
                   {trainee.payGrade || <span className="text-muted">//</span>}
                 </TableCell>
+                <TableCell>{trainee.notes}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">
                     <ConfirmModal
