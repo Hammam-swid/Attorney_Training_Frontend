@@ -32,7 +32,11 @@ export default function TraineesPerType({ year }: Props) {
                 key={traineeType.id}
                 className="flex justify-between items-center"
               >
-                <span>{traineeType.name}</span>
+                <span>
+                  {traineeType.name ?? (
+                    <span className="text-muted-foreground">غير معروف</span>
+                  )}
+                </span>
                 <span className="text-xl font-bold">
                   {traineeType.traineeCount}{" "}
                   <span className="text-sm font-normal text-gray-500">
