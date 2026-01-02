@@ -116,7 +116,7 @@ export interface User {
   phone: string;
   isLoggedIn: boolean;
   isActive: boolean;
-  role: "admin" | "instructor" | "trainee" | "moderator";
+  role: Role;
 }
 
 export interface PaginatedData<T> {
@@ -139,3 +139,12 @@ export interface ActivityDomain {
   name: string;
   description: string;
 }
+
+export const Roles = {
+  admin: "مدير النظام",
+  moderator: "مشرف",
+};
+
+export type Role = keyof typeof Roles;
+
+export const RolesCollection = Object.keys(Roles) as Role[];

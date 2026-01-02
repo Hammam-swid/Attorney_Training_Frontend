@@ -41,6 +41,7 @@ import ActivityTypesPage from "./pages/settings/ActivityTypesPage";
 import TraineeTypesPage from "./pages/settings/TraineeTypesPage";
 import NoActivitiesPage from "./pages/Reports/Activities/NoActivitiesPage";
 import ActivityDomainsPage from "./pages/ActivityDomainsPage";
+import { roleLoader } from "./lib/loaders";
 
 const routes = createRoutesFromElements(
   <>
@@ -139,7 +140,11 @@ const routes = createRoutesFromElements(
         <Route path="trainee-types" element={<TraineeTypesPage />} />
         <Route path="account" element={<AccountPage />} />
       </Route>
-      <Route path="reports" element={<ReportsLayout />}>
+      <Route
+        path="reports"
+        element={<ReportsLayout />}
+        loader={() => roleLoader("admin")}
+      >
         <Route
           path="activities"
           element={<ActivitiesLayout />}

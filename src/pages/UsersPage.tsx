@@ -30,6 +30,7 @@ import {
   setUsersSearch,
   setUsersStatus,
 } from "@/store/usersSlice";
+import { Roles } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { Ban, CheckCircle2, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -127,7 +128,7 @@ export default function UsersPage() {
                   </Badge>
                 </TableCell>
                 <TableCell>{user.phone ?? "غير موجود"}</TableCell>
-                <TableCell>{user.role}</TableCell>
+                <TableCell>{Roles[user.role]}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     {/* <Button size={"icon"} variant={"outline"}>

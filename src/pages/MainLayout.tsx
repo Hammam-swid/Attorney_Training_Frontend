@@ -22,7 +22,7 @@ export default function MainLayout() {
   }, [theme]);
   useEffect(() => {
     window.addEventListener("keydown", (e) => {
-      if (e.ctrlKey && e.key === "r") {
+      if (e.ctrlKey && e.code === "KeyR") {
         e.preventDefault();
         queryClient.invalidateQueries();
       }

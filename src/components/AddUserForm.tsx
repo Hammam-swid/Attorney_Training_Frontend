@@ -17,11 +17,7 @@ import {
 } from "./ui/dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAppSelector } from "@/store/hooks";
-
-const roles = [
-  { value: "admin", label: "مدير" },
-  { value: "moderator", label: "مشرف" },
-];
+import { Roles, RolesCollection } from "@/types";
 
 interface AddUserFormProps {
   children: ReactNode;
@@ -102,23 +98,23 @@ export default function AddUserForm({ children }: AddUserFormProps) {
           <div className="flex flex-col space-y-2">
             <Label htmlFor="role">الدور</Label>
             <div className="flex items-center space-x-2">
-              {roles.map((role) => (
-                <div key={role.value} className="flex items-center space-x-2">
+              {RolesCollection.map((role) => (
+                <div key={role} className="flex items-center space-x-2">
                   <input
                     type="radio"
-                    id={role.value}
+                    id={role}
                     name="role"
-                    value={role.value}
-                    checked={formik.values.role === role.value}
+                    value={role}
+                    checked={formik.values.role === role}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     className="hidden peer"
                   />
                   <Label
                     className="peer-checked:bg-primary peer-checked:text-primary-foreground bg-primary/20 peer-checked:hover:bg-primary rounded-md cursor-pointer py-2 px-3 hover:bg-primary/70 transition-colors"
-                    htmlFor={role.value}
+                    htmlFor={role}
                   >
-                    {role.label}
+                    {Roles[role]}
                   </Label>
                 </div>
               ))}

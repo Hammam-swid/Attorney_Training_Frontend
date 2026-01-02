@@ -20,7 +20,7 @@ import {
   Home,
   LogOut,
   Settings,
-  User,
+  UserIcon,
   Users,
   Users2,
 } from "lucide-react";
@@ -53,6 +53,8 @@ import { Skeleton } from "./ui/skeleton";
 import { ActivityTypeService } from "@/services/actvitiy-type.service";
 import { TraineeTypeService } from "@/services/trainee-types.service";
 import { setTraineesPage } from "@/store/traineesSlice";
+import { roleChecker } from "@/lib/roleChecker";
+import type { User } from "@/types";
 
 interface NavLink {
   label: string;
@@ -60,14 +62,14 @@ interface NavLink {
   iconName?: string;
 }
 
-const managementLinks = [
+const getManagementLinks = (user: User) => [
   {
     to: "/users",
     label: "المستخدمين",
     icon: Users2,
   },
   {
-    to: "/settings",
+    to: user.role === "admin" ? "/settings" : "/settings/account",
     label: "الإعدادات",
     icon: Settings,
   },
@@ -278,7 +280,7 @@ export default function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         {/* مجموعة التقارير */}
-        {user?.role === "admin" && (
+        {roleChecker(user, "admin") && (
           <SidebarGroup>
             <SidebarGroupLabel>التقارير</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -303,19 +305,20 @@ export default function AppSidebar() {
           <SidebarGroupLabel>إدارة النظام</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {managementLinks.map((link) => (
-                <SidebarMenuItem key={link.to}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={(pathname + search).includes(link.to)}
-                  >
-                    <Link to={link.to}>
-                      <link.icon />
-                      <span>{link.label}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {user &&
+                getManagementLinks(user).map((link) => (
+                  <SidebarMenuItem key={link.to}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={(pathname + search).includes(link.to)}
+                    >
+                      <Link to={link.to}>
+                        <link.icon />
+                        <span>{link.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -377,7 +380,7 @@ export default function AppSidebar() {
                       className="w-full h-full flex gap-2"
                       to={"/settings/account"}
                     >
-                      <User />
+                      <UserIcon />
                       الحساب
                     </Link>
                   </DropdownMenuItem>
