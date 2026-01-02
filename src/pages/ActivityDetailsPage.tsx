@@ -158,6 +158,11 @@ export default function ActivityDetailsPage() {
                   <span className="text-gray-500">لا يوجد تقييم</span>
                 )}
               </Info>
+              <Info title="مجال التدريب">
+                {activity.domain?.name ?? (
+                  <span className="text-gray-500">لا يوجد مجال</span>
+                )}
+              </Info>
             </CardContent>
           )
         )}

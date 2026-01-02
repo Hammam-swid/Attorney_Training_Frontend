@@ -164,4 +164,5 @@ export interface ActivityFormValues {
   executorId: number | undefined;
   activityTypeId: number;
   parentId: number | undefined | null;
+  domainId: number | undefined | null;
 }

@@ -37,13 +37,13 @@ const allFields = [
   { label: "مكان الانعقاد", value: "location" },
   { label: "الحالة", value: "status" },
   { label: "النوع", value: "type" },
+  { label: "مجال التدريب", value: "domain" },
   { label: "تاريخ البداية", value: "startDate" },
   { label: "تاريخ النهاية", value: "endDate" },
   { label: "الجهة المنظمة", value: "host" },
   { label: "الجهة المنفذة", value: "executor" },
   { label: "المدربون", value: "instructors" },
   { label: "تقييم المدربين", value: "instructorRatings" },
-  // { label: "عدد المتدربين", value: "trainees" },
   { label: "تقييم النشاط", value: "rating" },
   { label: "تقييم المتدرب", value: "traineeRating" },
 ];
@@ -107,6 +107,9 @@ export default function TraineeActivity() {
             break;
           case "type":
             data["النوع"] = activity.type?.name || "//";
+            break;
+          case "domain":
+            data["مجال التدريب"] = activity.domain?.name || "//";
             break;
           case "executor":
             data["الجهة المنفذة"] = activity.executor?.name || "//";
@@ -393,6 +396,8 @@ export default function TraineeActivity() {
                         ? new Date(activity[field.value]).toLocaleDateString()
                         : field.value === "type"
                         ? activity?.type?.name
+                        : field.value === "domain"
+                        ? activity?.domain?.name
                         : field.value === "rating"
                         ? activity?.rating || (
                             <span className="text-gray-400 dark:text-gray-600">

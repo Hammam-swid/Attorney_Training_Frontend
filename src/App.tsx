@@ -40,6 +40,7 @@ import SubActivitiesPage from "./pages/SubActivitiesPage";
 import ActivityTypesPage from "./pages/settings/ActivityTypesPage";
 import TraineeTypesPage from "./pages/settings/TraineeTypesPage";
 import NoActivitiesPage from "./pages/Reports/Activities/NoActivitiesPage";
+import ActivityDomainsPage from "./pages/ActivityDomainsPage";
 
 const routes = createRoutesFromElements(
   <>
@@ -134,6 +135,7 @@ const routes = createRoutesFromElements(
         errorElement={<ErrorPage />}
       >
         <Route index element={<ActivityTypesPage />} />
+        <Route path="activity-domains" element={<ActivityDomainsPage />} />
         <Route path="trainee-types" element={<TraineeTypesPage />} />
         <Route path="account" element={<AccountPage />} />
       </Route>

@@ -16,6 +16,7 @@ export interface Activity {
   hostName: string;
   executorName: string;
   type: ActivityType;
+  domain: ActivityDomain | null;
 
   traineesCount: number;
   instructorRating: number;
@@ -131,4 +132,10 @@ export interface Statistics {
   organizationsCount: number;
   instructorsCount: number;
   traineesCount: number;
+}
+
+export interface ActivityDomain {
+  id: number;
+  name: string;
+  description: string;
 }

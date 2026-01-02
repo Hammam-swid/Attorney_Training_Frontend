@@ -32,6 +32,7 @@ import {
 } from "./ui/card";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router";
+import { ActivityDomainsService } from "@/services/activity-domains.service";
 
 interface addActivityProps {
   type: "add";
@@ -58,12 +59,13 @@ export default function ActivityForm({
   activityTypeId,
   parentId,
 }: Props) {
-  const { formik, activityTypes, organizations, isPending } = useActivityForm({
-    activity,
-    activityTypeId,
-    type,
-    parentId,
-  } as Props);
+  const { formik, activityTypes, domains, organizations, isPending } =
+    useActivityForm({
+      activity,
+      activityTypeId,
+      type,
+      parentId,
+    } as Props);
   return (
     <Card>
       <CardHeader>
@@ -143,7 +145,6 @@ export default function ActivityForm({
               )}
             </div>
           </div>
-
           <Label htmlFor="hostId">الجهة المنظمة</Label>
           <div>
             <div className="flex gap-2">
@@ -215,31 +216,57 @@ export default function ActivityForm({
               </p>
             )}
           </div>
-          {activity && (
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label>نوع النشاط</label>
+              <label>مجال النشاط</label>
               <div>
                 <Select
                   dir="rtl"
-                  value={formik.values.activityTypeId + ""}
+                  value={formik.values.domainId + ""}
                   onValueChange={(value) => {
-                    formik.setFieldValue("activityTypeId", +value);
+                    formik.setFieldValue("domainId", +value);
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="اختر نوع النشاط" />
+                    <SelectValue placeholder="اختر مجال النشاط" />
                   </SelectTrigger>
                   <SelectContent>
-                    {activityTypes?.map((type) => (
-                      <SelectItem key={type.id} value={type.id.toString()}>
-                        {type.name}
+                    {domains?.map((domain) => (
+                      <SelectItem key={domain.id} value={domain.id.toString()}>
+                        {domain.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
-          )}
+
+            {activity && (
+              <div>
+                <label>نوع النشاط</label>
+                <div>
+                  <Select
+                    dir="rtl"
+                    value={formik.values.activityTypeId + ""}
+                    onValueChange={(value) => {
+                      formik.setFieldValue("activityTypeId", +value);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر نوع النشاط" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {activityTypes?.map((type) => (
+                        <SelectItem key={type.id} value={type.id.toString()}>
+                          {type.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+          </div>
         </CardContent>
         <CardFooter>
           <Button disabled={isPending} type="submit" className="w-full">
@@ -290,6 +317,11 @@ const useActivityForm = ({
     queryFn: OrganizationService.getAllOrganization,
   });
 
+  const { data: domains } = useQuery({
+    queryKey: ["activity-domains"],
+    queryFn: ActivityDomainsService.getDomains,
+  });
+
   const formik = useFormik<ActivityFormValues>({
     initialValues: {
       title: type === "edit" ? activity.title : "",
@@ -301,6 +333,7 @@ const useActivityForm = ({
       executorId: type === "edit" ? activity.executor.id : undefined,
       activityTypeId: type === "edit" ? activity.type.id : activityTypeId,
       parentId: type === "edit" ? activity.parent?.id ?? null : parentId,
+      domainId: type === "edit" ? activity.domain?.id ?? null : undefined,
     },
     validationSchema: Yup.object({
       title: Yup.string().required("العنوان مطلوب"),
@@ -325,5 +358,5 @@ const useActivityForm = ({
     },
   });
   console.log(formik.errors);
-  return { formik, activityTypes, organizations, isPending };
+  return { formik, activityTypes, organizations, domains, isPending };
 };

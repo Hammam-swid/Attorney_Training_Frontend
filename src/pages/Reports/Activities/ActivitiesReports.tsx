@@ -28,8 +28,10 @@ import {
 import api from "@/lib/api";
 import { getDifferenceDays } from "@/lib/getDifferenceDays";
 import { generatePrintHTML, openPrintWindow } from "@/lib/printUtils";
-import { useAppSelector } from "@/store/hooks";
+import { ActivityDomainsService } from "@/services/activity-domains.service";
+import { ActivityTypeService } from "@/services/actvitiy-type.service";
 import { Activity } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
   Check,
@@ -48,6 +50,7 @@ const allFields = [
   { label: "مكان الانعقاد", value: "location" },
   { label: "الحالة", value: "status" },
   { label: "النوع", value: "type" },
+  { label: "مجال التدريب", value: "domain" },
   { label: "تاريخ البداية", value: "startDate" },
   { label: "تاريخ النهاية", value: "endDate" },
   { label: "عدد الأيام", value: "daysCount" },
@@ -65,6 +68,7 @@ const initialFields = [
   "location",
   "status",
   "type",
+  "domain",
   "startDate",
   "endDate",
   "daysCount",
@@ -96,6 +100,8 @@ const getFieldValue = (
       return activity.status;
     case "type":
       return activity.type?.name;
+    case "domain":
+      return activity.domain?.name;
     case "executor":
       return activity.executor?.name;
     case "host":
@@ -147,6 +153,8 @@ const getExportFieldValue = (activity: Activity, field: string): string => {
       return activity.status || "//";
     case "type":
       return activity.type?.name || "//";
+    case "domain":
+      return activity.domain?.name || "//";
     case "executor":
       return activity.executor?.name || "//";
     case "host":
@@ -195,9 +203,17 @@ const getFieldLabel = (fieldValue: string): string => {
 };
 
 export default function ActivitiesReports() {
+  const { data: activityTypes } = useQuery({
+    queryKey: ["activity-types"],
+    queryFn: ActivityTypeService.getActivityTypes,
+  });
+  const { data: domains } = useQuery({
+    queryKey: ["activity-domains"],
+    queryFn: ActivityDomainsService.getDomains,
+  });
   const [activities, setActivities] = useState<Activity[]>([]);
-  const activityTypes = useAppSelector((state) => state.ui.activityTypes);
   const [selectedType, setSelectedType] = useState<string>("all");
+  const [selectedDomain, setSelectedDomain] = useState<string>("all");
   const [fields, setFields] = useState<string[]>(initialFields);
   const [dateFilter, setDateFilter] = useState<{
     startDate: Date | undefined;
@@ -231,7 +247,11 @@ export default function ActivitiesReports() {
               : ""
           }&endDate=${
             dateFilter.endDate ? format(dateFilter.endDate, "yyyy-MM-dd") : ""
-          }&typeId=${selectedType !== "all" ? selectedType : ""}`
+          }&typeId=${selectedType !== "all" ? selectedType : ""}${
+            selectedDomain && selectedDomain !== "all"
+              ? `&domainId=${selectedDomain}`
+              : ""
+          }`
         );
         setActivities(res.data.data.activities);
       } catch (error) {
@@ -240,7 +260,7 @@ export default function ActivitiesReports() {
       }
     };
     fetchActivities();
-  }, [fields, dateFilter, selectedType]);
+  }, [fields, dateFilter, selectedType, selectedDomain]);
 
   const handlePrint = async () => {
     if (activities.length === 0) {
@@ -425,9 +445,29 @@ export default function ActivitiesReports() {
             <SelectGroup>
               <SelectLabel>الأنواع</SelectLabel>
               <SelectItem value="all">الكل</SelectItem>
-              {activityTypes.map((type) => (
+              {activityTypes?.map((type) => (
                 <SelectItem key={type.id} value={type.id.toString()}>
                   {type.name}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        <Select
+          dir="rtl"
+          value={selectedDomain}
+          onValueChange={setSelectedDomain}
+        >
+          <SelectTrigger dir="rtl" className="w-[180px]">
+            <SelectValue dir="rtl" placeholder={"اختر المجال"} />
+          </SelectTrigger>
+          <SelectContent dir="rtl">
+            <SelectGroup>
+              <SelectLabel>المجالات</SelectLabel>
+              <SelectItem value="all">الكل</SelectItem>
+              {domains?.map((domain) => (
+                <SelectItem key={domain.id} value={domain.id.toString()}>
+                  {domain.name}
                 </SelectItem>
               ))}
             </SelectGroup>

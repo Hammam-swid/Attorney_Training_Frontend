@@ -7,6 +7,10 @@ const links = [
     label: "أنواع الأنشطة",
   },
   {
+    to: "activity-domains",
+    label: "مجالات التدريب",
+  },
+  {
     to: "trainee-types",
     label: "أنواع المتدربين",
   },
