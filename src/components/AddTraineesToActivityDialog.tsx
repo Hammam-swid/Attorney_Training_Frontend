@@ -1,6 +1,6 @@
 import { Trainee } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Input } from "./ui/input";
 import {
   Table,
@@ -41,9 +41,9 @@ export default function AddTraineesToActivityDialog({
     isPending,
     mutateAsync,
     isLoading,
-    search,
+    searchText,
     selectedTrainees,
-    setSearch,
+    setSearchText,
     setSelectedTrainees,
     trainees,
     setPage,
@@ -54,7 +54,7 @@ export default function AddTraineesToActivityDialog({
   return (
     <Dialog>
       <DialogTrigger>{children}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>قائمة كل المتدربين</DialogTitle>
         </DialogHeader>
@@ -62,8 +62,8 @@ export default function AddTraineesToActivityDialog({
           <Input
             id="search"
             placeholder="البحث"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
           />
         </div>
         {selectedTrainees.length > 0 && (
@@ -72,9 +72,11 @@ export default function AddTraineesToActivityDialog({
         <Table className="mt-4">
           <TableHeader>
             <TableRow>
-              <TableHead className="text-right">تحديد</TableHead>
-              <TableHead className="text-right">المعرف</TableHead>
-              <TableHead className="text-right">الاسم</TableHead>
+              <TableHead className="text-center">تحديد</TableHead>
+              <TableHead className="text-center">المعرف</TableHead>
+              <TableHead className="text-center">الاسم</TableHead>
+              <TableHead className="text-center">نوع المتدرب</TableHead>
+              <TableHead className="text-center">ملاحظة</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -87,14 +89,14 @@ export default function AddTraineesToActivityDialog({
             ) : trainees && trainees.length > 0 ? (
               trainees
                 ?.filter(
-                  (trainee) => !oldTrainees.some((t) => t.id === trainee.id)
+                  (trainee) => !oldTrainees.some((t) => t.id === trainee.id),
                 )
                 .map((trainee) => (
                   <TableRow className="" key={trainee.id}>
                     <TableCell>
                       <Checkbox
                         checked={selectedTrainees.some(
-                          (t) => t.id === trainee.id
+                          (t) => t.id === trainee.id,
                         )}
                         // onChange={(e)=> {setSelectedTrainees(prev =>)}}
                         onCheckedChange={(checked) => {
@@ -102,14 +104,22 @@ export default function AddTraineesToActivityDialog({
                             setSelectedTrainees((prev) => [...prev, trainee]);
                           } else {
                             setSelectedTrainees((prev) =>
-                              prev.filter((t) => t.id !== trainee.id)
+                              prev.filter((t) => t.id !== trainee.id),
                             );
                           }
                         }}
                       />
                     </TableCell>
-                    <TableCell className="text-right">{trainee.id}</TableCell>
-                    <TableCell className="text-right">{trainee.name}</TableCell>
+                    <TableCell className="text-center">{trainee.id}</TableCell>
+                    <TableCell className="text-center">
+                      {trainee.name}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {trainee.traineeType.name || "-"}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {trainee.notes || "-"}
+                    </TableCell>
                   </TableRow>
                 ))
             ) : (
@@ -147,6 +157,7 @@ const useAddTraineesDialog = (activityId: string) => {
   const queryClient = useQueryClient();
   const [selectedTrainees, setSelectedTrainees] = useState<Trainee[]>([]);
   const [search, setSearch] = useState<string>("");
+  const [searchText, setSearchText] = useState<string>("");
   const [page, setPage] = useState<number>(1);
   const { data, isLoading } = useQuery({
     queryKey: ["trainees", { search }, { page }],
@@ -159,7 +170,7 @@ const useAddTraineesDialog = (activityId: string) => {
     mutationFn: async () =>
       TraineesService.addTraineesToActivity(
         activityId,
-        selectedTrainees.map((t) => t.id)
+        selectedTrainees.map((t) => t.id),
       ),
     onSuccess: () => {
       toast.success("تمت إضافة المتدربين بنجاح");
@@ -173,13 +184,20 @@ const useAddTraineesDialog = (activityId: string) => {
     },
   });
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchText);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
   return {
     mutateAsync,
     isPending,
     selectedTrainees,
     setSelectedTrainees,
-    search,
-    setSearch,
+    searchText,
+    setSearchText,
     trainees,
     isLoading,
     setPage,

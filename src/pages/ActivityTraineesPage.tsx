@@ -49,7 +49,7 @@ export default function ActivityTraineesPage() {
       rating: t.rating,
       payGrade: t.traineePayGrade || t.trainee.payGrade,
       employer: t.traineeEmployer || t.trainee.employer,
-      type: t.trainee.traineeType.name,
+      type: t.trainee.traineeType?.name || "-",
       isChangedEmployer:
         t.traineeEmployer && t.traineeEmployer !== t.trainee.employer,
       isChangedPayGrade:
@@ -151,7 +151,7 @@ export default function ActivityTraineesPage() {
                             value={selectRating}
                             onChange={(e) =>
                               setSelectRating(
-                                e.target.value as unknown as number
+                                e.target.value as unknown as number,
                               )
                             }
                           />
@@ -182,10 +182,10 @@ export default function ActivityTraineesPage() {
                           mutationFn={() =>
                             ActivityService.removeTraineeFromActivity(
                               activityId!,
-                              trainee.id
+                              trainee.id,
                             )
                           }
-                          title={`هل أنت متأكد من إزالة "${trainee.name}"؟`}
+                          title={`هل أنت متأكد من إزالة "${trainee?.name}"؟`}
                           onSuccess={() => {
                             queryClient.invalidateQueries({
                               queryKey: ["trainees", { activityId }],
