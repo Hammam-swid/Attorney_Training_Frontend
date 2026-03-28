@@ -7,14 +7,14 @@ export class TraineesService {
     search: string,
     type?: string,
     typeId?: string,
-    limit: number = 10
+    limit: number = 10,
   ) {
     const searchParam = search ? `&search=${encodeURIComponent(search)}` : "";
     const typeParam = type ? `&type=${type}` : "";
     const typeIdParam = typeId ? `&typeId=${typeId}` : "";
 
     const res = await api.get<PaginatedData<Trainee>>(
-      `/api/v1/trainees?page=${page}&limit=${limit}${searchParam}${typeParam}${typeIdParam}`
+      `/api/v1/trainees?page=${page}&limit=${limit}${searchParam}${typeParam}${typeIdParam}`,
     );
     return res.data;
   }
@@ -22,6 +22,14 @@ export class TraineesService {
   static async createTrainee(trainee: TraineeFormValues) {
     console.log(trainee);
     const res = await api.post(`/api/v1/trainees`, trainee);
+    return res.data;
+  }
+
+  static async addMultiTrainees(typeId: string, file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("typeId", typeId);
+    const res = await api.post(`/api/v1/trainees/import`, formData);
     return res.data;
   }
 
@@ -43,13 +51,13 @@ export class TraineesService {
 
   static async addTraineesToActivity(
     activityId: number | string,
-    traineesIds: number[]
+    traineesIds: number[],
   ) {
     const res = await api.post(
       `/api/v1/training-activities/${activityId}/trainee`,
       {
         traineesIds,
-      }
+      },
     );
     return res.data;
   }

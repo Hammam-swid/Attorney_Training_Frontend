@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "react-hot-toast";
 import FormDialog from "../components/TraineeFormDialog";
-import { Pencil, Trash, UserPlus } from "lucide-react";
+import { FileUp, Pencil, Trash, UserPlus } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { TraineesService } from "@/services/trainees.service";
@@ -24,6 +24,8 @@ import { useAppSelector } from "@/store/hooks";
 import { useDispatch } from "react-redux";
 import { setTraineesPage, setTraineesSearch } from "@/store/traineesSlice";
 import { TraineeTypeService } from "@/services/trainee-types.service";
+import { roleChecker } from "@/lib/roleChecker";
+import AddMultiTraineesForm from "@/components/AddMultiTraineesForm";
 
 const arTypes = {
   attorney: "عضو نيابة",
@@ -34,6 +36,7 @@ const arTypes = {
 
 export default function TraineesPage() {
   const { search, page } = useAppSelector((state) => state.trainees);
+  const user = useAppSelector((state) => state.auth.user);
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const type = searchParams.get("type");
@@ -43,7 +46,7 @@ export default function TraineesPage() {
     queryFn: TraineeTypeService.getTraineeTypes,
   });
   const selectedType = traineesTypes?.find(
-    (type) => type.id === parseInt(typeId || "0")
+    (type) => type.id === parseInt(typeId || "0"),
   );
 
   const [searchText, setSearchText] = useState<string>(search);
@@ -56,7 +59,7 @@ export default function TraineesPage() {
         page,
         search,
         arTypes[type as keyof typeof arTypes] || undefined,
-        typeId || undefined
+        typeId || undefined,
       ),
   });
 
@@ -74,14 +77,24 @@ export default function TraineesPage() {
         <h1 className="text-3xl font-bold">
           قائمة المتدربين {selectedType?.name}
         </h1>
-        {typeId && (
-          <FormDialog title="إضافة متدرب جديد" type="add">
-            <Button>
-              <UserPlus />
-              إضافة متدرب جديد
-            </Button>
-          </FormDialog>
-        )}
+        <div className="flex gap-2">
+          {typeId && (
+            <FormDialog title="إضافة متدرب جديد" type="add">
+              <Button>
+                <UserPlus />
+                إضافة متدرب جديد
+              </Button>
+            </FormDialog>
+          )}
+          {typeId && roleChecker(user, "admin") && (
+            <AddMultiTraineesForm typeId={typeId}>
+              <Button variant="outline">
+                <FileUp />
+                رفع ملف مستهدفين
+              </Button>
+            </AddMultiTraineesForm>
+          )}
+        </div>
       </div>
       <div className="flex items-center mb-5">
         <Label htmlFor="search" className="ml-2">

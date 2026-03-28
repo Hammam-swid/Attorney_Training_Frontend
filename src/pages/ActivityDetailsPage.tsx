@@ -41,7 +41,7 @@ export default function ActivityDetailsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { date, page, search, status, year } = useAppSelector(
-    (state) => state.activities
+    (state) => state.activities,
   );
   return (
     <div className="w-full container mx-auto p-6 space-y-6">
@@ -56,7 +56,7 @@ export default function ActivityDetailsPage() {
                 <Badge
                   variant={"outline"}
                   className={parseActivityStatusClassName(
-                    activity?.status as string
+                    activity?.status as string,
                   )}
                 >
                   {activity?.status ?? "غير معروف"}
@@ -143,7 +143,7 @@ export default function ActivityDetailsPage() {
               <Info title="عدد الأيام">
                 {getDifferenceDays(
                   new Date(activity.endDate),
-                  new Date(activity.startDate)
+                  new Date(activity.startDate),
                 )}{" "}
                 <span className="text-gray-500">يوم / أيام</span>
               </Info>
@@ -176,7 +176,7 @@ export default function ActivityDetailsPage() {
                 cn(
                   `py-2 px-8 rounded-md transition-all`,
                   "hover:bg-primary/70 hover:font-semibold",
-                  isActive && "bg-primary font-bold text-white"
+                  isActive && "bg-primary font-bold text-white",
                 )
               }
               end

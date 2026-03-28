@@ -27,7 +27,7 @@ api.interceptors.response.use(
       toast.error("تمت صلاحية الجلسة، الرجاء محاولة تسجيل الدخول مرة أخرى");
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { roleChecker } from "@/lib/roleChecker";
 import { cn } from "@/lib/utils";
 import { UsersService } from "@/services/users.service";
 import { useAppSelector } from "@/store/hooks";
@@ -121,7 +122,7 @@ export default function UsersPage() {
                     className={cn(
                       user.isActive
                         ? "bg-green-600/20 text-green-600"
-                        : "bg-destructive/20 text-destructive"
+                        : "bg-destructive/20 text-destructive",
                     )}
                   >
                     {user.isActive ? "مفعل" : "غير مفعل"}
@@ -134,14 +135,16 @@ export default function UsersPage() {
                     {/* <Button size={"icon"} variant={"outline"}>
                       <Pencil />
                     </Button> */}
-                    <ToggleUserStatus user={user}>
-                      <Button
-                        size={"icon"}
-                        variant={user.isActive ? "destructive" : "default"}
-                      >
-                        {user.isActive ? <Ban /> : <CheckCircle2 />}
-                      </Button>
-                    </ToggleUserStatus>
+                    {!roleChecker(user, "admin") && (
+                      <ToggleUserStatus user={user}>
+                        <Button
+                          size={"icon"}
+                          variant={user.isActive ? "destructive" : "default"}
+                        >
+                          {user.isActive ? <Ban /> : <CheckCircle2 />}
+                        </Button>
+                      </ToggleUserStatus>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
