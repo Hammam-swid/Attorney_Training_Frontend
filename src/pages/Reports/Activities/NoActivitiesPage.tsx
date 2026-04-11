@@ -55,6 +55,7 @@ export default function NoActivitiesPage() {
   const [trainees, setTrainees] = useState<Trainee[]>([]);
   const [fields, setFields] = useState<string[]>(allFields.map((f) => f.value));
   const [type, setType] = useState<string>("all");
+  const [payGrade, setPayGrade] = useState<string>("all");
   const [selectedActivities, setSelectedActivities] = useState<Activity[]>([]);
 
   // Helper function to get field value from trainee
@@ -83,20 +84,21 @@ export default function NoActivitiesPage() {
   useEffect(() => {
     const fetchTrainees = async () => {
       const typeQuery = type === "all" ? "" : `&traineeTypeId=${type}`;
+      const payGradeQuery = payGrade === "all" ? "" : `&payGrade=${payGrade}`;
       // Use different endpoints based on whether activities are selected
       const endpoint =
         selectedActivities.length === 0
-          ? `/api/v1/reports/trainees/not-in-any-activity?ph=2${typeQuery}`
+          ? `/api/v1/reports/trainees/not-in-any-activity?ph=2${typeQuery}${payGradeQuery}`
           : `/api/v1/reports/trainees/not-in-activities?ids=${selectedActivities
               .map((a) => a.id)
-              .join(",")}${typeQuery}`;
+              .join(",")}${typeQuery}${payGradeQuery}`;
 
       const res = await api.get(endpoint);
       console.log(res);
       setTrainees(res.data.data.trainees);
     };
     fetchTrainees();
-  }, [selectedActivities, type]);
+  }, [selectedActivities, type, payGrade]);
 
   const handleExport = () => {
     if (trainees.length === 0) {
@@ -160,7 +162,7 @@ export default function NoActivitiesPage() {
     utils.book_append_sheet(
       workbook,
       worksheet,
-      `تقرير-المتدربين-غير-المسجلين`
+      `تقرير-المتدربين-غير-المسجلين`,
     );
 
     writeFile(workbook, `تقرير-المتدربين-غير-المسجلين.xlsx`);
@@ -274,8 +276,9 @@ export default function NoActivitiesPage() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <div>
+        <div className="flex gap-2">
           <TypeFilter type={type} setType={setType} />
+          <PayGradeFilter payGrade={payGrade} setPayGrade={setPayGrade} />
         </div>
         <div className="flex gap-2">
           <Button onClick={handlePrint} variant="outline">
@@ -352,6 +355,45 @@ function TypeFilter({ type, setType }: TypeFilterProps) {
           {traineesTypes?.map((type) => (
             <SelectItem key={type.id} value={String(type.id)}>
               {type.name}
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+  );
+}
+
+interface PayGradeFilterProps {
+  payGrade: string;
+  setPayGrade: React.Dispatch<React.SetStateAction<string>>;
+}
+
+function PayGradeFilter({ payGrade, setPayGrade }: PayGradeFilterProps) {
+  const PayGrades = [
+    "محامي عام من الفئة أ",
+    "محامي عام من الفئة ب",
+    "رئيس نيابة",
+    "نائب نيابة من الدرجة الأولى",
+    "نائب نيابة من الدرجة الثانية",
+    "وكيل نيابة من الدرجة الأولى",
+    "وكيل نيابة من الدرجة الثانية",
+    "وكيل نيابة من الدرجة الثالثة",
+    "مساعد نيابة",
+    "معاون نيابة",
+    "أخرى",
+  ];
+  return (
+    <Select dir="rtl" value={payGrade} onValueChange={setPayGrade}>
+      <SelectTrigger dir="rtl" className="w-32">
+        <SelectValue placeholder="الدرجة" />
+      </SelectTrigger>
+      <SelectContent dir="rtl" className="z-50 bg-background w-fit">
+        <SelectGroup>
+          <SelectLabel>الدرجة</SelectLabel>
+          <SelectItem value="all">الكل</SelectItem>
+          {PayGrades.map((payGrade) => (
+            <SelectItem key={payGrade} value={payGrade}>
+              {payGrade}
             </SelectItem>
           ))}
         </SelectGroup>
