@@ -1,5 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { getDifferenceDays } from "@/lib/getDifferenceDays";
+import { Checkbox } from "@/components/ui/checkbox";
+import DatePicker from "@/components/ui/DatePicker";
+import { format } from "date-fns";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,13 +59,47 @@ export default function InstructorActivities() {
     useState<Instructor | null>(null);
   const [fields, setFields] = useState<string[]>(allFields.map((f) => f.value));
 
+  const [isDate, setIsDate] = useState<boolean>(false);
+
+  const [dateFilter, setDateFilter] = useState<{
+    startDate: Date | undefined;
+    endDate: Date | undefined;
+  }>({
+    startDate: new Date(
+      `${
+        new Date().getMonth() >= 8
+          ? new Date().getFullYear()
+          : new Date().getFullYear() - 1
+      }-09-01`,
+    ),
+    endDate: new Date(
+      `${
+        new Date().getMonth() >= 8
+          ? new Date().getFullYear() + 1
+          : new Date().getFullYear()
+      }-06-30`,
+    ),
+  });
+
   useLayoutEffect(() => {
     const fetchActivities = async () => {
       try {
+        const queryParams = new URLSearchParams();
+        if (selectedInstructor?.id)
+          queryParams.append("search", String(selectedInstructor.id));
+        if (isDate && dateFilter.startDate && dateFilter.endDate) {
+          queryParams.append(
+            "startDate",
+            format(dateFilter.startDate, "yyyy-MM-dd"),
+          );
+          queryParams.append(
+            "endDate",
+            format(dateFilter.endDate, "yyyy-MM-dd"),
+          );
+        }
+
         const res = await api.get(
-          `/api/v1/reports/instructors/training-activities${
-            selectedInstructor?.id ? `?search=${selectedInstructor.id}` : ""
-          }`,
+          `/api/v1/reports/instructors/training-activities?${queryParams.toString()}`,
         );
         if (res.status === 200) {
           setActivities(res.data.data.activities);
@@ -73,7 +110,7 @@ export default function InstructorActivities() {
     };
 
     fetchActivities();
-  }, [selectedInstructor]);
+  }, [selectedInstructor, isDate, dateFilter]);
 
   const handleExport = () => {
     if (activities.length === 0) {
@@ -83,8 +120,14 @@ export default function InstructorActivities() {
     const workbook = utils.book_new();
 
     // Add title row
+    const dateRangeStr =
+      isDate && dateFilter.startDate && dateFilter.endDate
+        ? ` من ${format(dateFilter.startDate, "dd-MM-yyyy")} إلى ${format(dateFilter.endDate, "dd-MM-yyyy")}`
+        : "";
     const titleRow = [
-      [`تقرير-الأنشطة-التدريبية-الخاصة-بالمدرب-${selectedInstructor?.name}`],
+      [
+        `تقرير-الأنشطة-التدريبية-الخاصة-بالمدرب-${selectedInstructor?.name || ""}${dateRangeStr}`,
+      ],
     ];
     const worksheet = utils.aoa_to_sheet(titleRow);
 
@@ -226,11 +269,11 @@ export default function InstructorActivities() {
         return activity.traineesCount?.toString() || "//";
       case "startDate":
         return activity.startDate
-          ? new Date(activity.startDate).toLocaleDateString()
+          ? format(new Date(activity.startDate), "dd-MM-yyyy")
           : "//";
       case "endDate":
         return activity.endDate
-          ? new Date(activity.endDate).toLocaleDateString()
+          ? format(new Date(activity.endDate), "dd-MM-yyyy")
           : "//";
       case "daysCount":
         return activity.startDate && activity.endDate
@@ -265,9 +308,13 @@ export default function InstructorActivities() {
       return;
     }
 
+    const dateRangeStr =
+      isDate && dateFilter.startDate && dateFilter.endDate
+        ? ` من ${format(dateFilter.startDate, "dd-MM-yyyy")} إلى ${format(dateFilter.endDate, "dd-MM-yyyy")}`
+        : "";
     const reportTitle = selectedInstructor?.name
-      ? `تقرير الأنشطة التدريبية للمدرب ${selectedInstructor?.name}`
-      : "تقرير الأنشطة التدريبية للمدرب";
+      ? `تقرير الأنشطة التدريبية للمدرب ${selectedInstructor?.name}${dateRangeStr}`
+      : `تقرير الأنشطة التدريبية للمدرب${dateRangeStr}`;
 
     // Generate columns for the print table
     const columns = allFields
@@ -403,6 +450,39 @@ export default function InstructorActivities() {
           </DropdownMenu>
         </div>
 
+        <div className="flex items-center gap-3">
+          <label htmlFor="date-filter">تصفية حسب التاريخ:</label>
+          <Checkbox
+            id="date-filter"
+            checked={isDate}
+            onCheckedChange={(checked: boolean) => {
+              setIsDate(checked);
+            }}
+          />
+          {isDate && (
+            <>
+              <div>
+                <label>من:</label>
+                <DatePicker
+                  date={dateFilter.startDate as Date}
+                  setDate={(date: Date) =>
+                    setDateFilter({ ...dateFilter, startDate: date })
+                  }
+                />
+              </div>
+              <div>
+                <label>إلى:</label>
+                <DatePicker
+                  date={dateFilter.endDate as Date}
+                  setDate={(date: Date) =>
+                    setDateFilter({ ...dateFilter, endDate: date })
+                  }
+                />
+              </div>
+            </>
+          )}
+        </div>
+
         <div className="flex items-center gap-2">
           <Button onClick={handlePrint} variant="outline">
             <span>طباعة</span>
@@ -445,13 +525,15 @@ export default function InstructorActivities() {
                             : field.value === "status"
                               ? activity[field.value]
                               : field.value === "startDate"
-                                ? new Date(
-                                    activity[field.value],
-                                  ).toLocaleDateString()
+                                ? format(
+                                    new Date(activity[field.value]),
+                                    "dd-MM-yyyy",
+                                  )
                                 : field.value === "endDate"
-                                  ? new Date(
-                                      activity[field.value],
-                                    ).toLocaleDateString()
+                                  ? format(
+                                      new Date(activity[field.value]),
+                                      "dd-MM-yyyy",
+                                    )
                                   : field.value === "daysCount"
                                     ? activity.startDate && activity.endDate
                                       ? getDifferenceDays(
