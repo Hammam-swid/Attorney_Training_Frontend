@@ -12,6 +12,7 @@ interface PrintTableOptions<T> {
   columns: PrintTableColumn[];
   data: T[];
   getFieldValue: (item: T, field: string) => string;
+  sumsRow?: Record<string, string>;
 }
 
 /**
@@ -43,6 +44,13 @@ export function generatePrintHTML<T>(options: PrintTableOptions<T>): string {
       `
     )
     .join("");
+
+  const sumsRowHtml = options.sumsRow ? `
+    <tr class="sums-row">
+      <td>-</td>
+      ${columns.map(column => `<td>${options.sumsRow?.[column.value] || ''}</td>`).join("")}
+    </tr>
+  ` : "";
 
   return `
     <!DOCTYPE html>
@@ -98,6 +106,10 @@ export function generatePrintHTML<T>(options: PrintTableOptions<T>): string {
             color: #999;
             font-style: italic;
           }
+          .sums-row {
+            font-weight: bold;
+            background-color: #e5e5e5;
+          }
         </style>
       </head>
       <body>
@@ -111,6 +123,7 @@ export function generatePrintHTML<T>(options: PrintTableOptions<T>): string {
           </thead>
           <tbody>
             ${bodyRows}
+            ${sumsRowHtml}
           </tbody>
         </table>
       </body>

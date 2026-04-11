@@ -1,5 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "./button";
+import { Input } from "./input";
+import { useEffect, useState } from "react";
 
 interface PaginationProps {
   page: number;
@@ -14,6 +16,13 @@ export default function Pagination({
   totalCount,
 }: PaginationProps) {
   if (lastPage <= 1) return null;
+  const [inputPage, setInputPage] = useState(page);
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setPage(inputPage);
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [inputPage]);
   return (
     <div className="mt-8 space-y-2">
       <hr />
@@ -22,8 +31,21 @@ export default function Pagination({
           الإجمالي: <span className="font-semibold">{totalCount}</span>
         </span>
         <div className="flex items-center gap-2">
-          <span className="text-gray-500">
-            صفحة {page} من {lastPage}
+          <span className="text-gray-500 flex items-center gap-2">
+            <span>صفحة</span>
+            <Input
+              min={1}
+              max={lastPage}
+              value={inputPage}
+              className="min-w-10 max-w-20 text-black"
+              onChange={(e) => {
+                const num = parseInt(e.target.value);
+                if (num >= 1 && num <= lastPage) {
+                  setInputPage(num);
+                }
+              }}
+            />
+            من {lastPage}
           </span>
           <Button
             onClick={() => setPage(page - 1)}
@@ -41,7 +63,7 @@ export default function Pagination({
                 num === lastPage ||
                 num === page ||
                 page === num - 1 ||
-                page === num + 1
+                page === num + 1,
             )
             .map((num) => (
               <Button

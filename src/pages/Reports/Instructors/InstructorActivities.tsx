@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { getDifferenceDays } from "@/lib/getDifferenceDays";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,6 +41,7 @@ const allFields = [
   { label: "مجال التدريب", value: "domain" },
   { label: "تاريخ البداية", value: "startDate" },
   { label: "تاريخ النهاية", value: "endDate" },
+  { label: "عدد الأيام", value: "daysCount" },
   { label: "الجهة المنفذة", value: "executor" },
   { label: "الجهة المنظمة", value: "host" },
   { label: "تقييم المدرب", value: "instructorRatings" },
@@ -60,7 +62,7 @@ export default function InstructorActivities() {
         const res = await api.get(
           `/api/v1/reports/instructors/training-activities${
             selectedInstructor?.id ? `?search=${selectedInstructor.id}` : ""
-          }`
+          }`,
         );
         if (res.status === 200) {
           setActivities(res.data.data.activities);
@@ -140,6 +142,15 @@ export default function InstructorActivities() {
               ? new Date(activity.endDate).toLocaleDateString()
               : "//";
             break;
+          case "daysCount":
+            data["عدد الأيام"] =
+              activity.startDate && activity.endDate
+                ? getDifferenceDays(
+                    new Date(activity.startDate),
+                    new Date(activity.endDate),
+                  ).toString()
+                : "//";
+            break;
           case "rating":
             data["تقييم النشاط"] = activity.rating || "//";
             break;
@@ -194,7 +205,7 @@ export default function InstructorActivities() {
   // Helper function to get field value as string for printing
   const getPrintFieldValue = (
     activity: Activity,
-    fieldValue: string
+    fieldValue: string,
   ): string => {
     switch (fieldValue) {
       case "title":
@@ -220,6 +231,13 @@ export default function InstructorActivities() {
       case "endDate":
         return activity.endDate
           ? new Date(activity.endDate).toLocaleDateString()
+          : "//";
+      case "daysCount":
+        return activity.startDate && activity.endDate
+          ? getDifferenceDays(
+              new Date(activity.startDate),
+              new Date(activity.endDate),
+            ).toString()
           : "//";
       case "rating":
         return activity.rating?.toString() || "//";
@@ -259,12 +277,50 @@ export default function InstructorActivities() {
         value: field.value,
       }));
 
+    const hasSums = fields.includes("hours") || fields.includes("daysCount");
+    let sumsRow: Record<string, string> | undefined = undefined;
+
+    if (hasSums) {
+      sumsRow = {};
+      let isTotalLabelSet = false;
+      fields.forEach((field) => {
+        if (field === "hours") {
+          sumsRow![field] = activities
+            .reduce((sum, act) => sum + (Number(act.hours) || 0), 0)
+            .toString();
+        } else if (field === "daysCount") {
+          sumsRow![field] = activities
+            .reduce((sum, act) => {
+              if (!act.startDate || !act.endDate) return sum;
+              return (
+                sum +
+                (Number(
+                  getDifferenceDays(
+                    new Date(act.startDate),
+                    new Date(act.endDate),
+                  ),
+                ) || 0)
+              );
+            }, 0)
+            .toString();
+        } else {
+          if (!isTotalLabelSet) {
+            sumsRow![field] = "المجموع";
+            isTotalLabelSet = true;
+          } else {
+            sumsRow![field] = "";
+          }
+        }
+      });
+    }
+
     // Generate print HTML using utility function
     const printHTML = generatePrintHTML({
       title: reportTitle,
       columns,
       data: activities,
       getFieldValue: getPrintFieldValue,
+      sumsRow,
     });
 
     // Open print window using utility function
@@ -383,66 +439,88 @@ export default function InstructorActivities() {
                       {field.value === "title"
                         ? activity[field.value]
                         : field.value === "hours"
-                        ? activity[field.value] + " ساعة"
-                        : field.value === "location"
-                        ? activity[field.value]
-                        : field.value === "status"
-                        ? activity[field.value]
-                        : field.value === "startDate"
-                        ? new Date(activity[field.value]).toLocaleDateString()
-                        : field.value === "endDate"
-                        ? new Date(activity[field.value]).toLocaleDateString()
-                        : field.value === "type"
-                        ? activity?.type?.name
-                        : field.value === "domain"
-                        ? activity?.domain?.name
-                        : field.value === "rating"
-                        ? activity?.rating || (
-                            <span className="text-gray-400 dark:text-gray-600">
-                              //
-                            </span>
-                          )
-                        : field.value === "executor"
-                        ? activity?.executor?.name
-                        : field.value === "host"
-                        ? activity?.host?.name
-                        : //  field.value === "instructors"
-                        // ? activity?.instructors
-                        //     ?.map((instructor) => instructor.name)
-                        //     ?.join(", ") || (
-                        //     <span className="text-gray-400 dark:text-gray-600">
-                        //       //
-                        //     </span>
-                        //   )
-                        // :
-                        field.value === "instructorRatings"
-                        ? activity.instructors
-                            ?.filter(
-                              (instructor) =>
-                                instructor.id === selectedInstructor?.id
-                            )
-                            ?.map((instructor) => instructor.rating)
-                            ?.join(", ") || (
-                            <span className="text-gray-400 dark:text-gray-600">
-                              //
-                            </span>
-                          )
-                        : field.value === "trainees"
-                        ? activity?.traineesCount || (
-                            <span className="text-gray-400 dark:text-gray-600">
-                              //
-                            </span>
-                          )
-                        : field.value === "averageTraineesRating"
-                        ? activity?.activityTrainees
-                            .map((at) => at.rating)
-                            .reduce((a, b) => a + b, 0) /
-                            activity?.activityTrainees.length || (
-                            <span className="text-gray-400 dark:text-gray-600">
-                              //
-                            </span>
-                          )
-                        : null}
+                          ? activity[field.value] + " ساعة"
+                          : field.value === "location"
+                            ? activity[field.value]
+                            : field.value === "status"
+                              ? activity[field.value]
+                              : field.value === "startDate"
+                                ? new Date(
+                                    activity[field.value],
+                                  ).toLocaleDateString()
+                                : field.value === "endDate"
+                                  ? new Date(
+                                      activity[field.value],
+                                    ).toLocaleDateString()
+                                  : field.value === "daysCount"
+                                    ? activity.startDate && activity.endDate
+                                      ? getDifferenceDays(
+                                          new Date(activity.startDate),
+                                          new Date(activity.endDate),
+                                        )
+                                      : "//"
+                                    : field.value === "type"
+                                      ? activity?.type?.name
+                                      : field.value === "domain"
+                                        ? activity?.domain?.name
+                                        : field.value === "rating"
+                                          ? activity?.rating || (
+                                              <span className="text-gray-400 dark:text-gray-600">
+                                                //
+                                              </span>
+                                            )
+                                          : field.value === "executor"
+                                            ? activity?.executor?.name
+                                            : field.value === "host"
+                                              ? activity?.host?.name
+                                              : //  field.value === "instructors"
+                                                // ? activity?.instructors
+                                                //     ?.map((instructor) => instructor.name)
+                                                //     ?.join(", ") || (
+                                                //     <span className="text-gray-400 dark:text-gray-600">
+                                                //       //
+                                                //     </span>
+                                                //   )
+                                                // :
+                                                field.value ===
+                                                  "instructorRatings"
+                                                ? activity.instructors
+                                                    ?.filter(
+                                                      (instructor) =>
+                                                        instructor.id ===
+                                                        selectedInstructor?.id,
+                                                    )
+                                                    ?.map(
+                                                      (instructor) =>
+                                                        instructor.rating,
+                                                    )
+                                                    ?.join(", ") || (
+                                                    <span className="text-gray-400 dark:text-gray-600">
+                                                      //
+                                                    </span>
+                                                  )
+                                                : field.value === "trainees"
+                                                  ? activity?.traineesCount || (
+                                                      <span className="text-gray-400 dark:text-gray-600">
+                                                        //
+                                                      </span>
+                                                    )
+                                                  : field.value ===
+                                                      "averageTraineesRating"
+                                                    ? activity?.activityTrainees
+                                                        .map((at) => at.rating)
+                                                        .reduce(
+                                                          (a, b) => a + b,
+                                                          0,
+                                                        ) /
+                                                        activity
+                                                          ?.activityTrainees
+                                                          .length || (
+                                                        <span className="text-gray-400 dark:text-gray-600">
+                                                          //
+                                                        </span>
+                                                      )
+                                                    : null}
                     </TableCell>
                   ))}
               </TableRow>

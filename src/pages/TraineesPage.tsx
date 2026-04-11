@@ -75,7 +75,7 @@ export default function TraineesPage() {
     <div className="container px-5 mx-auto py-10 rtl">
       <div className="flex justify-between items-center mb-5">
         <h1 className="text-3xl font-bold">
-          قائمة المتدربين {selectedType?.name}
+          قائمة المستهدفين {typeId ? "-" : ""} {selectedType?.name || ""}
         </h1>
         <div className="flex gap-2">
           {typeId && (
@@ -119,7 +119,9 @@ export default function TraineesPage() {
             <TableHead className="text-center">العنوان</TableHead>
             <TableHead className="text-center">جهة العمل</TableHead>
             <TableHead className="text-center">النوع</TableHead>
-            <TableHead className="text-center">الدرجة القضائية</TableHead>
+            {selectedType?.hasPayGrade && (
+              <TableHead className="text-center">الدرجة القضائية</TableHead>
+            )}
             <TableHead className="text-center">ملاحظة</TableHead>
             <TableHead className="text-center">الإجراءات</TableHead>
           </TableRow>
@@ -150,9 +152,11 @@ export default function TraineesPage() {
                     <span className="text-muted">//</span>
                   )}
                 </TableCell>
-                <TableCell className="text-center">
-                  {trainee.payGrade || <span className="text-muted">//</span>}
-                </TableCell>
+                {selectedType?.hasPayGrade && (
+                  <TableCell className="text-center">
+                    {trainee.payGrade || <span className="text-muted">//</span>}
+                  </TableCell>
+                )}
                 <TableCell>{trainee.notes}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">

@@ -1,13 +1,6 @@
+import ActivityFieldsSelector from "@/components/activities/ActivityFieldsSelector";
 import { Button } from "@/components/ui/button";
 import DatePicker from "@/components/ui/DatePicker";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -33,13 +26,7 @@ import { ActivityTypeService } from "@/services/actvitiy-type.service";
 import { Activity } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import {
-  Check,
-  ChevronDown,
-  CircleCheck,
-  Download,
-  Printer,
-} from "lucide-react";
+import { Download, Printer } from "lucide-react";
 import { useLayoutEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { utils, writeFile as writeExcelFile } from "xlsx";
@@ -83,7 +70,7 @@ const initialFields = [
 // Helper function to get field value for display
 const getFieldValue = (
   activity: Activity,
-  fieldValue: string
+  fieldValue: string,
 ): React.ReactNode => {
   const emptyPlaceholder = (text: string) => (
     <span className="text-gray-400 dark:text-gray-600">{text}</span>
@@ -117,7 +104,7 @@ const getFieldValue = (
     case "daysCount":
       return getDifferenceDays(
         new Date(activity.startDate),
-        new Date(activity.endDate)
+        new Date(activity.endDate),
       );
     case "rating":
       return activity.rating || emptyPlaceholder("لا يوجد تقييم");
@@ -180,8 +167,8 @@ const getExportFieldValue = (activity: Activity, field: string): string => {
         String(
           getDifferenceDays(
             new Date(activity.startDate),
-            new Date(activity.endDate)
-          )
+            new Date(activity.endDate),
+          ),
         ) || "-"
       );
     case "rating":
@@ -224,14 +211,14 @@ export default function ActivitiesReports() {
         new Date().getMonth() >= 8
           ? new Date().getFullYear()
           : new Date().getFullYear() - 1
-      }-09-01`
+      }-09-01`,
     ),
     endDate: new Date(
       `${
         new Date().getMonth() >= 8
           ? new Date().getFullYear() + 1
           : new Date().getFullYear()
-      }-06-30`
+      }-06-30`,
     ),
   });
 
@@ -251,7 +238,7 @@ export default function ActivitiesReports() {
             selectedDomain && selectedDomain !== "all"
               ? `&domainId=${selectedDomain}`
               : ""
-          }`
+          }`,
         );
         setActivities(res.data.data.activities);
       } catch (error) {
@@ -272,7 +259,7 @@ export default function ActivitiesReports() {
       dateFilter.startDate && dateFilter.endDate
         ? `تقرير الأنشطة التدريبية من ${format(
             dateFilter.startDate,
-            "dd-MM-yyyy"
+            "dd-MM-yyyy",
           )} إلى ${format(dateFilter.endDate, "dd-MM-yyyy")}`
         : "تقرير الأنشطة التدريبية";
 
@@ -313,7 +300,7 @@ export default function ActivitiesReports() {
         dateFilter.startDate && dateFilter.endDate
           ? `تقرير الأنشطة التدريبية من ${format(
               dateFilter.startDate,
-              "dd-MM-yyyy"
+              "dd-MM-yyyy",
             )} إلى ${format(dateFilter.endDate, "dd-MM-yyyy")}`
           : "تقرير الأنشطة التدريبية";
 
@@ -336,6 +323,41 @@ export default function ActivitiesReports() {
         return data;
       });
 
+      // Add sums row
+      const hasSums = fields.includes("hours") || fields.includes("daysCount");
+      if (hasSums) {
+        const sumsRow: Record<string, string> = {};
+        let isTotalLabelSet = false;
+        fields.forEach((field) => {
+          const label = getFieldLabel(field);
+          if (field === "hours") {
+            const totalHours = activities.reduce(
+              (sum, activity) => sum + (Number(activity.hours) || 0),
+              0,
+            );
+            sumsRow[label] = totalHours.toString();
+          } else if (field === "daysCount") {
+            const totalDays = activities.reduce((sum, activity) => {
+              if (!activity.startDate || !activity.endDate) return sum;
+              const days = getDifferenceDays(
+                new Date(activity.startDate),
+                new Date(activity.endDate),
+              );
+              return sum + (Number(days) || 0);
+            }, 0);
+            sumsRow[label] = totalDays.toString();
+          } else {
+            if (!isTotalLabelSet) {
+              sumsRow[label] = "المجموع";
+              isTotalLabelSet = true;
+            } else {
+              sumsRow[label] = "";
+            }
+          }
+        });
+        exportData.push(sumsRow);
+      }
+
       // Add data starting from row 2
       utils.sheet_add_json(worksheet, exportData, { origin: "A2" });
 
@@ -349,7 +371,7 @@ export default function ActivitiesReports() {
           worksheet[cell_address].s = {
             alignment: { horizontal: "center", vertical: "center" },
             font: {
-              bold: R <= 1, // Bold for header row and title
+              bold: R <= 1 || (hasSums && R === range.e.r), // Bold for header row, title and sums row
               sz: R === 0 ? 14 : 12,
             },
           };
@@ -367,7 +389,7 @@ export default function ActivitiesReports() {
         dateFilter.startDate && dateFilter.endDate
           ? `تقرير-الأنشطة-التدريبية-من-${format(
               dateFilter.startDate,
-              "yyyy-MM-dd"
+              "yyyy-MM-dd",
             )}-إلى-${format(dateFilter.endDate, "yyyy-MM-dd")}.xlsx`
           : "تقرير-الأنشطة-التدريبية.xlsx";
 
@@ -383,59 +405,11 @@ export default function ActivitiesReports() {
     <div>
       <div className="flex justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Button
-            variant={"secondary"}
-            onClick={() => setFields(initialFields)}
-          >
-            تحديد الكل
-            {fields.length === allFields.length && (
-              <CircleCheck className="text-green-500" />
-            )}
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button variant={"outline"}>
-                {fields.length > 0
-                  ? `تم تحديد ${
-                      fields.length === allFields.length
-                        ? "كل الحقول"
-                        : fields.length + " حقل/حقول"
-                    }`
-                  : "اختر الحقول"}
-
-                <ChevronDown className="text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuLabel dir="rtl">الحقول</DropdownMenuLabel>
-              <DropdownMenuGroup dir="rtl">
-                {allFields.map((field) => (
-                  <DropdownMenuItem
-                    onClick={() => {
-                      if (fields.includes(field.value)) {
-                        setFields(fields.filter((f) => f !== field.value));
-                      } else {
-                        if (field.value === "all") {
-                          setFields(allFields.map((f) => f.value));
-                        } else {
-                          setFields([...fields, field.value]);
-                        }
-                      }
-                    }}
-                    key={field.value}
-                    className="flex items-center justify-between"
-                  >
-                    {field.label}
-                    {fields.includes(field.value) && (
-                      <Check className="ml-auto h-4 w-4" />
-                    )}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuGroup>
-
-              <ul className="flex flex-col gap-2"></ul>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ActivityFieldsSelector
+            fields={fields}
+            allFields={allFields}
+            setFields={setFields}
+          />
         </div>
         <Select dir="rtl" value={selectedType} onValueChange={setSelectedType}>
           <SelectTrigger dir="rtl" className="w-[180px]">
