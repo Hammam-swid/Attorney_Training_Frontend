@@ -280,7 +280,7 @@ export default function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         {/* مجموعة التقارير */}
-        {roleChecker(user, "admin") && (
+        {roleChecker(user, "admin", "moderator") && (
           <SidebarGroup>
             <SidebarGroupLabel>التقارير</SidebarGroupLabel>
             <SidebarGroupContent>
