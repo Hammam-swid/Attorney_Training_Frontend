@@ -2,6 +2,7 @@ import TraineeRating from "@/components/activities/TraineeRating";
 import AddTraineesToActivityDialog from "@/components/AddTraineesToActivityDialog";
 import ConfirmModal from "@/components/common/ConfirmModal";
 import TableSkeleton from "@/components/TableSkeleton";
+import TraineeName from "@/components/TraineeName";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -107,7 +108,9 @@ export default function ActivityTraineesPage() {
                 .map((trainee) => (
                   <TableRow key={trainee?.id}>
                     <TableCell className="font-medium">{trainee?.id}</TableCell>
-                    <TableCell>{trainee?.name}</TableCell>
+                    <TableCell>
+                      <TraineeName trainee={trainee} />
+                    </TableCell>
                     <TableCell>{trainee?.type}</TableCell>
                     <TableCell>
                       <span className="flex items-center gap-2">

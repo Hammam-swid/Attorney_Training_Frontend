@@ -24,6 +24,7 @@ import {
 } from "./ui/dialog";
 import { TraineesService } from "@/services/trainees.service";
 import Pagination from "./ui/pagination";
+import TraineeName from "./TraineeName";
 
 interface Props {
   activityId: string;
@@ -112,7 +113,7 @@ export default function AddTraineesToActivityDialog({
                     </TableCell>
                     <TableCell className="text-center">{trainee.id}</TableCell>
                     <TableCell className="text-center">
-                      {trainee.name}
+                      <TraineeName trainee={trainee} />
                     </TableCell>
                     <TableCell className="text-center">
                       {trainee.traineeType.name || "-"}

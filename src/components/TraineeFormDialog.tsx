@@ -30,6 +30,7 @@ import { useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { Textarea } from "./ui/textarea";
+import WorkplaceSelect from "./WorkplaceSelect";
 
 interface AddProps {
   type: "add";
@@ -135,12 +136,23 @@ const FormDialog: React.FC<Props> = ({ title, children, type, trainee }) => {
           </div>
           <div className="mb-4">
             <Label htmlFor="employer">جهة العمل</Label>
-            <Input
-              id="employer"
-              name="employer"
-              value={formik.values.employer}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
+            <WorkplaceSelect
+              allowFreeText
+              // prosecution members => النيابات, other types => الجهات الأخرى
+              category={
+                selectedTraineeType && !selectedTraineeType.hasPayGrade
+                  ? "other"
+                  : "prosecution"
+              }
+              value={{
+                workplaceId: formik.values.workplaceId ?? null,
+                name: formik.values.employer,
+              }}
+              onChange={(v) => {
+                formik.setFieldValue("workplaceId", v.workplaceId);
+                formik.setFieldValue("employer", v.name);
+                setTimeout(() => formik.setFieldTouched("employer", true), 100);
+              }}
             />
             {formik.touched.employer && formik.errors.employer && (
               <div className="text-sm text-destructive">
@@ -274,17 +286,24 @@ const useTraineeForm = ({ type, trainee }: Props) => {
   const { mutateAsync, isPending } = useMutation({
     mutationKey:
       type === "add" ? ["add-trainee"] : ["edit-trainee", { id: trainee?.id }],
-    mutationFn: (data: TraineeFormValues) =>
-      type === "add"
-        ? TraineesService.createTrainee({
-            ...data,
-            typeId: data.typeId || Number(typeId),
-            payGrade: Number(typeId) === 1 ? data.payGrade : undefined,
-          })
-        : TraineesService.updateTrainee(trainee.id, {
-            ...data,
-            payGrade: data.typeId === 1 ? data.payGrade : null,
-          }),
+    mutationFn: (data: TraineeFormValues) => {
+      // the grade is kept only for trainee types that have a pay grade
+      // (was hard-coded to typeId === 1 before)
+      const finalTypeId = data.typeId || Number(typeId);
+      const hasPayGrade = traineesTypes?.find(
+        (t) => t.id === finalTypeId,
+      )?.hasPayGrade;
+      const payload: TraineeFormValues = {
+        ...data,
+        typeId: finalTypeId,
+        payGrade: hasPayGrade ? data.payGrade || null : null,
+        // existing workplace => id, new name => text (created on the server)
+        workplaceId: data.workplaceId || null,
+      };
+      return type === "add"
+        ? TraineesService.createTrainee(payload)
+        : TraineesService.updateTrainee(trainee.id, payload);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [
@@ -295,6 +314,8 @@ const useTraineeForm = ({ type, trainee }: Props) => {
           { typeId },
         ],
       });
+      queryClient.invalidateQueries({ queryKey: ["trainees"] });
+      queryClient.invalidateQueries({ queryKey: ["workplaces"] });
       setOpen(false);
       toast.success("تم الحفظ بنجاح");
       if (type === "add") {
@@ -317,6 +338,7 @@ const useTraineeForm = ({ type, trainee }: Props) => {
       phone: trainee?.phone || "",
       address: trainee?.address || "",
       employer: trainee?.employer || "",
+      workplaceId: trainee?.workplaceId ?? trainee?.workplace?.id ?? null,
       typeId: trainee?.traineeType?.id || undefined,
       payGrade: trainee?.payGrade || "",
       notes: trainee?.notes || "",

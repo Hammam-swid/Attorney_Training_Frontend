@@ -5,6 +5,7 @@ const links = [
   { to: ".", label: "الأنشطة التدريبية" },
   { to: "one-activity", label: "المتدربون الخاصون بالأنشطة" },
   { to: "no-activity", label: "المتدربون الذين لم يشاركوا في الأنشطة" },
+  { to: "comprehensive", label: "التقرير الشامل (الأنشطة والمتدربين)" },
 ];
 
 export default function ActivitiesLayout() {

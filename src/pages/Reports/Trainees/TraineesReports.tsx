@@ -33,21 +33,21 @@ import DatePicker from "@/components/ui/DatePicker";
 import { format } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
 import api from "@/lib/api";
-import { generatePrintHTML, openPrintWindow } from "@/lib/printUtils";
+import {
+  generatePrintHTML,
+  nameCellStyle,
+  openPrintWindow,
+} from "@/lib/printUtils";
 import toast from "react-hot-toast";
 import { useQuery } from "@tanstack/react-query";
 import { TraineeTypeService } from "@/services/trainee-types.service";
+import WorkplaceSelect, { WorkplaceValue } from "@/components/WorkplaceSelect";
+import { NoteFlagLegend } from "@/components/TraineeName";
+import { NOTE_FLAG_STYLES, noteFlagOf } from "@/lib/noteFlag";
 
 type Field = {
   label: string;
   value: keyof Trainee;
-  // | "name"
-  // | "phone"
-  // | "address"
-  // | "employer"
-  // | "type"
-  // | "activitiesCount"
-  // | "payGrade";
 };
 
 const allFields: Field[] = [
@@ -58,7 +58,16 @@ const allFields: Field[] = [
   { label: "النوع", value: "traineeType" },
   { label: "الدرجة القضائية", value: "payGrade" },
   { label: "عدد الأنشطة", value: "activityCount" },
+  { label: "ملاحظات", value: "notes" },
 ];
+
+// Helper function to get field value as string for printing / export
+const getPrintFieldValue = (trainee: Trainee, fieldValue: string): string => {
+  const value = trainee[fieldValue as keyof Trainee];
+  if (value === null || value === undefined || value === "") return "//";
+  if (typeof value === "object" && "name" in value) return String(value.name);
+  return value.toString();
+};
 
 export default function TraineesReports() {
   const [trainees, setTrainees] = useState<Trainee[]>([]);
@@ -66,6 +75,11 @@ export default function TraineesReports() {
   const [type, setType] = useState<string>("all");
   const [payGrade, setPayGrade] = useState<string>("all");
   const [loading, setLoading] = useState<boolean>(false);
+  const [workplace, setWorkplace] = useState<WorkplaceValue>({
+    workplaceId: null,
+    name: "",
+  });
+  const [includeSub, setIncludeSub] = useState<boolean>(true);
   // ------------------------------------------------------------------
   const [isDate, setIsDate] = useState<boolean>(false);
 
@@ -95,48 +109,92 @@ export default function TraineesReports() {
         setLoading(true);
         const startDate = dateFilter.startDate;
         const endDate = dateFilter.endDate;
-        const dateQuery =
-          isDate && startDate && endDate
-            ? `?startDate=${format(startDate, "yyyy-MM-dd")}&endDate=${format(
-                endDate,
-                "yyyy-MM-dd"
-              )}`
-            : "";
-        const res = await api.get(`/api/v1/reports/trainees${dateQuery}`);
+        // all filters are sent to the server so that the table, the print and
+        // the Excel export use exactly the same list (members only => members only)
+        const params = new URLSearchParams();
+        if (isDate && startDate && endDate) {
+          params.set("startDate", format(startDate, "yyyy-MM-dd"));
+          params.set("endDate", format(endDate, "yyyy-MM-dd"));
+        }
+        if (type !== "all") params.set("traineeTypeId", type);
+        if (payGrade !== "all") params.set("payGrade", payGrade);
+        if (workplace.workplaceId) {
+          params.set("workplaceId", String(workplace.workplaceId));
+          if (includeSub) params.set("includeSub", "true");
+        }
+        const res = await api.get(
+          `/api/v1/reports/trainees?${params.toString()}`
+        );
         setTrainees(res.data.data.trainees);
       } catch (error) {
         console.log(error);
+        toast.error("تعذر تحميل التقرير");
       } finally {
         setLoading(false);
       }
     };
     fetchTrainees();
-  }, [dateFilter, isDate]);
+  }, [dateFilter, isDate, type, payGrade, workplace.workplaceId, includeSub]);
+
+  const { data: types } = useQuery({
+    queryKey: ["trainee-types"],
+    queryFn: TraineeTypeService.getTraineeTypes,
+  });
+
+  const selectedType = types?.find((t) => String(t.id) === type);
+
+  const reportTitle =
+    isDate && dateFilter.startDate && dateFilter.endDate
+      ? `تقرير المتدربين من ${format(
+          dateFilter.startDate,
+          "dd-MM-yyyy"
+        )} إلى ${format(dateFilter.endDate, "dd-MM-yyyy")}`
+      : "تقرير المتدربين";
+
+  const filterLines = [
+    selectedType ? `النوع: ${selectedType.name}` : "",
+    payGrade !== "all" ? `الدرجة: ${payGrade}` : "",
+    workplace.name
+      ? `جهة العمل: ${workplace.name}${
+          includeSub ? " (مع الجهات الفرعية)" : ""
+        }`
+      : "",
+    `العدد: ${trainees.length}`,
+  ].filter(Boolean);
 
   const handleExport = () => {
-    const data = trainees.map((trainee) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const traineeData: any = {};
-      allFields
-        .filter((f) => fields.includes(f.value))
-        .forEach((field) => {
-          traineeData[field.label] =
-            trainee[field.value as keyof Trainee] ?? "لا يوجد بيانات";
-        });
-      return traineeData;
-    });
+    if (trainees.length === 0) {
+      toast.error("لا يوجد بيانات للتصدير");
+      return;
+    }
+    const selected = allFields.filter((f) => fields.includes(f.value));
+    const header = selected.map((f) => f.label);
+    const rows = trainees.map((trainee) =>
+      selected.map((field) => {
+        const value = getPrintFieldValue(trainee, field.value);
+        if (field.value === "name") {
+          // SheetJS community build can't color cells: mark the flag in text
+          const flag = noteFlagOf(trainee);
+          return flag ? `${value} (${NOTE_FLAG_STYLES[flag].label})` : value;
+        }
+        return value === "//" ? "-" : value;
+      })
+    );
     const workbook = utils.book_new();
-    const worksheet = utils.json_to_sheet(data);
+    const worksheet = utils.aoa_to_sheet([
+      [reportTitle],
+      [filterLines.join("   ")],
+      header,
+      ...rows,
+    ]);
+    worksheet["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: header.length - 1 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: header.length - 1 } },
+    ];
+    worksheet["!cols"] = header.map(() => ({ wch: 25 }));
+    workbook.Workbook = { Views: [{ RTL: true }] };
     utils.book_append_sheet(workbook, worksheet, "Trainees");
     writeExcelFile(workbook, `تقرير-المتدربين.xlsx`);
-  };
-
-  // Helper function to get field value as string for printing
-  const getPrintFieldValue = (trainee: Trainee, fieldValue: string): string => {
-    const value = trainee[fieldValue as keyof Trainee];
-    if (value === null || value === undefined) return "//";
-    if (typeof value === "object" && "name" in value) return value.name;
-    return value.toString();
   };
 
   const handlePrint = async () => {
@@ -144,14 +202,6 @@ export default function TraineesReports() {
       toast.error("لا يوجد بيانات للطباعة");
       return;
     }
-
-    const reportTitle =
-      isDate && dateFilter.startDate && dateFilter.endDate
-        ? `تقرير المتدربين من ${format(
-            dateFilter.startDate,
-            "dd-MM-yyyy"
-          )} إلى ${format(dateFilter.endDate, "dd-MM-yyyy")}`
-        : "تقرير المتدربين";
 
     // Generate columns for the print table
     const columns = allFields
@@ -167,6 +217,10 @@ export default function TraineesReports() {
       columns,
       data: trainees,
       getFieldValue: getPrintFieldValue,
+      getCellStyle: (t, field) =>
+        field === "name" ? nameCellStyle(t) : undefined,
+      showNoteLegend: fields.includes("name"),
+      subtitleLines: filterLines,
     });
 
     // Open print window using utility function
@@ -178,16 +232,9 @@ export default function TraineesReports() {
     }
   };
 
-  const { data: types } = useQuery({
-    queryKey: ["trainee-types"],
-    queryFn: TraineeTypeService.getTraineeTypes,
-  });
-
-  const selectedType = types?.find((t) => String(t.id) === type);
-
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
         <div className="flex items-center gap-2">
           <Button
             variant={"secondary"}
@@ -250,6 +297,24 @@ export default function TraineesReports() {
             <PayGradeFilter payGrade={payGrade} setPayGrade={setPayGrade} />
           )}
         </div>
+        <div className="flex items-center gap-2">
+          <div className="w-64">
+            <WorkplaceSelect
+              value={workplace}
+              onChange={setWorkplace}
+              placeholder="كل جهات العمل"
+            />
+          </div>
+          {workplace.workplaceId && (
+            <label className="flex items-center gap-1 text-sm whitespace-nowrap">
+              <Checkbox
+                checked={includeSub}
+                onCheckedChange={(c) => setIncludeSub(!!c)}
+              />
+              مع الفرعية
+            </label>
+          )}
+        </div>
         <div className="flex items-center gap-3">
           <label htmlFor="date-filter">تصفية حسب التاريخ:</label>
           <Checkbox
@@ -294,14 +359,18 @@ export default function TraineesReports() {
           </Button>
         </div>
       </div>
+      <div className="flex items-center justify-between mb-2">
+        <NoteFlagLegend />
+        <span className="text-sm text-muted-foreground">
+          العدد: {trainees.length}
+        </span>
+      </div>
       {loading ? (
         <Loader2 className="animate-spin" />
       ) : (
         <TraineesTable
           trainees={trainees}
           fields={fields}
-          type={type}
-          payGrade={payGrade}
           allFields={allFields}
         />
       )}
@@ -353,7 +422,7 @@ const AllPayGrades = [
   "وكيل نيابة من الدرجة الثانية",
   "وكيل نيابة من الدرجة الثالثة",
   "مساعد نيابة",
-  "معاون نيابة",
+  "معاون نيابة",
   "أخرى",
 ];
 function PayGradeFilter({ payGrade, setPayGrade }: PayGradeFilterProps) {

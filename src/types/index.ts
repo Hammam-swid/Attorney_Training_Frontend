@@ -80,6 +80,36 @@ export interface Trainee {
   activityCount: number;
   isChangedPayGrade?: boolean;
   isChangedEmployer?: boolean;
+  workplaceId?: number | null;
+  workplace?: Workplace | null;
+  noteFlag?: NoteFlag;
+}
+
+export type NoteFlag = "transferred" | "seconded" | null;
+
+/** two separate trees: النيابات / جهات العمل الأخرى */
+export type WorkplaceCategory = "prosecution" | "other";
+
+export const WORKPLACE_CATEGORIES: Record<WorkplaceCategory, string> = {
+  prosecution: "النيابات",
+  other: "جهات العمل الأخرى",
+};
+
+export interface Workplace {
+  id: number;
+  name: string;
+  parentId: number | null;
+  category: WorkplaceCategory;
+  needsReview?: boolean;
+  traineesCount?: number;
+  path?: string;
+  aliases?: { id: number; name: string }[];
+}
+
+export interface WorkplaceNode extends Workplace {
+  totalTraineesCount: number;
+  path: string;
+  children: WorkplaceNode[];
 }
 
 export interface TraineeType {

@@ -29,7 +29,13 @@ import {
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { utils, writeFile } from "xlsx";
-import { generatePrintHTML, openPrintWindow } from "@/lib/printUtils";
+import {
+  generatePrintHTML,
+  nameCellStyle,
+  openPrintWindow,
+} from "@/lib/printUtils";
+import TraineeName, { NoteFlagLegend } from "@/components/TraineeName";
+import { NOTE_FLAG_STYLES, noteFlagOf } from "@/lib/noteFlag";
 import { TraineeTypeService } from "@/services/trainee-types.service";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -49,6 +55,7 @@ const allFields = [
   { label: "جهة العمل", value: "employer" },
   { label: "النوع", value: "traineeType[name]" },
   { label: "الدرجة القضائية", value: "payGrade" },
+  { label: "ملاحظات", value: "notes" },
 ];
 
 export default function NoActivitiesPage() {
@@ -84,7 +91,8 @@ export default function NoActivitiesPage() {
   useEffect(() => {
     const fetchTrainees = async () => {
       const typeQuery = type === "all" ? "" : `&traineeTypeId=${type}`;
-      const payGradeQuery = payGrade === "all" ? "" : `&payGrade=${payGrade}`;
+      const payGradeQuery =
+        payGrade === "all" ? "" : `&payGrade=${encodeURIComponent(payGrade)}`;
       // Use different endpoints based on whether activities are selected
       const endpoint =
         selectedActivities.length === 0
@@ -105,39 +113,19 @@ export default function NoActivitiesPage() {
       toast.error("لا يوجد بيانات لتصديرها");
       return;
     }
+    // same values as the table / print (fixes the missing "النوع" column)
     const data = trainees.map((trainee) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const traineeData: any = {};
-      fields.forEach((field) => {
-        switch (field) {
-          case "type":
-            traineeData["النوع"] = trainee.type || "//";
-            break;
-          case "payGrade":
-            traineeData["الدرجة القضائية"] = trainee.payGrade || "//";
-            break;
-          case "rating":
-            traineeData["التقييم"] = trainee.rating
-              ? trainee.rating.toFixed(2)
-              : "//";
-            break;
-          case "name":
-            traineeData["الاسم"] = trainee.name || "//";
-            break;
-          case "phone":
-            traineeData["الهاتف"] = trainee.phone || "//";
-            break;
-          case "address":
-            traineeData["العنوان"] = trainee.address || "//";
-            break;
-          case "employer":
-            traineeData["جهة العمل"] = trainee.employer || "//";
-            break;
-
-          default:
-            break;
-        }
-      });
+      const traineeData: Record<string, string> = {};
+      allFields
+        .filter((f) => fields.includes(f.value))
+        .forEach((field) => {
+          let value = getFieldValue(trainee, field.value);
+          if (field.value === "name") {
+            const flag = noteFlagOf(trainee);
+            if (flag) value = `${value} (${NOTE_FLAG_STYLES[flag].label})`;
+          }
+          traineeData[field.label] = value;
+        });
       return traineeData;
     });
 
@@ -190,6 +178,10 @@ export default function NoActivitiesPage() {
       columns,
       data: trainees,
       getFieldValue,
+      getCellStyle: (t, field) =>
+        field === "name" ? nameCellStyle(t) : undefined,
+      showNoteLegend: fields.includes("name"),
+      subtitleLines: [`العدد: ${trainees.length}`],
     });
 
     openPrintWindow(html).catch((error) => {
@@ -291,6 +283,12 @@ export default function NoActivitiesPage() {
           </Button>
         </div>
       </div>
+      <div className="flex items-center justify-between mb-2">
+        <NoteFlagLegend />
+        <span className="text-sm text-muted-foreground">
+          العدد: {trainees.length}
+        </span>
+      </div>
       <Table dir="rtl">
         <TableHeader>
           <TableRow>
@@ -313,7 +311,11 @@ export default function NoActivitiesPage() {
                   .filter((f) => fields.includes(f.value))
                   .map((field) => (
                     <TableCell key={field.value}>
-                      {getFieldValue(trainee, field.value)}
+                      {field.value === "name" ? (
+                        <TraineeName trainee={trainee} />
+                      ) : (
+                        getFieldValue(trainee, field.value)
+                      )}
                     </TableCell>
                   ))}
               </TableRow>

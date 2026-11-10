@@ -7,7 +7,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { TraineeTypeService } from "@/services/trainee-types.service";
 import { Input } from "./ui/input";
 import Dropzone from "./common/Dropzone";
@@ -15,7 +16,7 @@ import excelMimeTypes from "@/lib/excelMimeTypes";
 import { useFormik } from "formik";
 import { Button } from "./ui/button";
 import { Upload } from "lucide-react";
-import { TraineesService } from "@/services/trainees.service";
+import { ImportSummary, TraineesService } from "@/services/trainees.service";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
 import * as Yup from "yup";
@@ -26,7 +27,7 @@ interface Props {
 }
 
 export default function AddMultiTraineesForm({ children, typeId }: Props) {
-  const { selectedType, formik, open, setOpen, isPending } =
+  const { selectedType, formik, open, setOpen, isPending, summary } =
     useMultiTraineesForm(typeId);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -53,15 +54,60 @@ export default function AddMultiTraineesForm({ children, typeId }: Props) {
               }}
               file={formik.values.file}
             />
-            <div className="text-muted-foreground">
-              <ul>
+            <div className="text-muted-foreground text-sm">
+              <ul className="list-disc ps-5 space-y-1">
                 <li>يجب أن يحتوي الملف على عمودي "الاسم" و "جهة العمل".</li>
                 {selectedType?.hasPayGrade && (
                   <li>يجب أن يحتوي الملف على عمود "الدرجة".</li>
                 )}
+                <li>
+                  أعمدة اختيارية: "الجهة الرئيسية" (لوضع الجهة الجديدة تحت
+                  نيابة رئيسية) و"ملاحظات".
+                </li>
+                <li>
+                  تُربط جهة العمل تلقائياً بدليل النيابات حتى مع اختلاف الكتابة
+                  البسيط (ة/ه، أ/ا، المسافات)، وما لا يوجد يُضاف كجهة جديدة
+                  تحتاج مراجعة.
+                </li>
               </ul>
             </div>
           </div>
+          {summary && (
+            <div className="rounded-md border p-3 text-sm space-y-2">
+              <p className="font-semibold">
+                تمت إضافة {summary.added} وتحديث {summary.updated} من
+                المستهدفين
+                {summary.skipped ? ` (تم تجاهل ${summary.skipped} صف)` : ""}
+              </p>
+              {summary.createdWorkplaces.length > 0 && (
+                <div>
+                  <p className="text-amber-600">
+                    جهات عمل جديدة أُضيفت للدليل وتحتاج مراجعة (
+                    {summary.createdWorkplaces.length}):
+                  </p>
+                  <p className="text-muted-foreground">
+                    {summary.createdWorkplaces.map((w) => w.name).join("، ")}
+                  </p>
+                  <Link
+                    to="/workplaces?needsReview=true"
+                    className="text-primary underline"
+                    onClick={() => setOpen(false)}
+                  >
+                    مراجعتها في دليل جهات العمل
+                  </Link>
+                </div>
+              )}
+              {[...summary.warnings, ...summary.errors].length > 0 && (
+                <ul className="max-h-32 overflow-y-auto text-destructive">
+                  {[...summary.errors, ...summary.warnings].map((w, i) => (
+                    <li key={i}>
+                      صف {w.row} ({w.name}): {w.message}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
           <Button
             disabled={isPending || !formik.isValid}
             className="w-full"
@@ -88,15 +134,32 @@ const useMultiTraineesForm = (typeId: string | null) => {
   const selectedType = traineesTypes?.find(
     (type) => type.id === parseInt(typeId || "0"),
   );
-  const [open, setOpen] = useState(false);
+  const [open, setOpenState] = useState(false);
+  const [summary, setSummary] = useState<ImportSummary | null>(null);
+  const queryClient = useQueryClient();
+  const setOpen = (value: boolean) => {
+    setOpenState(value);
+    if (!value) setSummary(null);
+  };
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: async (file: File) =>
       TraineesService.addMultiTrainees(typeId || "", file),
-    onSuccess: () => {
-      toast.success("تم رفع الملف بنجاح");
-      setOpen(false);
+    onSuccess: (res) => {
+      toast.success(res.message || "تم رفع الملف بنجاح");
+      queryClient.invalidateQueries({ queryKey: ["trainees"] });
+      queryClient.invalidateQueries({ queryKey: ["workplaces"] });
       formik.resetForm();
+      const data = res.data;
+      // keep the dialog open to show new workplaces / warnings
+      if (
+        data &&
+        (data.createdWorkplaces.length || data.errors.length || data.warnings.length)
+      ) {
+        setSummary(data);
+      } else {
+        setOpen(false);
+      }
     },
     onError: (error) => {
       let message = "حدث خطأ، يرجى المحاولة مرة أخرى";
@@ -116,5 +179,5 @@ const useMultiTraineesForm = (typeId: string | null) => {
       await mutateAsync(values.file!);
     },
   });
-  return { selectedType, formik, open, setOpen, isPending };
+  return { selectedType, formik, open, setOpen, isPending, summary };
 };

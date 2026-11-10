@@ -1,4 +1,4 @@
-import { BookOpen, Building, User2, Users } from "lucide-react";
+import { BookOpen, Building, Network, User2, Users } from "lucide-react";
 import { Helmet } from "react-helmet";
 import { NavLink, Outlet } from "react-router-dom";
 
@@ -7,6 +7,7 @@ const links = [
   { to: "instructors", label: "المدربون", icon: User2 },
   { to: "trainees", label: "المتدربون", icon: Users },
   { to: "organizations", label: "الجهات المختصة", icon: Building },
+  { to: "workplaces", label: "جهات العمل", icon: Network },
 ];
 
 export default function ReportsLayout() {

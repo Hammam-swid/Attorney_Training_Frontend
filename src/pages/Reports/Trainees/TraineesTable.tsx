@@ -9,20 +9,18 @@ import {
 } from "@/components/ui/table";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useState, useEffect } from "react";
+import TraineeName from "@/components/TraineeName";
 
 interface TraineesTableProps {
+  /** already filtered list (same list used by print / export) */
   trainees: Trainee[];
   fields: string[];
-  type: string;
-  payGrade: string;
   allFields: { label: string; value: keyof Trainee }[];
 }
 
 export default function TraineesTable({
   trainees,
   fields,
-  type,
-  payGrade,
   allFields,
 }: TraineesTableProps) {
   const [displayedTrainees, setDisplayedTrainees] = useState<Trainee[]>([]);
@@ -31,6 +29,7 @@ export default function TraineesTable({
   useEffect(() => {
     // Initialize with the first batch of trainees
     setDisplayedTrainees(trainees.slice(0, 20));
+    setHasMore(trainees.length > 20);
   }, [trainees]);
 
   const fetchMoreData = () => {
@@ -50,7 +49,7 @@ export default function TraineesTable({
       dataLength={displayedTrainees.length}
       next={fetchMoreData}
       hasMore={hasMore}
-      loader={<></>} //{<Loader2 className="animate-spin" />}
+      loader={<></>}
     >
       <Table>
         <TableHeader>
@@ -66,36 +65,31 @@ export default function TraineesTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {displayedTrainees
-            ?.filter((t) =>
-              type === "all" ? true : String(t.traineeType.id) === type
-            )
-            .filter((t) =>
-              payGrade === "all" ? true : t.payGrade === payGrade
-            )
-            ?.map((trainee, index) => (
-              <TableRow key={trainee.id}>
-                <TableCell>{index + 1}</TableCell>
-                {allFields
-                  .filter((f) => fields.includes(f.value))
-                  .map((field) => (
-                    <TableCell className="text-center" key={field.value}>
-                      {(() => {
-                        const value = trainee[field.value as keyof Trainee];
-                        console.log(field.value);
-                        if (value === null || value === undefined) {
-                          return <span className="text-gray-500">//</span>;
-                        }
-                        // Handle TraineeType object
-                        if (typeof value === "object" && "name" in value) {
-                          return value.name;
-                        }
-                        return value;
-                      })()}
-                    </TableCell>
-                  ))}
-              </TableRow>
-            ))}
+          {displayedTrainees.map((trainee, index) => (
+            <TableRow key={trainee.id}>
+              <TableCell>{index + 1}</TableCell>
+              {allFields
+                .filter((f) => fields.includes(f.value))
+                .map((field) => (
+                  <TableCell className="text-center" key={field.value}>
+                    {(() => {
+                      if (field.value === "name") {
+                        return <TraineeName trainee={trainee} />;
+                      }
+                      const value = trainee[field.value as keyof Trainee];
+                      if (value === null || value === undefined || value === "") {
+                        return <span className="text-gray-500">//</span>;
+                      }
+                      // Handle TraineeType object
+                      if (typeof value === "object" && "name" in value) {
+                        return value.name;
+                      }
+                      return value as React.ReactNode;
+                    })()}
+                  </TableCell>
+                ))}
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
     </InfiniteScroll>
