@@ -41,6 +41,9 @@ import ActivityTypesPage from "./pages/settings/ActivityTypesPage";
 import TraineeTypesPage from "./pages/settings/TraineeTypesPage";
 import NoActivitiesPage from "./pages/Reports/Activities/NoActivitiesPage";
 import ActivityDomainsPage from "./pages/ActivityDomainsPage";
+import WorkplacesPage from "./pages/WorkplacesPage";
+import WorkplacesReports from "./pages/Reports/Workplaces/WorkplacesReports";
+import ComprehensiveReport from "./pages/Reports/Activities/ComprehensiveReport";
 // import { roleLoader } from "./lib/loaders";
 
 const routes = createRoutesFromElements(
@@ -121,6 +124,11 @@ const routes = createRoutesFromElements(
         errorElement={<ErrorPage />}
       />
       <Route
+        path="workplaces"
+        element={<WorkplacesPage />}
+        errorElement={<ErrorPage />}
+      />
+      <Route
         path="account"
         element={<AccountPage />}
         errorElement={<ErrorPage />}
@@ -161,7 +169,18 @@ const routes = createRoutesFromElements(
             element={<NoActivitiesPage />}
             errorElement={<ErrorPage />}
           />
+          <Route
+            path="comprehensive"
+            element={<ComprehensiveReport />}
+            errorElement={<ErrorPage />}
+          />
         </Route>
+
+        <Route
+          path="workplaces"
+          element={<WorkplacesReports />}
+          errorElement={<ErrorPage />}
+        />
 
         <Route
           path="instructors"

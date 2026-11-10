@@ -26,6 +26,9 @@ import { setTraineesPage, setTraineesSearch } from "@/store/traineesSlice";
 import { TraineeTypeService } from "@/services/trainee-types.service";
 import { roleChecker } from "@/lib/roleChecker";
 import AddMultiTraineesForm from "@/components/AddMultiTraineesForm";
+import TraineeName from "@/components/TraineeName";
+import WorkplaceSelect from "@/components/WorkplaceSelect";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const arTypes = {
   attorney: "عضو نيابة",
@@ -38,9 +41,29 @@ export default function TraineesPage() {
   const { search, page } = useAppSelector((state) => state.trainees);
   const user = useAppSelector((state) => state.auth.user);
   const dispatch = useDispatch();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const type = searchParams.get("type");
   const typeId = searchParams.get("typeId");
+  // workplace filter, kept in the url (?workplaceId=..&sub=0)
+  const workplaceId = searchParams.get("workplaceId");
+  const workplaceName = searchParams.get("workplaceName") || "";
+  const includeSub = searchParams.get("sub") !== "0";
+  const setWorkplaceFilter = (id: number | null, name: string, sub = includeSub) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (id) {
+        next.set("workplaceId", String(id));
+        next.set("workplaceName", name);
+      } else {
+        next.delete("workplaceId");
+        next.delete("workplaceName");
+      }
+      if (sub) next.delete("sub");
+      else next.set("sub", "0");
+      return next;
+    });
+    dispatch(setTraineesPage(1));
+  };
   const { data: traineesTypes } = useQuery({
     queryKey: ["trainee-types"],
     queryFn: TraineeTypeService.getTraineeTypes,
@@ -53,13 +76,22 @@ export default function TraineesPage() {
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["trainees", { page }, { search }, { type }, { typeId }],
+    queryKey: [
+      "trainees",
+      { page },
+      { search },
+      { type },
+      { typeId },
+      { workplaceId, includeSub },
+    ],
     queryFn: () =>
       TraineesService.getTrainees(
         page,
         search,
         arTypes[type as keyof typeof arTypes] || undefined,
         typeId || undefined,
+        10,
+        workplaceId ? { workplaceId, includeSub } : undefined,
       ),
   });
 
@@ -109,6 +141,34 @@ export default function TraineesPage() {
           onChange={(e) => setSearchText(e.target.value)}
           className="max-w-sm m-4"
         />
+        <Label className="ml-2 whitespace-nowrap">جهة العمل:</Label>
+        <div className="w-72">
+          <WorkplaceSelect
+            value={{
+              workplaceId: workplaceId ? Number(workplaceId) : null,
+              name: workplaceName,
+            }}
+            onChange={(v) => setWorkplaceFilter(v.workplaceId, v.name)}
+            placeholder="كل جهات العمل"
+            category={selectedType && !selectedType.hasPayGrade ? "other" : "prosecution"}
+          />
+        </div>
+        {workplaceId && (
+          <label className="flex items-center gap-1 text-sm whitespace-nowrap ms-3">
+            <Checkbox
+              checked={includeSub}
+              onCheckedChange={(c) =>
+                setWorkplaceFilter(Number(workplaceId), workplaceName, !!c)
+              }
+            />
+            مع الجهات الفرعية
+          </label>
+        )}
+        {data && (
+          <span className="ms-auto text-sm text-muted-foreground">
+            العدد: {data.totalCount}
+          </span>
+        )}
       </div>
       <Table>
         <TableHeader>
@@ -136,7 +196,11 @@ export default function TraineesPage() {
                   {trainee.id}
                 </TableCell>
                 <TableCell className="text-center">
-                  {trainee.name || <span className="text-muted">//</span>}
+                  {trainee.name ? (
+                    <TraineeName trainee={trainee} />
+                  ) : (
+                    <span className="text-muted">//</span>
+                  )}
                 </TableCell>
                 <TableCell className="text-center">
                   {trainee.phone || <span className="text-muted">//</span>}

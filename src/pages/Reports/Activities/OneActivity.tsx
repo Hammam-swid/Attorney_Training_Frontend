@@ -29,7 +29,13 @@ import {
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { utils, writeFile } from "xlsx";
-import { generatePrintHTML, openPrintWindow } from "@/lib/printUtils";
+import {
+  generatePrintHTML,
+  nameCellStyle,
+  openPrintWindow,
+} from "@/lib/printUtils";
+import TraineeName, { NoteFlagLegend } from "@/components/TraineeName";
+import { NOTE_FLAG_STYLES, noteFlagOf } from "@/lib/noteFlag";
 import {
   Select,
   SelectContent,
@@ -50,6 +56,7 @@ const allFields = [
   { label: "النوع", value: "traineeType[name]" },
   { label: "الدرجة القضائية", value: "payGrade" },
   { label: "التقييم", value: "rating" },
+  { label: "ملاحظات", value: "notes" },
 ];
 
 export default function OneActivity() {
@@ -95,16 +102,22 @@ export default function OneActivity() {
 
   useEffect(() => {
     const fetchTrainees = async () => {
-      const typeQuery = type !== "all" ? `&traineeTypeId=${type}` : "";
-      const res = await api.get(
-        `/api/v1/reports/training-activities/trainees${
-          selectedActivities.length > 0
-            ? `?activityIds=${selectedActivities.map((a) => a.id).join(",")}`
-            : ""
-        }${typeQuery}`
-      );
-      console.log(res);
-      setTrainees(res.data.data.trainees);
+      if (selectedActivities.length === 0) {
+        setTrainees([]);
+        return;
+      }
+      const params = new URLSearchParams();
+      params.set("activityIds", selectedActivities.map((a) => a.id).join(","));
+      if (type !== "all") params.set("traineeTypeId", type);
+      try {
+        const res = await api.get(
+          `/api/v1/reports/training-activities/trainees?${params.toString()}`
+        );
+        setTrainees(res.data.data.trainees);
+      } catch (error) {
+        console.error(error);
+        toast.error("تعذر تحميل التقرير");
+      }
     };
     fetchTrainees();
   }, [selectedActivities, type]);
@@ -114,39 +127,19 @@ export default function OneActivity() {
       toast.error("لا يوجد بيانات لتصديرها");
       return;
     }
+    // same values as the table / print (fixes the missing "النوع" column)
     const data = trainees.map((trainee) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const traineeData: any = {};
-      fields.forEach((field) => {
-        switch (field) {
-          case "type":
-            traineeData["النوع"] = trainee.type || "//";
-            break;
-          case "payGrade":
-            traineeData["الدرجة القضائية"] = trainee.payGrade || "//";
-            break;
-          case "rating":
-            traineeData["التقييم"] = trainee.rating
-              ? trainee.rating.toFixed(2)
-              : "//";
-            break;
-          case "name":
-            traineeData["الاسم"] = trainee.name || "//";
-            break;
-          case "phone":
-            traineeData["الهاتف"] = trainee.phone || "//";
-            break;
-          case "address":
-            traineeData["العنوان"] = trainee.address || "//";
-            break;
-          case "employer":
-            traineeData["جهة العمل"] = trainee.employer || "//";
-            break;
-
-          default:
-            break;
-        }
-      });
+      const traineeData: Record<string, string> = {};
+      allFields
+        .filter((f) => fields.includes(f.value))
+        .forEach((field) => {
+          let value = getFieldValue(trainee, field.value);
+          if (field.value === "name") {
+            const flag = noteFlagOf(trainee);
+            if (flag) value = `${value} (${NOTE_FLAG_STYLES[flag].label})`;
+          }
+          traineeData[field.label] = value;
+        });
       return traineeData;
     });
 
@@ -154,7 +147,9 @@ export default function OneActivity() {
     const titleRow = [
       [
         selectedActivities.length > 0
-          ? `تقرير-المتدربين-للنشاط-${selectedActivities.join("-")}`
+          ? `تقرير المتدربين للنشاط: ${selectedActivities
+              .map((a) => a.title)
+              .join(" - ")}`
           : "تقرير-الأنشطة-التدريبية",
       ],
     ];
@@ -193,6 +188,10 @@ export default function OneActivity() {
       columns,
       data: trainees,
       getFieldValue,
+      getCellStyle: (t, field) =>
+        field === "name" ? nameCellStyle(t) : undefined,
+      showNoteLegend: fields.includes("name"),
+      subtitleLines: [`العدد: ${trainees.length}`],
     });
 
     openPrintWindow(html).catch((error) => {
@@ -293,6 +292,12 @@ export default function OneActivity() {
           </Button>
         </div>
       </div>
+      <div className="flex items-center justify-between mb-2">
+        <NoteFlagLegend />
+        <span className="text-sm text-muted-foreground">
+          العدد: {trainees.length}
+        </span>
+      </div>
       <Table dir="rtl">
         <TableHeader>
           <TableRow>
@@ -315,7 +320,11 @@ export default function OneActivity() {
                   .filter((f) => fields.includes(f.value))
                   .map((field) => (
                     <TableCell key={field.value}>
-                      {getFieldValue(trainee, field.value)}
+                      {field.value === "name" ? (
+                        <TraineeName trainee={trainee} />
+                      ) : (
+                        getFieldValue(trainee, field.value)
+                      )}
                     </TableCell>
                   ))}
               </TableRow>

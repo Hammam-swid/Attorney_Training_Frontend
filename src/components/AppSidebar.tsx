@@ -19,6 +19,7 @@ import {
   Files,
   Home,
   LogOut,
+  Network,
   Settings,
   UserIcon,
   Users,
@@ -114,6 +115,7 @@ export default function AppSidebar() {
 
   const organizationLinks = [
     { label: "الجهات المختصة", to: "/organizations", icon: Building },
+    { label: "دليل جهات العمل (النيابات)", to: "/workplaces", icon: Network },
   ];
   // createLucideIcon("notepad-text");
 

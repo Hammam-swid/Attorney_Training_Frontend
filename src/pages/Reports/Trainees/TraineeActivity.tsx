@@ -33,6 +33,7 @@ import api from "@/lib/api";
 import { generatePrintHTML, openPrintWindow } from "@/lib/printUtils";
 import GenericSelector from "@/components/GenericSelector";
 import { TraineesService } from "@/services/trainees.service";
+import TraineeName from "@/components/TraineeName";
 
 const allFields = [
   { label: "العنوان", value: "title" },
@@ -49,12 +50,20 @@ const allFields = [
   { label: "تقييم المدربين", value: "instructorRatings" },
   { label: "تقييم النشاط", value: "rating" },
   { label: "تقييم المتدرب", value: "traineeRating" },
+  { label: "جهة العمل وقت النشاط", value: "traineeEmployer" },
 ];
+
+/** employer of the trainee at the time of the activity (snapshot) */
+const employerAtActivity = (activity: Activity, traineeId?: number) =>
+  activity.activityTrainees?.find((at) => at.trainee?.id === traineeId)
+    ?.traineeEmployer || "";
 
 export default function TraineeActivity() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [selectedTrainee, setSelectedTrainee] = useState<Trainee | null>(null);
   const [fields, setFields] = useState<string[]>(allFields.map((f) => f.value));
+  // full trainee info returned by the report (employer, grade, notes ...)
+  const [traineeInfo, setTraineeInfo] = useState<Trainee | null>(null);
 
   const [isDate, setIsDate] = useState<boolean>(false);
 
@@ -100,12 +109,30 @@ export default function TraineeActivity() {
         );
         const data = response.data;
         setActivities(data.data.activities);
+        setTraineeInfo(data.data.trainee ?? null);
       } catch (error) {
         console.error(error);
       }
     };
     fetchTrainees();
   }, [selectedTrainee, isDate, dateFilter]);
+
+  const trainee = traineeInfo ?? selectedTrainee;
+  // header lines of the printed / exported report (item 6: employer)
+  const traineeLines = trainee
+    ? [
+        `اسم المتدرب: ${trainee.name}`,
+        `جهة العمل: ${trainee.workplace?.path || trainee.employer || "-"}`,
+        trainee.payGrade ? `الدرجة: ${trainee.payGrade}` : "",
+        trainee.traineeType?.name ? `النوع: ${trainee.traineeType.name}` : "",
+        trainee.notes ? `ملاحظات: ${trainee.notes}` : "",
+        `عدد الأنشطة: ${activities.length}    مجموع الساعات: ${activities.reduce(
+          (s, a) => s + Number(a.hours || 0),
+          0,
+        )}`,
+      ].filter(Boolean)
+    : [];
+
   const handleExport = () => {
     if (activities.length === 0) {
       toast.error("لا يوجد بيانات لتصديرها");
@@ -123,12 +150,14 @@ export default function TraineeActivity() {
         `تقرير-الأنشطة-التدريبية-الخاصة-بالمتدرب-${selectedTrainee?.name || ""}${dateRangeStr}`,
       ],
     ];
-    const worksheet = utils.aoa_to_sheet(titleRow);
+    const infoRows = traineeLines.map((line) => [line]);
+    const worksheet = utils.aoa_to_sheet([...titleRow, ...infoRows]);
 
-    // Merge cells for title based on selected fields length
-    worksheet["!merges"] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: fields.length - 1 } },
-    ];
+    // Merge cells for title and trainee info based on selected fields length
+    worksheet["!merges"] = [titleRow, ...infoRows].map((_, r) => ({
+      s: { r, c: 0 },
+      e: { r, c: Math.max(fields.length - 1, 0) },
+    }));
 
     // Create dynamic data mapping based on selected fields
     const exportData = activities.map((activity) => {
@@ -195,13 +224,19 @@ export default function TraineeActivity() {
                 .map((at) => at.rating)
                 .join("") || "//";
             break;
+          case "traineeEmployer":
+            data["جهة العمل وقت النشاط"] =
+              employerAtActivity(activity, selectedTrainee?.id) || "//";
+            break;
         }
       });
       return data;
     });
 
-    // Add data starting from row 2
-    utils.sheet_add_json(worksheet, exportData, { origin: "A2" });
+    // Add data after the title and trainee info rows
+    utils.sheet_add_json(worksheet, exportData, {
+      origin: `A${titleRow.length + infoRows.length + 2}`,
+    });
 
     // Style all cells to be centered
     const range = utils.decode_range(worksheet["!ref"] || "A1");
@@ -245,6 +280,10 @@ export default function TraineeActivity() {
         return activity.status || "//";
       case "type":
         return activity.type?.name || "//";
+      case "domain":
+        return activity.domain?.name || "//";
+      case "traineeEmployer":
+        return employerAtActivity(activity, selectedTrainee?.id) || "//";
       case "executor":
         return activity.executor?.name || "//";
       case "host":
@@ -311,6 +350,7 @@ export default function TraineeActivity() {
       columns,
       data: activities,
       getFieldValue: getPrintFieldValue,
+      subtitleLines: traineeLines,
     });
 
     // Open print window using utility function
@@ -345,7 +385,15 @@ export default function TraineeActivity() {
           >
             <Button variant={"outline"}>اختر المتدرب</Button>
           </GenericSelector>
-          {selectedTrainee && <span>{selectedTrainee.name}</span>}
+          {selectedTrainee && (
+            <span className="flex flex-col">
+              <TraineeName trainee={trainee} />
+              <span className="text-sm text-muted-foreground">
+                جهة العمل: {trainee?.workplace?.path || trainee?.employer || "-"}
+                {trainee?.payGrade ? ` — ${trainee.payGrade}` : ""}
+              </span>
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -461,7 +509,10 @@ export default function TraineeActivity() {
                   ?.filter((field) => fields.includes(field.value))
                   ?.map((field) => (
                     <TableCell key={field.value}>
-                      {field.value === "title"
+                      {field.value === "traineeEmployer"
+                        ? employerAtActivity(activity, selectedTrainee?.id) ||
+                          "//"
+                        : field.value === "title"
                         ? activity[field.value]
                         : field.value === "hours"
                           ? activity[field.value] + " ساعة"
