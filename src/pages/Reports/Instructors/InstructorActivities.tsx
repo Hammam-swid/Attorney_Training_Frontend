@@ -1,16 +1,9 @@
 import { Button } from "@/components/ui/button";
+import ActivityFieldsSelector from "@/components/activities/ActivityFieldsSelector";
 import { getDifferenceDays } from "@/lib/getDifferenceDays";
 import { Checkbox } from "@/components/ui/checkbox";
 import DatePicker from "@/components/ui/DatePicker";
 import { format } from "date-fns";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -22,9 +15,6 @@ import {
 import api from "@/lib/api";
 import { Activity, Instructor } from "@/types";
 import {
-  Check,
-  ChevronDown,
-  CircleCheck,
   Download,
   Printer,
 } from "lucide-react";
@@ -399,55 +389,11 @@ export default function InstructorActivities() {
         </GenericSelector>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant={"secondary"}
-            onClick={() => setFields(allFields.map((f) => f.value))}
-          >
-            <span>تحديد الكل</span>
-            {fields.length === allFields.length && (
-              <CircleCheck className="text-green-500" />
-            )}
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button variant={"outline"}>
-                {fields.length > 0
-                  ? `تم تحديد ${
-                      fields.length === allFields.length
-                        ? "كل الحقول"
-                        : fields.length + " حقل/حقول"
-                    }`
-                  : "اختر الحقول"}
-
-                <ChevronDown className="text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuLabel dir="rtl">الحقول</DropdownMenuLabel>
-              <DropdownMenuGroup dir="rtl">
-                {allFields.map((field) => (
-                  <DropdownMenuItem
-                    onClick={() => {
-                      if (fields.includes(field.value)) {
-                        setFields(fields.filter((f) => f !== field.value));
-                      } else {
-                        setFields([...fields, field.value]);
-                      }
-                    }}
-                    key={field.value}
-                    className="flex items-center justify-between"
-                  >
-                    {field.label}
-                    {fields.includes(field.value) && (
-                      <Check className="ml-auto h-4 w-4" />
-                    )}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuGroup>
-
-              <ul className="flex flex-col gap-2"></ul>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ActivityFieldsSelector
+            fields={fields}
+            allFields={allFields}
+            setFields={setFields}
+          />
         </div>
 
         <div className="flex items-center gap-3">
