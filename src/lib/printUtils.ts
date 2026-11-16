@@ -33,7 +33,7 @@ export const BRAND = {
 const absoluteUrl = (path: string) =>
   typeof window !== "undefined" ? new URL(path, window.location.origin).href : path;
 
-const escapeHtml = (v: unknown) =>
+export const escapeHtml = (v: unknown) =>
   String(v ?? "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -211,11 +211,25 @@ const brandCss = `
     gap: 2px 18px;
     padding: 6px 12px;
     font-size: 9pt;
+    font-weight: normal;
+    color: ${BRAND.ink};
     background: ${BRAND.goldSoft};
     border: 1px solid ${BRAND.goldLine};
     border-top: 0;
+    text-align: start;
     break-after: avoid;
   }
+  /* the activity header lives in the table's <thead>, so the browser repeats
+     it (with the column titles) at the top of every page the table runs onto */
+  .group-table > thead > tr.group-head > th {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: start;
+  }
+  .group-head .group-title { text-align: start; }
+  .group-head + tr > th { border-top: 0; }
 
   /* ---------- footer (last page) ---------- */
   .report-footer {
@@ -230,7 +244,7 @@ const brandCss = `
 `;
 
 /** full branded document around a report body */
-function brandDocument(options: {
+export function brandDocument(options: {
   title: string;
   subtitleLines?: string[];
   showNoteLegend?: boolean;
@@ -381,12 +395,18 @@ export function generateGroupedPrintHTML<T>(options: {
   const body = groups
     .map(
       (g, gi) => `<section class="group">
-        <h2 class="group-title"><span class="group-index">${gi + 1}</span>${escapeHtml(g.title)}</h2>
-        <div class="group-details">${g.details
-          .map((d) => `<span>${escapeHtml(d)}</span>`)
-          .join("")}</div>
-        <table>
-          <thead>${header}</thead>
+        <table class="group-table">
+          <thead>
+            <tr class="group-head">
+              <th colspan="${columns.length + 1}">
+                <div class="group-title"><span class="group-index">${gi + 1}</span>${escapeHtml(g.title)}</div>
+                <div class="group-details">${g.details
+                  .map((d) => `<span>${escapeHtml(d)}</span>`)
+                  .join("")}</div>
+              </th>
+            </tr>
+            ${header}
+          </thead>
           <tbody>
             ${
               g.rows.length

@@ -28,6 +28,8 @@ import { roleChecker } from "@/lib/roleChecker";
 import AddMultiTraineesForm from "@/components/AddMultiTraineesForm";
 import TraineeName from "@/components/TraineeName";
 import WorkplaceSelect from "@/components/WorkplaceSelect";
+import NoteFilterSelect from "@/components/NoteFilterSelect";
+import { isNoteFilter, NoteFilter } from "@/lib/noteFlag";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const arTypes = {
@@ -64,6 +66,18 @@ export default function TraineesPage() {
     });
     dispatch(setTraineesPage(1));
   };
+  // notes filter, kept in the url (?notes=deceased ...)
+  const notesParam = searchParams.get("notes");
+  const notesFilter: NoteFilter = isNoteFilter(notesParam) ? notesParam : "all";
+  const setNotesFilter = (value: NoteFilter) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (value === "all") next.delete("notes");
+      else next.set("notes", value);
+      return next;
+    });
+    dispatch(setTraineesPage(1));
+  };
   const { data: traineesTypes } = useQuery({
     queryKey: ["trainee-types"],
     queryFn: TraineeTypeService.getTraineeTypes,
@@ -83,6 +97,7 @@ export default function TraineesPage() {
       { type },
       { typeId },
       { workplaceId, includeSub },
+      { notes: notesFilter },
     ],
     queryFn: () =>
       TraineesService.getTrainees(
@@ -92,6 +107,7 @@ export default function TraineesPage() {
         typeId || undefined,
         10,
         workplaceId ? { workplaceId, includeSub } : undefined,
+        notesFilter,
       ),
   });
 
@@ -140,6 +156,11 @@ export default function TraineesPage() {
           // onFocus={() => setPage(1)}
           onChange={(e) => setSearchText(e.target.value)}
           className="max-w-sm m-4"
+        />
+        <NoteFilterSelect
+          value={notesFilter}
+          onChange={setNotesFilter}
+          className="ml-4"
         />
         <Label className="ml-2 whitespace-nowrap">جهة العمل:</Label>
         <div className="w-72">

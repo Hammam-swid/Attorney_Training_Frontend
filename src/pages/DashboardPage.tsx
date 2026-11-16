@@ -17,7 +17,14 @@ import ActivitiesPerMonth from "@/components/stats/ActivitiesPerMonth";
 import ActivitiesPerType from "@/components/stats/ActivitiesPerType";
 import YearSelect from "@/components/ui/YearSelect";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
+import { printHTML } from "@/lib/printUtils";
+import {
+  DashboardPrintData,
+  generateDashboardPrintHTML,
+} from "@/lib/dashboardPrint";
 import { DashboardService } from "@/services/dashboard.service";
 import { Skeleton } from "@/components/ui/skeleton";
 import TraineesPerType from "@/components/stats/TraineesPerType";
@@ -35,6 +42,55 @@ export default function DashboardPage() {
     queryFn: () => DashboardService.getTop5Instructors(year),
   });
 
+  // organized print built from the data (not a print of the screen)
+  const queryClient = useQueryClient();
+  const [printing, setPrinting] = useState(false);
+  const handlePrint = async () => {
+    try {
+      setPrinting(true);
+      const monthsYear = year ?? new Date().getFullYear();
+      const [stats, perType, perMonth, traineeTypes, topInstructors] =
+        await Promise.all([
+          queryClient.fetchQuery({
+            queryKey: ["statistics", { year }],
+            queryFn: () => DashboardService.getStatistics(year),
+          }),
+          queryClient.fetchQuery({
+            queryKey: ["activities", "per-type", year],
+            queryFn: () => DashboardService.getActivitiesPerType(year),
+          }),
+          queryClient.fetchQuery({
+            queryKey: ["activities", "per-month", monthsYear],
+            queryFn: () => DashboardService.getActivitiesPerMonth(monthsYear),
+          }),
+          queryClient.fetchQuery({
+            queryKey: ["trainee-types", { year }],
+            queryFn: () => DashboardService.getTraineeTypes(year),
+          }),
+          queryClient.fetchQuery({
+            queryKey: ["top-5-instructors", { year }],
+            queryFn: () => DashboardService.getTop5Instructors(year),
+          }),
+        ]);
+      await printHTML(
+        generateDashboardPrintHTML({
+          year,
+          monthsYear,
+          statistics: stats,
+          activitiesPerType: perType as unknown as DashboardPrintData["activitiesPerType"],
+          activitiesPerMonth: perMonth,
+          traineesPerType: traineeTypes as unknown as DashboardPrintData["traineesPerType"],
+          topInstructors: topInstructors as unknown as DashboardPrintData["topInstructors"],
+        }),
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error("تعذر تجهيز الطباعة");
+    } finally {
+      setPrinting(false);
+    }
+  };
+
   return (
     <div className="container mx-auto p-8">
       <Helmet>
@@ -45,13 +101,18 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold">لوحة الإحصائيات</h1>
         <div className="flex items-center gap-2">
           <Button
-            onClick={() => window.print()}
+            onClick={handlePrint}
+            disabled={printing}
             variant="outline"
             size="icon"
             className="print-button"
             title="طباعة"
           >
-            <Printer className="w-4 h-4" />
+            {printing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Printer className="w-4 h-4" />
+            )}
           </Button>
           {year && (
             <Button

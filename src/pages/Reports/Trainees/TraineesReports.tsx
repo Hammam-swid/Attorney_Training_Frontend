@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import NoteFilterSelect from "@/components/NoteFilterSelect";
+import { matchesNoteFilter, NoteFilter, noteFilterLabel } from "@/lib/noteFlag";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,7 +72,10 @@ const getPrintFieldValue = (trainee: Trainee, fieldValue: string): string => {
 };
 
 export default function TraineesReports() {
-  const [trainees, setTrainees] = useState<Trainee[]>([]);
+  const [allTrainees, setTrainees] = useState<Trainee[]>([]);
+  // notes filter: the table, the print and the Excel all use this filtered list
+  const [notesFilter, setNotesFilter] = useState<NoteFilter>("all");
+  const trainees = allTrainees.filter((t) => matchesNoteFilter(t, notesFilter));
   const [fields, setFields] = useState<string[]>(allFields.map((f) => f.value));
   const [type, setType] = useState<string>("all");
   const [payGrade, setPayGrade] = useState<string>("all");
@@ -159,6 +164,7 @@ export default function TraineesReports() {
           includeSub ? " (مع الجهات الفرعية)" : ""
         }`
       : "",
+    notesFilter !== "all" ? `الملاحظات: ${noteFilterLabel(notesFilter)}` : "",
     `العدد: ${trainees.length}`,
   ].filter(Boolean);
 
@@ -284,6 +290,7 @@ export default function TraineesReports() {
           </DropdownMenu>
         </div>
         <div>
+          <NoteFilterSelect value={notesFilter} onChange={setNotesFilter} />
           <TypeFilter
             type={type}
             setType={(v) => {

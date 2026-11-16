@@ -1,4 +1,6 @@
 import ActivitiesSelector from "@/components/activities/ActivitiesSelector";
+import NoteFilterSelect from "@/components/NoteFilterSelect";
+import { matchesNoteFilter, NoteFilter, noteFilterLabel } from "@/lib/noteFlag";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -60,7 +62,10 @@ const allFields = [
 ];
 
 export default function OneActivity() {
-  const [trainees, setTrainees] = useState<Trainee[]>([]);
+  const [allTrainees, setTrainees] = useState<Trainee[]>([]);
+  // notes filter: the table, the print and the Excel all use this filtered list
+  const [notesFilter, setNotesFilter] = useState<NoteFilter>("all");
+  const trainees = allTrainees.filter((t) => matchesNoteFilter(t, notesFilter));
   const [fields, setFields] = useState<string[]>(allFields.map((f) => f.value));
   const [selectedActivities, setSelectedActivities] = useState<Activity[]>([]);
   const [type, setType] = useState<string>("all");
@@ -191,7 +196,10 @@ export default function OneActivity() {
       getCellStyle: (t, field) =>
         field === "name" ? nameCellStyle(t) : undefined,
       showNoteLegend: fields.includes("name"),
-      subtitleLines: [`العدد: ${trainees.length}`],
+      subtitleLines: [
+        notesFilter !== "all" ? `الملاحظات: ${noteFilterLabel(notesFilter)}` : "",
+        `العدد: ${trainees.length}`,
+      ].filter(Boolean),
     });
 
     openPrintWindow(html).catch((error) => {
@@ -279,6 +287,7 @@ export default function OneActivity() {
           </DropdownMenu>
         </div>
         <div>
+          <NoteFilterSelect value={notesFilter} onChange={setNotesFilter} />
           <TypeFilter type={type} setType={setType} />
         </div>
         <div className="flex gap-2">

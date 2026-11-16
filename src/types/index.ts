@@ -85,7 +85,7 @@ export interface Trainee {
   noteFlag?: NoteFlag;
 }
 
-export type NoteFlag = "transferred" | "seconded" | null;
+export type NoteFlag = "deceased" | "seconded" | "transferred" | "other" | null;
 
 /** two separate trees: النيابات / جهات العمل الأخرى */
 export type WorkplaceCategory = "prosecution" | "other";

@@ -3,6 +3,8 @@ import AddTraineesToActivityDialog from "@/components/AddTraineesToActivityDialo
 import ConfirmModal from "@/components/common/ConfirmModal";
 import TableSkeleton from "@/components/TableSkeleton";
 import TraineeName from "@/components/TraineeName";
+import NoteFilterSelect from "@/components/NoteFilterSelect";
+import { matchesNoteFilter, NoteFilter } from "@/lib/noteFlag";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,6 +42,7 @@ export default function ActivityTraineesPage() {
   });
 
   const [search, setSearch] = useState<string>("");
+  const [notesFilter, setNotesFilter] = useState<NoteFilter>("all");
   const [selectRating, setSelectRating] = useState<number>();
 
   console.log(data?.traineesForActivity);
@@ -73,6 +76,8 @@ export default function ActivityTraineesPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          <NoteFilterSelect value={notesFilter} onChange={setNotesFilter} />
+          <div className="flex-1" />
           <AddTraineesToActivityDialog
             activityId={activityId!}
             oldTrainees={trainees}
@@ -99,7 +104,8 @@ export default function ActivityTraineesPage() {
               <TableSkeleton columns={6} />
             ) : (
               trainees
-                ?.filter((trainee) => {
+                ?.filter((trainee) => matchesNoteFilter(trainee, notesFilter))
+                .filter((trainee) => {
                   if (!search) return true;
                   return trainee.name
                     .toLowerCase()

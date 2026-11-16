@@ -25,6 +25,20 @@ import {
 import { TraineesService } from "@/services/trainees.service";
 import Pagination from "./ui/pagination";
 import TraineeName from "./TraineeName";
+import NoteFilterSelect from "./NoteFilterSelect";
+import { NoteFilter } from "@/lib/noteFlag";
+import { AxiosError } from "axios";
+
+interface AddTraineesResult {
+  status: "success" | "partial";
+  message?: string;
+  data?: {
+    added: { id: number; name: string }[];
+    alreadyInActivity: { id: number; name: string }[];
+    notFound: number[];
+    failed: { id: number; name: string; message: string }[];
+  };
+}
 
 interface Props {
   activityId: string;
@@ -51,6 +65,8 @@ export default function AddTraineesToActivityDialog({
     page,
     lastPage,
     totalCount,
+    notesFilter,
+    setNotesFilter,
   } = useAddTraineesDialog(activityId);
   return (
     <Dialog>
@@ -66,6 +82,7 @@ export default function AddTraineesToActivityDialog({
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
           />
+          <NoteFilterSelect value={notesFilter} onChange={setNotesFilter} />
         </div>
         {selectedTrainees.length > 0 && (
           <div>تم تحديد {selectedTrainees.length} متدرب</div>
@@ -160,10 +177,15 @@ const useAddTraineesDialog = (activityId: string) => {
   const [search, setSearch] = useState<string>("");
   const [searchText, setSearchText] = useState<string>("");
   const [page, setPage] = useState<number>(1);
+  const [notesFilter, setNotesFilterState] = useState<NoteFilter>("all");
+  const setNotesFilter = (value: NoteFilter) => {
+    setNotesFilterState(value);
+    setPage(1);
+  };
   const { data, isLoading } = useQuery({
-    queryKey: ["trainees", { search }, { page }],
+    queryKey: ["trainees", { search }, { page }, { notes: notesFilter }],
     queryFn: () =>
-      TraineesService.getTrainees(page, search, undefined, undefined, 5),
+      TraineesService.getTrainees(page, search, undefined, undefined, 5, undefined, notesFilter),
   });
   const trainees = data?.data || [];
   const { mutateAsync, isPending } = useMutation({
@@ -173,15 +195,35 @@ const useAddTraineesDialog = (activityId: string) => {
         activityId,
         selectedTrainees.map((t) => t.id),
       ),
-    onSuccess: () => {
-      toast.success("تمت إضافة المتدربين بنجاح");
+    onSuccess: (res) => {
+      // the server says what really happened to each trainee
+      const result = res as AddTraineesResult;
+      const failedNames = result.data?.failed?.map((f) => f.name) ?? [];
+      const message =
+        result.message ||
+        "تمت إضافة المتدربين بنجاح";
+      const details = failedNames.length
+        ? `${message}\nلم تتم إضافة: ${failedNames.join("، ")}`
+        : message;
+      if (result.status === "success" && !result.data?.alreadyInActivity?.length) {
+        toast.success(details);
+      } else if (result.data?.added?.length) {
+        toast(details, { icon: "⚠️", duration: 6000 });
+      } else {
+        toast.error(details, { duration: 6000 });
+      }
       queryClient.invalidateQueries({
         queryKey: ["trainees", { activityId }],
       });
-      setSelectedTrainees([]);
+      // keep selected only the trainees that could not be added, to retry
+      const failedIds = new Set(result.data?.failed?.map((f) => f.id) ?? []);
+      setSelectedTrainees((prev) => prev.filter((t) => failedIds.has(t.id)));
     },
-    onError() {
-      toast.error("حدث خطأ أثناء إضافة المتدربين");
+    onError(error) {
+      toast.error(
+        (error as AxiosError<{ message?: string }>)?.response?.data?.message ||
+          "حدث خطأ أثناء إضافة المتدربين",
+      );
     },
   });
 
@@ -193,6 +235,8 @@ const useAddTraineesDialog = (activityId: string) => {
   }, [searchText]);
 
   return {
+    notesFilter,
+    setNotesFilter,
     mutateAsync,
     isPending,
     selectedTrainees,

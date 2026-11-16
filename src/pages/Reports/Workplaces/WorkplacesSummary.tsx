@@ -1,15 +1,6 @@
 import { useMemo, useState } from "react";
 import { ChevronDown, ChevronLeft, Loader2 } from "lucide-react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  LabelList,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+
 import {
   Table,
   TableBody,
@@ -35,7 +26,9 @@ export interface WorkplaceRow {
 }
 
 export const ratioOf = (r: WorkplaceRow) =>
-  r.totalTrainees ? Math.round((r.totalAttended / r.totalTrainees) * 100) : null;
+  r.totalTrainees
+    ? Math.round((r.totalAttended / r.totalTrainees) * 100)
+    : null;
 
 interface Props {
   rows: WorkplaceRow[];
@@ -57,7 +50,8 @@ const buildTree = (rows: WorkplaceRow[]) => {
       children.get(r.parentId)!.push(r);
     } else roots.push(r);
   }
-  const byName = (a: WorkplaceRow, b: WorkplaceRow) => a.name.localeCompare(b.name, "ar");
+  const byName = (a: WorkplaceRow, b: WorkplaceRow) =>
+    a.name.localeCompare(b.name, "ar");
   roots.sort(byName);
   children.forEach((list) => list.sort(byName));
   return { roots, children };
@@ -77,17 +71,12 @@ export default function WorkplacesSummary({
     () => (hideEmpty ? rows.filter((r) => r.totalTrainees > 0) : rows),
     [rows, hideEmpty],
   );
-  const { roots, children } = useMemo(() => buildTree(visibleRows), [visibleRows]);
+  const { roots, children } = useMemo(
+    () => buildTree(visibleRows),
+    [visibleRows],
+  );
 
   // chart: main workplaces with trainees, best ratio first
-  const chartData = useMemo(
-    () =>
-      roots
-        .filter((r) => r.totalTrainees > 0)
-        .map((r) => ({ name: r.name, ratio: ratioOf(r) ?? 0, total: r.totalTrainees }))
-        .sort((a, b) => b.ratio - a.ratio),
-    [roots],
-  );
 
   if (isLoading) return <Loader2 className="animate-spin" />;
 
@@ -112,7 +101,10 @@ export default function WorkplacesSummary({
         onClick={() => onSelect(r)}
       >
         <TableCell>
-          <div className="flex items-center gap-1" style={{ paddingInlineStart: `${depth * 1.5}rem` }}>
+          <div
+            className="flex items-center gap-1"
+            style={{ paddingInlineStart: `${depth * 1.5}rem` }}
+          >
             {kids.length ? (
               <button
                 type="button"
@@ -123,14 +115,20 @@ export default function WorkplacesSummary({
                   toggle(r.id);
                 }}
               >
-                {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+                {isOpen ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronLeft className="h-4 w-4" />
+                )}
               </button>
             ) : (
               <span className="w-5" />
             )}
             <span className={cn(depth === 0 && "font-medium")}>{r.name}</span>
             {kids.length > 0 && (
-              <span className="text-xs text-muted-foreground">({kids.length} فرعية)</span>
+              <span className="text-xs text-muted-foreground">
+                ({kids.length} فرعية)
+              </span>
             )}
           </div>
         </TableCell>
@@ -143,7 +141,10 @@ export default function WorkplacesSummary({
           ) : (
             <div className="flex items-center gap-2 min-w-28">
               <div className="h-2 flex-1 rounded bg-muted overflow-hidden">
-                <div className="h-full bg-primary" style={{ width: `${ratio}%` }} />
+                <div
+                  className="h-full bg-primary"
+                  style={{ width: `${ratio}%` }}
+                />
               </div>
               <span className="text-xs w-9 text-end">{ratio}%</span>
             </div>
@@ -156,46 +157,14 @@ export default function WorkplacesSummary({
 
   return (
     <div className="space-y-6">
-      {chartData.length > 1 && (
-        <div className="rounded-md border p-4">
-          <h3 className="font-semibold mb-1">نسبة المتحصلين حسب الجهة الرئيسية</h3>
-          <p className="text-xs text-muted-foreground mb-3">
-            النسبة = المتحصلون ÷ عدد المستهدفين في الجهة وفروعها
-          </p>
-          <ResponsiveContainer width="100%" height={Math.max(160, chartData.length * 28 + 40)}>
-            <BarChart data={chartData} layout="vertical" margin={{ left: 8, right: 40 }}>
-              <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-              <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} reversed />
-              <YAxis
-                type="category"
-                dataKey="name"
-                width={220}
-                orientation="right"
-                tick={{ fontSize: 12 }}
-                interval={0}
-              />
-              <Tooltip
-                formatter={(v: number, _n, item) => [`${v}% من ${item.payload.total}`, "المتحصلون"]}
-              />
-              <Bar dataKey="ratio" fill="hsl(var(--primary))" radius={[4, 0, 0, 4]} barSize={16}>
-                <LabelList
-                  dataKey="ratio"
-                  position="left"
-                  formatter={(v: number) => `${v}%`}
-                  style={{ fontSize: 11 }}
-                />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
       {allParentIds.length > 0 && (
         <Button
           variant="ghost"
           size="sm"
           onClick={() =>
-            setExpanded((prev) => (prev.size ? new Set() : new Set(allParentIds)))
+            setExpanded((prev) =>
+              prev.size ? new Set() : new Set(allParentIds),
+            )
           }
         >
           {expanded.size ? "طي كل الجهات" : "عرض كل الجهات الفرعية"}
@@ -216,7 +185,10 @@ export default function WorkplacesSummary({
             roots.flatMap((r) => renderRow(r, 0))
           ) : (
             <TableRow>
-              <TableCell colSpan={5} className="text-center text-muted-foreground">
+              <TableCell
+                colSpan={5}
+                className="text-center text-muted-foreground"
+              >
                 لا توجد جهات
               </TableCell>
             </TableRow>

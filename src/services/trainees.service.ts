@@ -9,6 +9,8 @@ export class TraineesService {
     typeId?: string,
     limit: number = 10,
     workplace?: { workplaceId: string | number; includeSub?: boolean },
+    /** notes filter: none | any | deceased | seconded | transferred | other */
+    notes?: string,
   ) {
     const searchParam = search ? `&search=${encodeURIComponent(search)}` : "";
     const typeParam = type ? `&type=${type}` : "";
@@ -16,9 +18,10 @@ export class TraineesService {
     const workplaceParam = workplace
       ? `&workplaceId=${workplace.workplaceId}${workplace.includeSub ? "&includeSub=true" : ""}`
       : "";
+    const notesParam = notes && notes !== "all" ? `&notes=${notes}` : "";
 
     const res = await api.get<PaginatedData<Trainee>>(
-      `/api/v1/trainees?page=${page}&limit=${limit}${searchParam}${typeParam}${typeIdParam}${workplaceParam}`,
+      `/api/v1/trainees?page=${page}&limit=${limit}${searchParam}${typeParam}${typeIdParam}${workplaceParam}${notesParam}`,
     );
     return res.data;
   }

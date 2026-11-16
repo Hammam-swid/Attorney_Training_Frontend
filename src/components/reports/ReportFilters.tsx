@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/select";
 import { TraineeTypeService } from "@/services/trainee-types.service";
 import { Activity } from "@/types";
+import NoteFilterSelect from "@/components/NoteFilterSelect";
+import { isNoteFilter, NoteFilter, noteFilterLabel } from "@/lib/noteFlag";
 
 const academicYear = () => {
   const now = new Date();
@@ -37,6 +39,8 @@ export interface ReportFiltersState {
   traineeTypeId: string; // "all" or id
   workplace: WorkplaceValue;
   includeSub: boolean;
+  /** notes filter (same categories as the name colors) */
+  notes: NoteFilter;
 }
 
 const toDay = (d: Date) => format(d, "yyyy-MM-dd");
@@ -56,6 +60,7 @@ const KEYS = {
   workplaceId: "workplaceId",
   workplaceName: "workplaceName",
   sub: "sub", // "0" = without sub offices
+  notes: "notes",
 };
 
 /**
@@ -92,6 +97,9 @@ export const useReportFilters = (options: { defaultPeriod?: boolean } = {}) => {
         name: workplaceId ? searchParams.get(KEYS.workplaceName) || "" : "",
       },
       includeSub: searchParams.get(KEYS.sub) !== "0",
+      notes: isNoteFilter(searchParams.get(KEYS.notes))
+        ? (searchParams.get(KEYS.notes) as NoteFilter)
+        : "all",
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, options.defaultPeriod]);
@@ -116,6 +124,7 @@ export const useReportFilters = (options: { defaultPeriod?: boolean } = {}) => {
         set(KEYS.workplaceId, f.workplace.workplaceId ? String(f.workplace.workplaceId) : null);
         set(KEYS.workplaceName, f.workplace.workplaceId ? f.workplace.name : null);
         set(KEYS.sub, f.includeSub ? null : "0");
+        set(KEYS.notes, f.notes === "all" ? null : f.notes);
         return next;
       },
       { replace: true },
@@ -154,6 +163,7 @@ export const filtersToParams = (
     params.set("endDate", format(f.endDate, "yyyy-MM-dd"));
   }
   if (f.traineeTypeId !== "all") params.set("traineeTypeId", f.traineeTypeId);
+  if (f.notes !== "all") params.set("notes", f.notes);
   if (options.workplace && f.workplace.workplaceId) {
     params.set("workplaceId", String(f.workplace.workplaceId));
     if (f.includeSub) params.set("includeSub", "true");
@@ -178,6 +188,7 @@ export const describeFilters = (
         )}`
       : "",
     traineeTypeName ? `النوع: ${traineeTypeName}` : "",
+    f.notes !== "all" ? `الملاحظات: ${noteFilterLabel(f.notes)}` : "",
     options.workplace && f.workplace.name
       ? `جهة العمل: ${f.workplace.name}${f.includeSub ? " (مع الجهات الفرعية)" : ""}`
       : "",
@@ -253,6 +264,8 @@ export default function ReportFilters({
           </SelectGroup>
         </SelectContent>
       </Select>
+
+      <NoteFilterSelect value={filters.notes} onChange={(notes) => update({ notes })} />
 
       {showWorkplace && (
         <div className="flex items-center gap-2">
